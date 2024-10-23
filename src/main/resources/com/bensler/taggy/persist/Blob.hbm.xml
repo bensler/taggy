@@ -1,0 +1,23 @@
+<?xml version = "1.0" encoding = "utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+"-//Hibernate/Hibernate Mapping DTD//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"> 
+
+<hibernate-mapping>
+  <class name="com.bensler.taggy.persist.Blob" table="blob">
+    <id name="id" type="int" column="id">
+      <generator class="identity"/>
+    </id>
+
+    <property name="filename" column="filename" type="string"/>
+    <property name="sha256sum" column="sha256sum" type="string"/>
+    <property name="thumbnailSha" column="thumbnail_sha" type="string"/>
+    <set name="tags" table="blob_tag_xref" lazy="false" fetch="join">
+      <key><column name="blob_id" not-null="true" /></key>
+      <many-to-many entity-name="com.bensler.taggy.persist.Tag">
+        <column name="tag_id" />
+      </many-to-many>
+    </set>
+  </class>
+</hibernate-mapping>
+

@@ -1,0 +1,4 @@
+
+ALTER TABLE "blob" 
+  ADD COLUMN "sha256sum" VARCHAR(64) NULL;
+

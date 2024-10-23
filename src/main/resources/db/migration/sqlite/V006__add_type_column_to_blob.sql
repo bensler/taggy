@@ -1,0 +1,4 @@
+
+ALTER TABLE "blob" 
+  ADD COLUMN "type" VARCHAR(4) NULL;
+
