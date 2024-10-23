@@ -4,6 +4,7 @@ import static com.bensler.decaf.util.cmp.CollatorComparator.COLLATOR_COMPARATOR;
 import static com.jgoodies.forms.layout.CellConstraints.CENTER;
 import static com.jgoodies.forms.layout.CellConstraints.FILL;
 import static com.jgoodies.forms.layout.CellConstraints.RIGHT;
+import static javax.swing.WindowConstants.DISPOSE_ON_CLOSE;
 
 import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
@@ -12,7 +13,6 @@ import java.awt.event.MouseEvent;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import org.hibernate.Session;
@@ -76,15 +76,15 @@ public class OldTagDialog {
     tagTree_ = new EntityTree<>(TAG_NAME_VIEW);
     tagTree_.setVisibleRowCount(20, .5f);
     tagTree_.setSelectionListener((source, selection) -> {
-      if (selection.size() > 0) {
-        fileList_.setData(selection.get(0).getBlobs());
-      } else {
+      if (selection.isEmpty()) {
         fileList_.clear();
+      } else {
+        fileList_.setData(selection.get(0).getBlobs());
       }
       blobTagTree_.setData(new Hierarchy<>());
     });
 
-    dialog_.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    dialog_.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     tagTree_.setData(data);
     mainPanel.add(tagTree_.getScrollPane(), new CellConstraints(2, 2));
     mainPanel.add(detailPanel, new CellConstraints(2, 4));

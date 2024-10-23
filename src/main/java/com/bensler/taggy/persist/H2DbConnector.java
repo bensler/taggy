@@ -13,9 +13,7 @@ public class H2DbConnector extends DbConnector {
         Tag.class,
         Blob.class
       },
-      hbnConfig -> {
-        hbnConfig.setProperty("hibernate.connection.DATABASE_TO_UPPER",  Boolean.FALSE.toString());
-      }
+      hbnConfig -> hbnConfig.setProperty("hibernate.connection.DATABASE_TO_UPPER",  Boolean.FALSE.toString())
     );
   }
 

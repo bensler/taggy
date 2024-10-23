@@ -70,10 +70,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
 
     selectedBlob_ = null;
     requestFocus();
-    if (
-      ((position.x % gapPlusTileSize) > GAP)
-      && ((position.x % gapPlusTileSize) > GAP)
-    ) {
+    if ((position.x % gapPlusTileSize) > GAP) {
       int col = (position.x / gapPlusTileSize);
       int row = (position.y / gapPlusTileSize);
       int colCount = (getSize().width - GAP) / (TILE_SIZE + GAP);
