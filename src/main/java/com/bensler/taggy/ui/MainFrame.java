@@ -9,14 +9,16 @@ import static com.jgoodies.forms.layout.CellConstraints.RIGHT;
 import static javax.swing.JSplitPane.HORIZONTAL_SPLIT;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
+import static javax.swing.WindowConstants.DISPOSE_ON_CLOSE;
 
 import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -63,17 +65,24 @@ public class MainFrame {
     tagTree_ = new EntityTree<>(TAG_NAME_VIEW);
     tagTree_.setVisibleRowCount(20, .5f);
     tagTree_.setSelectionListener((source, selection) -> {
-      if (selection.size() > 0) {
-        thumbnails_.setData(List.copyOf(selection.get(0).getBlobs()));
-      } else {
+      if (selection.isEmpty()) {
         thumbnails_.clear();
+      } else {
+        thumbnails_.setData(List.copyOf(selection.get(0).getBlobs()));
       }
     });
 
-    dialog_.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    dialog_.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     tagTree_.setData(data);
     final JScrollPane thumbnailScrollpane = new JScrollPane(thumbnails_, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
 
+    tagTree_.getComponent().addMouseListener(new MouseAdapter() {
+      @Override
+      public void mousePressed(MouseEvent e) {
+        // TODO ctx menu -> create tag
+        System.out.println("mouse");
+      }
+    });
     thumbnailScrollpane.getViewport().setBackground(thumbnails_.getBackground());
     mainPanel.add(new JSplitPane(
       HORIZONTAL_SPLIT, true,
