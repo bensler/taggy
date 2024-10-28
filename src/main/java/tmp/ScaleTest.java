@@ -1,4 +1,4 @@
-package com.bensler;
+package tmp;
 
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -31,8 +31,6 @@ public class ScaleTest {
 
     ImageIO.write(bufferedImg, "jpg", new File(dir, "sample_scaled"));
     System.out.println(".");
-    // TODO Auto-generated method stub
-
   }
 
 }

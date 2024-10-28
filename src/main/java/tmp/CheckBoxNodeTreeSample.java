@@ -1,4 +1,4 @@
-package com.bensler;
+package tmp;
 
 import java.awt.BorderLayout;
 import java.awt.Component;

@@ -1,10 +1,8 @@
-package db.migration.sqlite;
+package tmp;
 
-import java.awt.Image;
-import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -13,30 +11,32 @@ import java.sql.Statement;
 import java.util.concurrent.Semaphore;
 import java.util.stream.IntStream;
 
-import javax.imageio.ImageIO;
-
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
 
 import com.bensler.taggy.Main;
+import com.bensler.taggy.Thumbnailer;
 import com.bensler.taggy.ui.BlobController;
 
 public class V008__CreateThumbnails extends BaseJavaMigration {
 
-  private BlobController blobCtrl;
-  private File dataDir;
+  private final File dataDir_;
+  private final BlobController blobCtrl_;
+  private final Thumbnailer thumbnailer_;
 
-  public V008__CreateThumbnails() { }
+  public V008__CreateThumbnails() throws NoSuchAlgorithmException {
+    dataDir_ = Main.getDataDir();
+    blobCtrl_ = new BlobController(dataDir_, new int[] {1, 1});
+    thumbnailer_ = new Thumbnailer(dataDir_);
+  }
 
   @Override
-  public void migrate(Context context) throws Exception {
+  public void migrate(Context context) throws SQLException, InterruptedException {
     final Connection connection = context.getConnection();
     final int workerCount = 4;
     final Semaphore semaphore = new Semaphore(workerCount);
     final long startMillis = System.currentTimeMillis();
 
-    dataDir = Main.getDataDir();
-    blobCtrl = new BlobController(dataDir, new int[] {1, 1});
     try (
       PreparedStatement updateStatement = connection.prepareStatement("UPDATE blob SET thumbnail_sha = ? WHERE id = ?");
       Statement statement = connection.createStatement();
@@ -71,9 +71,9 @@ public class V008__CreateThumbnails extends BaseJavaMigration {
       return null;
     }
 
-    synchronized void workDone(int id, String sha256Sum) throws SQLException {
+    synchronized void workDone(int id, String thumbHash) throws SQLException {
       updateStatement.setInt(2, id);
-      updateStatement.setString(1, sha256Sum);
+      updateStatement.setString(1, thumbHash);
       updateStatement.addBatch();
     }
 
@@ -83,12 +83,14 @@ public class V008__CreateThumbnails extends BaseJavaMigration {
 
     private final Source source;
     private final Semaphore semaphore;
+    private final String workerName;
 
     Worker(int workerId, Source pSource, Semaphore pSemaphore) {
       source = pSource;
       try {
         (semaphore = pSemaphore).acquire();
-        new Thread(this, "worker-" + workerId).start();
+        workerName = "worker-" + workerId;
+        new Thread(this).start();
       } catch (InterruptedException e) {
         throw new RuntimeException(e);
       }
@@ -102,7 +104,7 @@ public class V008__CreateThumbnails extends BaseJavaMigration {
         try {
           doWork(workPackage);
         } catch (Exception e) {
-          System.out.println(Thread.currentThread().getName() + " # id:" + workPackage.id + " failure");
+          System.out.println("%s # %s failure".formatted(workerName, workPackage.id));
           e.printStackTrace();
         }
       }
@@ -110,33 +112,11 @@ public class V008__CreateThumbnails extends BaseJavaMigration {
     }
 
     private void doWork(WorkPackage workPackage) throws SQLException, IOException {
-      try (FileInputStream fis = new FileInputStream(blobCtrl.getFile(workPackage.shaHash))) {
-        source.workDone(workPackage.id, blobCtrl.storeBlob(scaleImage(workPackage, fis), false));
-      }
-    }
+      final File thunbnail;
 
-    private File scaleImage(WorkPackage workPackage, FileInputStream fis) throws IOException {
-      final BufferedImage srcImg = ImageIO.read(fis);
-      int width = srcImg.getWidth();
-      int height = srcImg.getHeight();
-
-      if (width > height) {
-        width = BlobController.THUMBNAIL_SIZE;
-        height = -1;
-      } else {
-        width = -1;
-        height = BlobController.THUMBNAIL_SIZE;
-      }
-
-      final String threadName = Thread.currentThread().getName();
-      final File outputFile = new File(dataDir, threadName + "-" + workPackage.id);
-      final Image scaledImg = srcImg.getScaledInstance(width, height, Image.SCALE_SMOOTH);
-      final BufferedImage bufferedImg = new BufferedImage(scaledImg.getWidth(null), scaledImg.getHeight(null), BufferedImage.TYPE_INT_RGB);
-
-      bufferedImg.getGraphics().drawImage(scaledImg, 0, 0 , null);
-      ImageIO.write(bufferedImg, "jpg", outputFile);
-      System.out.println(threadName + " processed " + workPackage.id);
-      return outputFile;
+      thunbnail = thumbnailer_.scaleImage(blobCtrl_.getFile(workPackage.shaHash));
+      source.workDone(workPackage.id, blobCtrl_.storeBlob(thunbnail, false));
+      System.out.println("%s processed %d".formatted(workerName, workPackage.id));
     }
 
   }
