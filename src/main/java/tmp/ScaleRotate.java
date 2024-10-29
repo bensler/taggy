@@ -22,7 +22,7 @@ import org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants;
 
 public class ScaleRotate {
 
-  public static final AffineTransform NOOP_AFFINE_TRANFORM = AffineTransform.getScaleInstance(1.0, 1.0);
+  public static final AffineTransform NOOP_AFFINE_TRANSFORM = AffineTransform.getScaleInstance(1.0, 1.0);
 
   public static void main(String[] args) throws IOException, ImageReadException {
     final ScaleRotate instance = new ScaleRotate();
@@ -82,7 +82,7 @@ public class ScaleRotate {
         return AffineTransform.getQuadrantRotateInstance(3);
       }
     }
-    return NOOP_AFFINE_TRANFORM;
+    return NOOP_AFFINE_TRANSFORM;
   }
 
 }
