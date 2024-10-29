@@ -1,5 +1,8 @@
 package tmp;
 
+import static org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants.ORIENTATION_VALUE_ROTATE_270_CW;
+import static org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants.ORIENTATION_VALUE_ROTATE_90_CW;
+
 import java.awt.Point;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -19,11 +22,14 @@ import org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants;
 
 public class ScaleRotate {
 
+  public static final AffineTransform NOOP_AFFINE_TRANFORM = AffineTransform.getScaleInstance(1.0, 1.0);
+
   public static void main(String[] args) throws IOException, ImageReadException {
     final ScaleRotate instance = new ScaleRotate();
-    final File srcFolder = new File("/home/thomas/.taggy/data/blobs-1-1");
+    final File srcFolder = new File(System.getProperty("user.dir"));
 
-    instance.scaleRotate(new File(srcFolder, "0/d/0d6089f3ce9b99296ad41caf5a55347cfcd6bbdf465bace289abc63f94025c3a"), null);
+    instance.scaleRotate(new File(srcFolder, "8d351dc2e9374997bf71c84d04c6cd0ce7d21454a3cbc147a7ae8cc8a1f46f96.jpg"), "1");
+    instance.scaleRotate(new File(srcFolder, "837afb74f4ea7efd718d2b59c6ddb51a56cb26ca242b1130d0355c032e5dc0b0.jpg"), "2");
   }
 
   private void scaleRotate(File srcFile, String id) throws IOException, ImageReadException {
@@ -33,9 +39,9 @@ public class ScaleRotate {
     final int srcHeight = srcImg.getHeight();
     final double scaleFactor = 150.0 / ((srcWidth > srcHeight) ? srcWidth : srcHeight);
 
-    ImageIO.write(srcImg, "jpg", new File(destDir, "srcImg.jpg"));
+    ImageIO.write(srcImg, "jpg", new File(destDir, "srcImg-%s.jpg".formatted(id)));
 
-    AffineTransform transRotate = AffineTransform.getQuadrantRotateInstance(1);
+    AffineTransform transRotate = chooseRotation(srcFile);
     AffineTransform transScale = AffineTransform.getScaleInstance(scaleFactor, scaleFactor);
     AffineTransform affTrans = new AffineTransform(transRotate);
     affTrans.concatenate(transScale);
@@ -54,30 +60,29 @@ public class ScaleRotate {
     transformOp = new AffineTransformOp(transTranslate, null);
     BufferedImage destImage = transformOp.createCompatibleDestImage(srcImg, null);
     transformOp.filter(srcImg, destImage);
-    ImageIO.write(destImage, "jpg", new File(destDir, "scaledImg.jpg"));
+    ImageIO.write(destImage, "jpg", new File(destDir, "scaledImg-%s.jpg".formatted(id)));
     System.out.println(".");
   }
 
-  private AffineTransform chooseTransformation(File srcFile) throws ImageReadException, IOException {
+  private AffineTransform chooseRotation(File srcFile) throws ImageReadException, IOException {
     final ImageMetadata metaData = Imaging.getMetadata(srcFile);
-    final TiffField exifValue;
+    final TiffField orientationExifValue;
 
     if (
-        (metaData == null)
+        (metaData != null)
         && (metaData instanceof JpegImageMetadata jpgMeta)
-        && ((exifValue = jpgMeta.findEXIFValue(TiffTagConstants.TIFF_TAG_ORIENTATION)) != null)
-        && (exifValue != null)
+        && ((orientationExifValue = jpgMeta.findEXIFValue(TiffTagConstants.TIFF_TAG_ORIENTATION)) != null)
       ) {
-      if (String.valueOf(TiffTagConstants.ORIENTATION_VALUE_ROTATE_90_CW).equals(String.valueOf(exifValue))) {
-        return AffineTransform.getRotateInstance(0.5);
-//        return AffineTransform.getQuadrantRotateInstance(1);
+      final int orientationIntValue =  orientationExifValue.getIntValue();
+
+      if (orientationIntValue == ORIENTATION_VALUE_ROTATE_90_CW) {
+        return AffineTransform.getQuadrantRotateInstance(1);
       }
-      if (String.valueOf(TiffTagConstants.ORIENTATION_VALUE_ROTATE_270_CW).equals(String.valueOf(exifValue))) {
-        return AffineTransform.getRotateInstance(-0.5);
-//        return AffineTransform.getQuadrantRotateInstance(3);
+      if (orientationIntValue == ORIENTATION_VALUE_ROTATE_270_CW) {
+        return AffineTransform.getQuadrantRotateInstance(3);
       }
     }
-    return AffineTransform.getScaleInstance(1.0, 1.0);
+    return NOOP_AFFINE_TRANFORM;
   }
 
 }
