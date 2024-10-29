@@ -20,78 +20,40 @@ import org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants;
 public class ScaleRotate {
 
   public static void main(String[] args) throws IOException, ImageReadException {
-    new ScaleRotate()
-    .scaleRotate();
-//    .scaleRotate_1();
+    final ScaleRotate instance = new ScaleRotate();
+    final File srcFolder = new File("/home/thomas/.taggy/data/blobs-1-1");
+
+    instance.scaleRotate(new File(srcFolder, "0/d/0d6089f3ce9b99296ad41caf5a55347cfcd6bbdf465bace289abc63f94025c3a"), null);
   }
 
-  private void scaleRotate() throws IOException, ImageReadException {
+  private void scaleRotate(File srcFile, String id) throws IOException, ImageReadException {
     final File destDir = new File(System.getProperty("user.dir"));
-    final File src = new File("/home/thomas/.taggy/data/blobs-1-1/0/d/0d6089f3ce9b99296ad41caf5a55347cfcd6bbdf465bace289abc63f94025c3a");
-    final BufferedImage srcImg = ImageIO.read(src);
+    final BufferedImage srcImg = ImageIO.read(srcFile);
+    final int srcWidth = srcImg.getWidth();
+    final int srcHeight = srcImg.getHeight();
+    final double scaleFactor = 150.0 / ((srcWidth > srcHeight) ? srcWidth : srcHeight);
 
     ImageIO.write(srcImg, "jpg", new File(destDir, "srcImg.jpg"));
 
-    int width = srcImg.getWidth();
-    int height = srcImg.getHeight();
-    final double scaleFactor;
-
-    if (width > height) {
-      scaleFactor = 150.0 / width;
-    } else {
-      scaleFactor = 150.0 / height;
-    }
-
-    AffineTransform affTrans = AffineTransform.getQuadrantRotateInstance(1);
-    affTrans.concatenate(AffineTransform.getScaleInstance(scaleFactor, scaleFactor));
+    AffineTransform transRotate = AffineTransform.getQuadrantRotateInstance(1);
+    AffineTransform transScale = AffineTransform.getScaleInstance(scaleFactor, scaleFactor);
+    AffineTransform affTrans = new AffineTransform(transRotate);
+    affTrans.concatenate(transScale);
     AffineTransformOp transformOp = new AffineTransformOp(affTrans, null);
 
-    Point2D p1 = transformOp.getPoint2D(new Point(0, 0), null);
-    Point2D p2 = transformOp.getPoint2D(new Point(width, height), null);
+    Point2D cornerTopLeft     = transformOp.getPoint2D(new Point(0, 0), null);
+    Point2D cornerBottomRight = transformOp.getPoint2D(new Point(srcWidth, srcHeight), null);
 
-    affTrans.concatenate(AffineTransform.getTranslateInstance(
-        -1 * Math.min(p1.getX(), p2.getX()), -1 * Math.min(p1.getY(), p2.getY())
-    ));
-    transformOp = new AffineTransformOp(affTrans, null);
-    BufferedImage destImage = transformOp.createCompatibleDestImage(srcImg, null);
-//    transformOp.filter(srcImg, destImage);
-//    destImage.getSubimage(
-//      (int)Math.min(p1.getX(), p2.getX()),
-//      (int)Math.min(p1.getY(), p2.getY()),
-//      (int)Math.abs(p1.getX() - p2.getX()),
-//      (int)Math.abs(p1.getY() - p2.getY())
-//    );
-//    ImageIO.write(destImage, "jpg", new File(destDir, "scaledImg.jpg"));
-    System.out.println(".");
-  }
+    AffineTransform transTranslate = AffineTransform.getTranslateInstance(
+      -1 * Math.min(cornerTopLeft.getX(), cornerBottomRight.getX()),
+      -1 * Math.min(cornerTopLeft.getY(), cornerBottomRight.getY())
+    );
 
-  private void scaleRotate_1() throws IOException, ImageReadException {
-    final File destDir = new File(System.getProperty("user.dir"));
-    final File src = new File("/home/thomas/.taggy/data/blobs-1-1/0/d/0d6089f3ce9b99296ad41caf5a55347cfcd6bbdf465bace289abc63f94025c3a");
-    final BufferedImage srcImg = ImageIO.read(src);
-
-    ImageIO.write(srcImg, "jpg", new File(destDir, "srcImg.jpg"));
-
-    int width = srcImg.getWidth();
-    int height = srcImg.getHeight();
-    final double scaleFactor;
-
-    if (width > height) {
-      scaleFactor = 150.0 / width;
-    } else {
-      scaleFactor = 150.0 / height;
-    }
-
-    AffineTransform affTrans = AffineTransform.getTranslateInstance((height * scaleFactor) * .9, 0);
-    affTrans.concatenate(AffineTransform.getQuadrantRotateInstance(1));
-    affTrans.concatenate(AffineTransform.getScaleInstance(scaleFactor, scaleFactor));
-    AffineTransformOp transformOp = new AffineTransformOp(affTrans, null);
-
+    transTranslate.concatenate(transRotate);
+    transTranslate.concatenate(transScale);
+    transformOp = new AffineTransformOp(transTranslate, null);
     BufferedImage destImage = transformOp.createCompatibleDestImage(srcImg, null);
     transformOp.filter(srcImg, destImage);
-    System.out.println(transformOp.getPoint2D(new Point(0, 0), null));
-    System.out.println(transformOp.getPoint2D(new Point(width, height), null));
-
     ImageIO.write(destImage, "jpg", new File(destDir, "scaledImg.jpg"));
     System.out.println(".");
   }
