@@ -11,6 +11,7 @@ import java.sql.Statement;
 import java.util.concurrent.Semaphore;
 import java.util.stream.IntStream;
 
+import org.apache.commons.imaging.ImageReadException;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
 
@@ -111,10 +112,10 @@ public class V008__CreateThumbnails extends BaseJavaMigration {
       semaphore.release();
     }
 
-    private void doWork(WorkPackage workPackage) throws SQLException, IOException {
+    private void doWork(WorkPackage workPackage) throws SQLException, IOException, ImageReadException {
       final File thunbnail;
 
-      thunbnail = thumbnailer_.scaleImage(blobCtrl_.getFile(workPackage.shaHash));
+      thunbnail = thumbnailer_.scaleRotateImage(blobCtrl_.getFile(workPackage.shaHash));
       source.workDone(workPackage.id, blobCtrl_.storeBlob(thunbnail, false));
       System.out.println("%s processed %d".formatted(workerName, workPackage.id));
     }
