@@ -1,4 +1,4 @@
-package tmp;
+package db.migration.sqlite;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,7 +40,7 @@ public class V008__CreateThumbnails extends BaseJavaMigration {
     try (
       PreparedStatement updateStatement = connection.prepareStatement("UPDATE blob SET thumbnail_sha = ? WHERE id = ?");
       Statement statement = connection.createStatement();
-      ResultSet result = statement.executeQuery("SELECT b.id, b.sha256sum FROM blob b")
+      ResultSet result = statement.executeQuery("SELECT b.id, b.sha256sum FROM blob b ORDER BY b.id ASC")
     ) {
       final Source source = new Source(result, updateStatement);
       IntStream.range(0, workerCount).forEach(anInt -> new Worker(anInt, source, semaphore));
