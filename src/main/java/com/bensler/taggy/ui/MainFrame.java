@@ -32,6 +32,7 @@ import com.bensler.decaf.swing.tree.EntityTree;
 import com.bensler.decaf.swing.view.PropertyViewImpl;
 import com.bensler.decaf.swing.view.SimplePropertyGetter;
 import com.bensler.decaf.util.tree.Hierarchy;
+import com.bensler.taggy.Thumbnailer;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.Tag;
 import com.jgoodies.forms.layout.CellConstraints;
@@ -46,22 +47,37 @@ public class MainFrame {
     createStringPropertyGetter(Tag::getName)
   );
 
-  final JDialog dialog_;
-  final Session session_;
-  final BlobController blobController_;
-  final EntityTree<Tag> tagTree_;
-  final ThumbnailOverviewPanel thumbnails_;
+  private static MainFrame instance;
 
-  public MainFrame(BlobController blobController, Session session, Hierarchy<Tag> data) {
+  public static MainFrame getInstance() {
+    return instance;
+  }
+
+  private final JDialog dialog_;
+  private final Session session_;
+  private final BlobController blobCtrl_;
+  private final Thumbnailer thumbnailer_;
+  private final EntityTree<Tag> tagTree_;
+  private final ThumbnailOverviewPanel thumbnails_;
+
+  private BlobDialog blobDlg_;
+
+  public MainFrame(BlobController blobController, Session session, Thumbnailer thumbnailer) {
+    instance = this;
     session_ = session;
-    blobController_ = blobController;
+    blobCtrl_ = blobController;
+
+    final Hierarchy<Tag> data = new Hierarchy<>();
+
+    thumbnailer_ = thumbnailer;
     dialog_ = new JDialog(null, "Taggy", ModalityType.MODELESS);
+    data.addAll(session_.createQuery("FROM Tag", Tag.class).getResultList());
     final JPanel mainPanel = new JPanel(new FormLayout(
       "3dlu, f:p:g, 3dlu",
       "3dlu, f:p:g, 3dlu, f:p, 3dlu"
     ));
 
-    thumbnails_ = new ThumbnailOverviewPanel(blobController_);
+    thumbnails_ = new ThumbnailOverviewPanel(blobCtrl_);
     tagTree_ = new EntityTree<>(TAG_NAME_VIEW);
     tagTree_.setVisibleRowCount(20, .5f);
     tagTree_.setSelectionListener((source, selection) -> {
@@ -94,7 +110,7 @@ public class MainFrame {
     ((FormLayout)buttonPanel.getLayout()).setColumnGroups(new int[][] {{1, 3}});
     mainPanel.add(buttonPanel, new CellConstraints(2, 4, RIGHT, CENTER));
     final JButton testButton = new JButton("Orphan Files");
-    testButton.addActionListener(evt -> new OrphanDialog(dialog_, blobController_).show(session_));
+    testButton.addActionListener(evt -> new OrphanDialog(dialog_, blobCtrl_).show(session_));
     buttonPanel.add(testButton, new CellConstraints(1, 1, FILL, FILL));
     final JButton closeButton = new JButton("Close");
     closeButton.addActionListener(evt -> dialog_.dispose());
@@ -116,6 +132,21 @@ public class MainFrame {
 
   public void show() {
     dialog_.setVisible(true);
+  }
+
+  public BlobController getBlobCtrl() {
+    return blobCtrl_;
+  }
+
+  public BlobDialog getBlobDlg() {
+    if (blobDlg_ == null) {
+      blobDlg_ = new BlobDialog(dialog_);
+    }
+    return blobDlg_;
+  }
+
+  public Thumbnailer getThumbnailer() {
+    return thumbnailer_;
   }
 
 }

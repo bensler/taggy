@@ -30,6 +30,8 @@ import com.bensler.taggy.ui.BlobController;
 
 public class Thumbnailer {
 
+  public static final String WORKING_SUBDIR = "thumbnailer";
+
   public static final AffineTransform NOOP_AFFINE_TRANSFORM = AffineTransform.getScaleInstance(1.0, 1.0);
 
   private final static Map<Integer, AffineTransform> ROTATION_TRANSFORMATIONS = Map.of(
@@ -40,7 +42,7 @@ public class Thumbnailer {
   private final File tmpDir_;
 
   public Thumbnailer(File tmpDir) {
-    tmpDir_ = new File(tmpDir, "thumbnailer");
+    tmpDir_ = new File(tmpDir, WORKING_SUBDIR);
     tmpDir_.mkdirs();
     Arrays.stream(tmpDir_.listFiles()).forEach(File::delete);
   }
@@ -81,7 +83,7 @@ public class Thumbnailer {
     return outputFile;
   }
 
-  private AffineTransform chooseRotationTransform(File srcFile) throws ImageReadException, IOException {
+  public AffineTransform chooseRotationTransform(File srcFile) throws ImageReadException, IOException {
     final TiffField tiffRotationValue = findTiffRotationValue(srcFile);
 
     if (tiffRotationValue != null) {
@@ -94,6 +96,22 @@ public class Thumbnailer {
     return (Imaging.getMetadata(srcFile) instanceof JpegImageMetadata jpgMeta)
       ? jpgMeta.findEXIFValue(TiffTagConstants.TIFF_TAG_ORIENTATION)
       : null;
+  }
+
+  public BufferedImage loadRotated(File srcFile) throws IOException, ImageReadException {
+    final BufferedImage srcImg = ImageIO.read(srcFile);
+    final AffineTransform transRotate = chooseRotationTransform(srcFile);
+    final AffineTransform transTranslate = compensateForRotation(srcImg, transRotate);
+    final AffineTransformOp rotateTranslateOp;
+
+    transTranslate.concatenate(transRotate);
+    rotateTranslateOp = new AffineTransformOp(transTranslate, new RenderingHints(
+      RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC
+    ));
+
+    return rotateTranslateOp.filter(
+      srcImg, rotateTranslateOp.createCompatibleDestImage(srcImg, null)
+    );
   }
 
   public File scaleRotateImage(File srcFile) throws IOException, ImageReadException {
@@ -109,7 +127,7 @@ public class Thumbnailer {
 
     final Rectangle2D rotatedBounds = rotateTranslateOp.getBounds2D(scaledImg);
 
-    return writeImgToFile(rotateTranslateOp.filter(
+    return writeImgToFile(rotateTranslateOp.filter( // no alpha as jpg does not supportit -------------------------------vvv
       scaledImg, new BufferedImage((int)rotatedBounds.getWidth(), (int)rotatedBounds.getHeight(), BufferedImage.TYPE_INT_RGB)
     ));
   }

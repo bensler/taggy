@@ -7,15 +7,13 @@ import javax.swing.UIManager;
 
 import org.hibernate.Session;
 
-import com.bensler.decaf.util.tree.Hierarchy;
 import com.bensler.taggy.persist.SqliteDbConnector;
-import com.bensler.taggy.persist.Tag;
 import com.bensler.taggy.ui.BlobController;
 import com.bensler.taggy.ui.MainFrame;
 import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 import com.jgoodies.looks.plastic.theme.DesertYellow;
 
-public class Main implements Runnable {
+public class Main {
 
   public static void main(String[] args) throws Exception {
     new Main().run();
@@ -32,6 +30,7 @@ public class Main implements Runnable {
   }
 
   private final BlobController blobController_;
+  private final Thumbnailer thumbnailer_;
   private final Session session_;
 
   private Main() throws Exception {
@@ -44,15 +43,12 @@ public class Main implements Runnable {
     dbConnector = new SqliteDbConnector(dataDir, "taggy.sqlite.db");
     dbConnector.performFlywayMigration();
     blobController_ = new BlobController(dataDir, FOLDER_PATTERN);
+    thumbnailer_ = new Thumbnailer(dataDir);
     session_ = dbConnector.getSession();
   }
 
-  @Override
   public void run() {
-    final Hierarchy<Tag> tags = new Hierarchy<>();
-
-    tags.addAll(session_.createQuery("FROM Tag", Tag.class).getResultList());
-    new MainFrame(blobController_, session_, tags).show();
+    new MainFrame(blobController_, session_, thumbnailer_).show();
   }
 
 }

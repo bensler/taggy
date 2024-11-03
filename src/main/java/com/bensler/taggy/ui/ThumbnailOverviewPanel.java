@@ -26,8 +26,9 @@ import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.Scrollable;
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+
+import org.apache.commons.imaging.ImageReadException;
 
 import com.bensler.taggy.persist.Blob;
 
@@ -73,8 +74,8 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     if (doubleClick) {
       if (selectedBlob_ != null) {
         try {
-          new BlobDialog(SwingUtilities.getWindowAncestor(this), blobController_, selectedBlob_);
-        } catch (IOException e) {
+          MainFrame.getInstance().getBlobDlg().setBlob(selectedBlob_);
+        } catch (IOException | ImageReadException e) {
           // TODO Auto-generated catch block
           e.printStackTrace();
         }
