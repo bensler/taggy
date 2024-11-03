@@ -20,11 +20,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.Scrollable;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
 import com.bensler.taggy.persist.Blob;
@@ -64,11 +66,34 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
   }
 
   void mouseClicked(MouseEvent evt) {
-    final Point position = evt.getPoint();
-    final int gapPlusTileSize = GAP + TILE_SIZE;
     final Blob oldSelection = selectedBlob_;
+    final boolean doubleClick = (evt.getClickCount() == 2);
 
-    selectedBlob_ = null;
+    requestFocus();
+    if (doubleClick) {
+      if (selectedBlob_ != null) {
+        try {
+          new BlobDialog(SwingUtilities.getWindowAncestor(this), blobController_, selectedBlob_);
+        } catch (IOException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+      }
+    } else {
+      selectedBlob_ = null;
+      blobAt(evt.getPoint()).ifPresent(clickedBlob -> {
+        selectedBlob_ = clickedBlob;
+        if (oldSelection != selectedBlob_) {
+          // TODO fire event
+          repaint(); // TODO repaint tile only
+        }
+      });
+    }
+  }
+
+  private Optional<Blob> blobAt(Point position) {
+    final int gapPlusTileSize = GAP + TILE_SIZE;
+
     requestFocus();
     if ((position.x % gapPlusTileSize) > GAP) {
       int col = (position.x / gapPlusTileSize);
@@ -79,13 +104,11 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
         final int blobIndex = (row * colCount) + col;
 
         if (blobIndex < blobs_.size()) {
-          selectedBlob_ = blobs_.get(blobIndex);
-          if (oldSelection != selectedBlob_) {
-            repaint(); // TODO repaint tile only
-          }
+          return Optional.of(blobs_.get(blobIndex));
         }
       }
     }
+    return Optional.empty();
   }
 
   public void setData(List<Blob> data) {
