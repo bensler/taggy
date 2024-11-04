@@ -74,7 +74,10 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     if (doubleClick) {
       if (selectedBlob_ != null) {
         try {
-          MainFrame.getInstance().getBlobDlg().setBlob(selectedBlob_);
+          final BlobDialog blobDlg = MainFrame.getInstance().getBlobDlg();
+
+          blobDlg.setVisible(true);
+          blobDlg.setBlob(selectedBlob_);
         } catch (IOException | ImageReadException e) {
           // TODO Auto-generated catch block
           e.printStackTrace();

@@ -14,8 +14,7 @@ public class ImageComponent extends JComponent {
   private Dimension drawImgCompSize_;
 
   public ImageComponent() {
-    img_ = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
-    drawImgCompSize_ = new Dimension(-1, -1);
+    setImage(new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB));
   }
 
   public void setImage(BufferedImage img) {

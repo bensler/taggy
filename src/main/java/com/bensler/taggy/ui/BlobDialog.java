@@ -37,7 +37,6 @@ public class BlobDialog extends JDialog {
     mainPanel.add(new JScrollPane(imageComponent_), new CellConstraints(2, 2));
     setContentPane(mainPanel);
     pack();
-    setVisible(true);
   }
 
   public void setBlob(Blob blob) throws IOException, ImageReadException {
