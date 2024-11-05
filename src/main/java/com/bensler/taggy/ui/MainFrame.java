@@ -96,7 +96,6 @@ public class MainFrame {
       @Override
       public void mousePressed(MouseEvent e) {
         // TODO ctx menu -> create tag
-        System.out.println("mouse");
       }
     });
     thumbnailScrollpane.getViewport().setBackground(thumbnails_.getBackground());

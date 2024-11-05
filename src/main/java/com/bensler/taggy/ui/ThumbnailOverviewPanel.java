@@ -11,6 +11,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -30,6 +32,7 @@ import javax.swing.UIManager;
 
 import org.apache.commons.imaging.ImageReadException;
 
+import com.bensler.decaf.swing.awt.ColorHelper;
 import com.bensler.taggy.persist.Blob;
 
 public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
@@ -42,6 +45,9 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     1.0f, CAP_BUTT, JOIN_BEVEL, 0.0f, new float[] {4.0f, 4.0f}, 0
   );
 
+  private final Color backgroundSelectionColor_;
+  private final Color backgroundSelectionColorUnfocused_;
+
   private final BlobController blobController_;
   private final List<Blob> blobs_;
   private final Map<Blob, ImageIcon> images_;
@@ -51,7 +57,25 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     blobController_ = blobController;
     blobs_ = new ArrayList<>();
     images_ = new HashMap<>();
+
+    backgroundSelectionColor_ = UIManager.getColor("Tree.selectionBackground");
+    backgroundSelectionColorUnfocused_ = ColorHelper.mix(
+      backgroundSelectionColor_, 2,
+      UIManager.getColor("Tree.background"), 1
+    );
     setBackground(UIManager.getColor("Tree.textBackground"));
+    addFocusListener(new FocusListener() {
+
+      @Override
+      public void focusLost(FocusEvent e) {
+        repaint();
+      }
+
+      @Override
+      public void focusGained(FocusEvent e) {
+        repaint();
+      }
+    });
     addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent evt) {
@@ -87,11 +111,11 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
       selectedBlob_ = null;
       blobAt(evt.getPoint()).ifPresent(clickedBlob -> {
         selectedBlob_ = clickedBlob;
-        if (oldSelection != selectedBlob_) {
-          // TODO fire event
-          repaint(); // TODO repaint tile only
-        }
       });
+      if (oldSelection != selectedBlob_) {
+        // TODO fire event
+        repaint(); // TODO repaint tile only
+      }
     }
   }
 
@@ -165,12 +189,20 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     final int tileOriginY = GAP + (row * (TILE_SIZE + GAP));
     final int paddingX = (THUMBNAIL_SIZE - Math.min(THUMBNAIL_SIZE, icon.getIconWidth())) / 2;
     final int paddingY = (THUMBNAIL_SIZE - Math.min(THUMBNAIL_SIZE, icon.getIconHeight())) / 2;
+    final boolean selected = blob == selectedBlob_;
 
-    g.setColor((blob == selectedBlob_) ? Color.RED : Color.GRAY);
-    g.fillRect(tileOriginX, tileOriginY, TILE_SIZE, TILE_SIZE);
-    g.setColor(Color.BLACK);
+    if (selected) {
+      g.setColor(hasFocus() ? backgroundSelectionColor_ : backgroundSelectionColorUnfocused_);
+      g.fillRect(tileOriginX, tileOriginY, TILE_SIZE, TILE_SIZE);
+    }
+    // dashed frame
     g.setStroke(STROKE_DASH);
-    g.drawRect(tileOriginX, tileOriginY, TILE_SIZE, TILE_SIZE);
+    g.setColor(selected ? Color.BLACK : backgroundSelectionColorUnfocused_);
+    if (selected) {
+      g.drawRect(tileOriginX -1, tileOriginY - 1, TILE_SIZE + 1, TILE_SIZE + 1);
+    } else {
+      g.drawRect(tileOriginX, tileOriginY, TILE_SIZE - 1, TILE_SIZE - 1);
+    }
     icon.paintIcon(
       this, g,
       INSET + tileOriginX + paddingX,
