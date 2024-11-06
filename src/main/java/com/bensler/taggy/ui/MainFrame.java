@@ -19,7 +19,9 @@ import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 
@@ -94,8 +96,20 @@ public class MainFrame {
 
     tagTree_.getComponent().addMouseListener(new MouseAdapter() {
       @Override
-      public void mousePressed(MouseEvent e) {
-        // TODO ctx menu -> create tag
+      public void mousePressed(MouseEvent mEvt) {
+        if (mEvt.isPopupTrigger()) {
+          final JPopupMenu menu = new JPopupMenu();
+          final JMenuItem menuItemNewTag = new JMenuItem("New Tag");
+
+          menuItemNewTag.addActionListener(aEvt -> createNewTag());
+          menu.add(menuItemNewTag);
+          menu.show(tagTree_.getComponent(), mEvt.getX(), mEvt.getY());
+        }
+      }
+
+      private Object createNewTag() {
+        // TODO Auto-generated method stub
+        return null;
       }
     });
     thumbnailScrollpane.getViewport().setBackground(thumbnails_.getBackground());

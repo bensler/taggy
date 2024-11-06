@@ -24,7 +24,7 @@ public class ScaleRotate {
     final Thumbnailer thumbnailer_ = new Thumbnailer(srcFolder);
     int number = 0;
 
-   ImageIO.write(ImageIO.read(srcFile), "jpg", new File(srcFolder, ++number + "-src.jpg"));
+    ImageIO.write(ImageIO.read(srcFile), "jpg", new File(srcFolder, ++number + "-src.jpg"));
     mv(
       thumbnailer_.scaleRotateImage(srcFile),
       srcFolder, number + "-scaleRotated.jpg"
