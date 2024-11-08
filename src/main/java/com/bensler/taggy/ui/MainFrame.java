@@ -27,6 +27,10 @@ import javax.swing.JSplitPane;
 
 import org.hibernate.Session;
 
+import com.bensler.decaf.swing.action.ActionState;
+import com.bensler.decaf.swing.action.Appearance;
+import com.bensler.decaf.swing.action.EntityAction;
+import com.bensler.decaf.swing.action.SingleEntityFilter;
 import com.bensler.decaf.swing.table.EntityTable;
 import com.bensler.decaf.swing.table.TablePropertyView;
 import com.bensler.decaf.swing.table.TableView;
@@ -47,6 +51,11 @@ public class MainFrame {
   );
   public static final PropertyViewImpl<Tag, String> TAG_NAME_VIEW = new PropertyViewImpl<>(
     createStringPropertyGetter(Tag::getName)
+  );
+
+  public static final EntityAction<Tag> ACTION_NEW_TAG = new EntityAction<>(
+    new Appearance(null, null, "New Tag", "Creates a new Tag under the currently selected Tag"),
+    new SingleEntityFilter<>(ActionState.ENABLED)
   );
 
   private static MainFrame instance;
