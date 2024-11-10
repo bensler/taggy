@@ -5,8 +5,7 @@ import java.util.Arrays;
 
 import javax.swing.UIManager;
 
-import org.hibernate.Session;
-
+import com.bensler.taggy.persist.DbConnector;
 import com.bensler.taggy.persist.SqliteDbConnector;
 import com.bensler.taggy.ui.BlobController;
 import com.bensler.taggy.ui.MainFrame;
@@ -31,7 +30,7 @@ public class Main {
 
   private final BlobController blobController_;
   private final Thumbnailer thumbnailer_;
-  private final Session session_;
+  private final DbConnector db_;
 
   private Main() throws Exception {
     final SqliteDbConnector dbConnector;
@@ -40,15 +39,14 @@ public class Main {
     UIManager.setLookAndFeel(new Plastic3DLookAndFeel());
 
     final File dataDir = getDataDir();
-    dbConnector = new SqliteDbConnector(dataDir, "taggy.sqlite.db");
-    dbConnector.performFlywayMigration();
+    db_ = new SqliteDbConnector(dataDir, "taggy.sqlite.db");
+    db_.performFlywayMigration();
     blobController_ = new BlobController(dataDir, FOLDER_PATTERN);
     thumbnailer_ = new Thumbnailer(dataDir);
-    session_ = dbConnector.getSession();
   }
 
   public void run() {
-    new MainFrame(blobController_, session_, thumbnailer_).show();
+    new MainFrame(blobController_, db_.getSession(), thumbnailer_).show();
   }
 
 }

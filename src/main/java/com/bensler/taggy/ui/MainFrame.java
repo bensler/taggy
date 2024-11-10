@@ -23,6 +23,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 
 import org.hibernate.Session;
+import org.hibernate.Transaction;
 
 import com.bensler.decaf.swing.action.ActionGroup;
 import com.bensler.decaf.swing.action.ActionState;
@@ -100,7 +101,7 @@ public class MainFrame {
     tagTree_.setContextActions(new ActionGroup<>(new EntityAction<>(
         new Appearance(null, null, "New Tag", "Creates a new Tag under the currently selected Tag"),
         new SingleEntityFilter<>(ActionState.ENABLED),
-        new SingleEntityActionAdapter<>((source, tag) -> createTag(tagTree_, tag))
+        new SingleEntityActionAdapter<>((source, tag) -> createTagUi(tagTree_, tag))
       )));
     thumbnailScrollpane.getViewport().setBackground(thumbnails_.getBackground());
     mainPanel.add(new JSplitPane(
@@ -133,8 +134,15 @@ public class MainFrame {
     ));
   }
 
-  void createTag(EntityTree<Tag> eventSource, Optional<Tag> parentTag) {
-    new OkCancelDialog<>(blobDlg_, "ToDo", new NewTagDialog()).show(parentTag, newTag -> System.out.println(newTag.getParent() + ":" + newTag));
+  void createTagUi(EntityTree<Tag> eventSource, Optional<Tag> parentTag) {
+    new OkCancelDialog<>(blobDlg_, "ToDo", new NewTagDialog()).show(parentTag, newTag -> createTag(eventSource, newTag));
+  }
+
+  void createTag(EntityTree<Tag> tree, Tag newTag) {
+    Transaction txn = session_.beginTransaction();
+    session_.persist(newTag);
+    txn.commit();
+    tree.getModel().addNode(newTag);
   }
 
   public void show() {
