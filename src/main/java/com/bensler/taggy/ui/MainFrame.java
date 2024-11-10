@@ -13,24 +13,24 @@ import static javax.swing.WindowConstants.DISPOSE_ON_CLOSE;
 
 import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.List;
+import java.util.Optional;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 
 import org.hibernate.Session;
 
+import com.bensler.decaf.swing.action.ActionGroup;
 import com.bensler.decaf.swing.action.ActionState;
 import com.bensler.decaf.swing.action.Appearance;
 import com.bensler.decaf.swing.action.EntityAction;
+import com.bensler.decaf.swing.action.SingleEntityActionAdapter;
 import com.bensler.decaf.swing.action.SingleEntityFilter;
+import com.bensler.decaf.swing.dialog.OkCancelDialog;
 import com.bensler.decaf.swing.table.EntityTable;
 import com.bensler.decaf.swing.table.TablePropertyView;
 import com.bensler.decaf.swing.table.TableView;
@@ -51,11 +51,6 @@ public class MainFrame {
   );
   public static final PropertyViewImpl<Tag, String> TAG_NAME_VIEW = new PropertyViewImpl<>(
     createStringPropertyGetter(Tag::getName)
-  );
-
-  public static final EntityAction<Tag> ACTION_NEW_TAG = new EntityAction<>(
-    new Appearance(null, null, "New Tag", "Creates a new Tag under the currently selected Tag"),
-    new SingleEntityFilter<>(ActionState.ENABLED)
   );
 
   private static MainFrame instance;
@@ -102,25 +97,11 @@ public class MainFrame {
     dialog_.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     tagTree_.setData(data);
     final JScrollPane thumbnailScrollpane = new JScrollPane(thumbnails_, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
-
-    tagTree_.getComponent().addMouseListener(new MouseAdapter() {
-      @Override
-      public void mousePressed(MouseEvent mEvt) {
-        if (mEvt.isPopupTrigger()) {
-          final JPopupMenu menu = new JPopupMenu();
-          final JMenuItem menuItemNewTag = new JMenuItem("New Tag");
-
-          menuItemNewTag.addActionListener(aEvt -> createNewTag());
-          menu.add(menuItemNewTag);
-          menu.show(tagTree_.getComponent(), mEvt.getX(), mEvt.getY());
-        }
-      }
-
-      private Object createNewTag() {
-        // TODO Auto-generated method stub
-        return null;
-      }
-    });
+    tagTree_.setContextActions(new ActionGroup<>(new EntityAction<>(
+        new Appearance(null, null, "New Tag", "Creates a new Tag under the currently selected Tag"),
+        new SingleEntityFilter<>(ActionState.ENABLED),
+        new SingleEntityActionAdapter<>((source, tag) -> createTag(tagTree_, tag))
+      )));
     thumbnailScrollpane.getViewport().setBackground(thumbnails_.getBackground());
     mainPanel.add(new JSplitPane(
       HORIZONTAL_SPLIT, true,
@@ -150,6 +131,10 @@ public class MainFrame {
         new SimplePropertyGetter<>(Blob::getFilename, COLLATOR_COMPARATOR)
       ))
     ));
+  }
+
+  void createTag(EntityTree<Tag> eventSource, Optional<Tag> parentTag) {
+    new OkCancelDialog<>(blobDlg_, "ToDo", new NewTagDialog()).show(parentTag, newTag -> System.out.println(newTag.getParent() + ":" + newTag));
   }
 
   public void show() {
