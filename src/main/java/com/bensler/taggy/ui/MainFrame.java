@@ -139,10 +139,11 @@ public class MainFrame {
   }
 
   void createTag(EntityTree<Tag> tree, Tag newTag) {
-    Transaction txn = session_.beginTransaction();
+    final Transaction txn = session_.beginTransaction();
+
     session_.persist(newTag);
-    txn.commit();
-    tree.getModel().addNode(newTag);
+    txn.commit(); // TODO rollback in case of exc
+    tree.addData(newTag, true);
   }
 
   public void show() {
