@@ -1,31 +1,55 @@
 package com.bensler.taggy.ui;
 
-import java.awt.Color;
-import java.awt.Dimension;
 import java.util.Optional;
 
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+
 import com.bensler.decaf.swing.dialog.BasicContentPanel;
+import com.bensler.decaf.swing.tree.EntityTree;
+import com.bensler.decaf.util.tree.Hierarchy;
 import com.bensler.taggy.persist.Tag;
+import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
 public class NewTagDialog extends BasicContentPanel<Optional<Tag>, Tag> {
 
+  private final EntityTree<Tag> parentTag_;
+  private final JTextField nameTextfield_;
+
   public NewTagDialog() {
-    super(new FormLayout("", ""));
-    setPreferredSize(new Dimension(200, 200));
-    setBackground(Color.GREEN);
+    super(new FormLayout(
+      "r:p, 3dlu, f:p:g",
+      "c:p, 3dlu, c:p, 0dlu:g"
+    ));
+
+    final CellConstraints cc = new CellConstraints();
+
+    parentTag_ = new EntityTree<>(MainFrame.TAG_NAME_VIEW);
+    add(new JLabel("Parent Tag:"), cc.xy(1, 1));
+    add(parentTag_.getComponent(), cc.xy(3, 1));
+    nameTextfield_ = new JTextField(20);
+    add(new JLabel("Name:"), cc.xy(1, 3));
+    add(nameTextfield_, cc.xy(3, 3));
   }
 
   @Override
   public void setData(Optional<Tag> inData) {
-    ctx_.setValid(true);
-    // TODO Auto-generated method stub
+    final Hierarchy<Tag> parents = new Hierarchy<>();
+    Tag parent = inData.orElse(null);
 
+    while (parent != null) {
+      parents.add(parent);
+      parent = parent.getParent();
+    }
+    parentTag_.setData(parents);
+    inData.ifPresent(parentTag_::select);
+    ctx_.setValid(true);
   }
 
   @Override
   public Tag getData() {
-    return new Tag(inData_.orElse(null), "la li lu");
+    return new Tag(parentTag_.getSingleSelection(), nameTextfield_.getText());
   }
 
 }
