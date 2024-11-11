@@ -20,14 +20,14 @@ public class NewTagDialog extends BasicContentPanel<Optional<Tag>, Tag> {
   public NewTagDialog() {
     super(new FormLayout(
       "r:p, 3dlu, f:p:g",
-      "c:p, 3dlu, c:p, 0dlu:g"
+      "f:p:g, 3dlu, c:p"
     ));
 
     final CellConstraints cc = new CellConstraints();
-
     parentTag_ = new EntityTree<>(MainFrame.TAG_NAME_VIEW);
-    add(new JLabel("Parent Tag:"), cc.xy(1, 1));
-    add(parentTag_.getComponent(), cc.xy(3, 1));
+    parentTag_.setVisibleRowCount(5, 2.0f);
+    add(new JLabel("Parent Tag:"), cc.xy(1, 1, "r, t"));
+    add(parentTag_.getScrollPane(), cc.xy(3, 1));
     nameTextfield_ = new JTextField(20);
     add(new JLabel("Name:"), cc.xy(1, 3));
     add(nameTextfield_, cc.xy(3, 3));
