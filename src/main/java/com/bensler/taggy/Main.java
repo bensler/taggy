@@ -33,8 +33,6 @@ public class Main {
   private final DbConnector db_;
 
   private Main() throws Exception {
-    final SqliteDbConnector dbConnector;
-
     Plastic3DLookAndFeel.setCurrentTheme(new DesertYellow());
     UIManager.setLookAndFeel(new Plastic3DLookAndFeel());
 

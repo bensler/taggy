@@ -135,7 +135,7 @@ public class MainFrame {
   }
 
   void createTagUi(EntityTree<Tag> eventSource, Optional<Tag> parentTag) {
-    new OkCancelDialog<>(blobDlg_, "ToDo", new NewTagDialog()).show(parentTag, newTag -> createTag(eventSource, newTag));
+    new OkCancelDialog<>(blobDlg_, "ToDo", new NewTagDialog(eventSource.getData())).show(parentTag, newTag -> createTag(eventSource, newTag));
   }
 
   void createTag(EntityTree<Tag> tree, Tag newTag) {
