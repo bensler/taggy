@@ -143,7 +143,7 @@ public class MainFrame {
 
     session_.persist(newTag);
     txn.commit(); // TODO rollback in case of exc
-    tree.addData(newTag, true);
+//    tree.addData(newTag, true);  TODO
   }
 
   public void show() {

@@ -21,12 +21,12 @@ public class NewTagDialog extends BasicContentPanel<Optional<Tag>, Tag> {
   private final JTextField nameTextfield_;
   private final Hierarchy<Tag> allTags_;
 
-  public NewTagDialog(Set<Tag> pAllTags) {
+  public NewTagDialog(Hierarchy<Tag> pAllTags) {
     super(new FormLayout(
       "r:p, 3dlu, f:p:g",
       "f:p:g, 3dlu, c:p"
     ));
-    allTags_ = new Hierarchy<>(pAllTags);
+    allTags_ = pAllTags;
 
     final CellConstraints cc = new CellConstraints();
     parentTag_ = new EntityTree<>(MainFrame.TAG_NAME_VIEW);
