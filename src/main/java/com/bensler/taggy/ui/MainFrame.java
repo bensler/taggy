@@ -63,6 +63,7 @@ public class MainFrame {
 
   private final JDialog dialog_;
   private final Session session_;
+  private final ImportController importCtrl_;
   private final BlobController blobCtrl_;
   private final Thumbnailer thumbnailer_;
   private final EntityTree<Tag> tagTree_;
@@ -73,6 +74,7 @@ public class MainFrame {
   public MainFrame(BlobController blobController, Session session, Thumbnailer thumbnailer) {
     instance = this;
     session_ = session;
+    importCtrl_ = new ImportController();
     blobCtrl_ = blobController;
 
     final Hierarchy<Tag> data = new Hierarchy<>();
@@ -86,9 +88,9 @@ public class MainFrame {
     ));
 
     final JPanel toolbar = new JPanel(new FormLayout("f:p, 3dlu:g", "f:p"));
-    final JButton scanButton = new JButton(new ImageIcon(getClass().getResource("vacuum.png")));
-    toolbar.add(scanButton, new CellConstraints(1, 1));
+    toolbar.add(importCtrl_.getImportAction().createToolbarButton(), new CellConstraints(1, 1));
     mainPanel.add(toolbar, new CellConstraints(2, 2));
+    new Appearance(null, new ImageIcon(getClass().getResource("vacuum.png")), null, "Scan for new Images to import.");
 
     thumbnails_ = new ThumbnailOverviewPanel(blobCtrl_);
     tagTree_ = new EntityTree<>(TAG_NAME_VIEW);
