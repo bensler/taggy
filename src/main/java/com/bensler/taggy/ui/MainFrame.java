@@ -16,6 +16,7 @@ import java.awt.Dimension;
 import java.util.List;
 import java.util.Optional;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
@@ -81,8 +82,13 @@ public class MainFrame {
     data.addAll(session_.createQuery("FROM Tag", Tag.class).getResultList());
     final JPanel mainPanel = new JPanel(new FormLayout(
       "3dlu, f:p:g, 3dlu",
-      "3dlu, f:p:g, 3dlu, f:p, 3dlu"
+      "3dlu, f:p, 3dlu, f:p:g, 3dlu, f:p, 3dlu"
     ));
+
+    final JPanel toolbar = new JPanel(new FormLayout("f:p, 3dlu:g", "f:p"));
+    final JButton scanButton = new JButton(new ImageIcon(getClass().getResource("vacuum.png")));
+    toolbar.add(scanButton, new CellConstraints(1, 1));
+    mainPanel.add(toolbar, new CellConstraints(2, 2));
 
     thumbnails_ = new ThumbnailOverviewPanel(blobCtrl_);
     tagTree_ = new EntityTree<>(TAG_NAME_VIEW);
@@ -97,22 +103,22 @@ public class MainFrame {
 
     dialog_.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     tagTree_.setData(data);
-    final JScrollPane thumbnailScrollpane = new JScrollPane(thumbnails_, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
     tagTree_.setContextActions(new ActionGroup<>(new EntityAction<>(
         new Appearance(null, null, "New Tag", "Creates a new Tag under the currently selected Tag"),
         new SingleEntityFilter<>(ActionState.ENABLED),
         new SingleEntityActionAdapter<>((source, tag) -> createTagUi(tagTree_, tag))
       )));
+    final JScrollPane thumbnailScrollpane = new JScrollPane(thumbnails_, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
     thumbnailScrollpane.getViewport().setBackground(thumbnails_.getBackground());
     mainPanel.add(new JSplitPane(
       HORIZONTAL_SPLIT, true,
       tagTree_.getScrollPane(),
       thumbnailScrollpane
-    ), new CellConstraints(2, 2));
+    ), new CellConstraints(2, 4));
 
     final JPanel buttonPanel = new JPanel(new FormLayout("f:p:g, 3dlu, f:p:g", "f:p:g"));
     ((FormLayout)buttonPanel.getLayout()).setColumnGroups(new int[][] {{1, 3}});
-    mainPanel.add(buttonPanel, new CellConstraints(2, 4, RIGHT, CENTER));
+    mainPanel.add(buttonPanel, new CellConstraints(2, 6, RIGHT, CENTER));
     final JButton testButton = new JButton("Orphan Files");
     testButton.addActionListener(evt -> new OrphanDialog(dialog_, blobCtrl_).show(session_));
     buttonPanel.add(testButton, new CellConstraints(1, 1, FILL, FILL));
