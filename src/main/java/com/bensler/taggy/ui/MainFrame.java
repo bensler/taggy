@@ -71,10 +71,10 @@ public class MainFrame {
 
   private BlobDialog blobDlg_;
 
-  public MainFrame(BlobController blobController, Session session, Thumbnailer thumbnailer) {
+  public MainFrame(BlobController blobController, ImportController importCtrl, Session session, Thumbnailer thumbnailer) {
     instance = this;
     session_ = session;
-    importCtrl_ = new ImportController();
+    importCtrl_ = importCtrl;
     blobCtrl_ = blobController;
 
     final Hierarchy<Tag> data = new Hierarchy<>();
