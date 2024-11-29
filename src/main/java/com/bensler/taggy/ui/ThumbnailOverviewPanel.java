@@ -51,11 +51,13 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
   private final BlobController blobController_;
   private final List<Blob> blobs_;
   private final Map<Blob, ImageIcon> images_;
-  private Blob selectedBlob_;
+
+  private final List<Blob> selection_;
 
   public ThumbnailOverviewPanel(BlobController blobController) {
     blobController_ = blobController;
     blobs_ = new ArrayList<>();
+    selection_ = new ArrayList<>();
     images_ = new HashMap<>();
 
     backgroundSelectionColor_ = UIManager.getColor("Tree.selectionBackground");
@@ -85,34 +87,36 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     addKeyListener(new KeyAdapter() {
       @Override
       public void keyPressed(KeyEvent evt) {
-        System.out.println(evt.getKeyCode() + " # " + evt.getModifiersEx());
+        if ((evt.getKeyCode() == KeyEvent.VK_A) && (evt.getModifiersEx() == KeyEvent.CTRL_DOWN_MASK)) {
+          selection_.clear();
+          selection_.addAll(blobs_);
+          repaint();
+        }
       }
     });
   }
 
   void mouseClicked(MouseEvent evt) {
-    final Blob oldSelection = selectedBlob_;
+    final List<Blob> oldSelection = List.copyOf(selection_);
     final boolean doubleClick = (evt.getClickCount() == 2);
 
     requestFocus();
     if (doubleClick) {
-      if (selectedBlob_ != null) {
+      if (selection_.size() == 1) {
         try {
           final BlobDialog blobDlg = MainFrame.getInstance().getBlobDlg();
 
           blobDlg.setVisible(true);
-          blobDlg.setBlob(selectedBlob_);
+          blobDlg.setBlob(selection_.get(0));
         } catch (IOException | ImageReadException e) {
           // TODO Auto-generated catch block
           e.printStackTrace();
         }
       }
     } else {
-      selectedBlob_ = null;
-      blobAt(evt.getPoint()).ifPresent(clickedBlob -> {
-        selectedBlob_ = clickedBlob;
-      });
-      if (oldSelection != selectedBlob_) {
+      selection_.clear();
+      blobAt(evt.getPoint()).ifPresent(selection_::add);
+      if (!oldSelection.equals(selection_)) {
         // TODO fire event
         repaint(); // TODO repaint tile only
       }
@@ -143,7 +147,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     blobs_.clear();
     images_.clear();
     blobs_.addAll(data);
-    selectedBlob_ = null;
+    selection_.clear();
     for (Blob blob : blobs_) {
       try {
         images_.put(blob, new ImageIcon(ImageIO.read(blobController_.getFile(blob.getThumbnailSha()))));
@@ -189,7 +193,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     final int tileOriginY = GAP + (row * (TILE_SIZE + GAP));
     final int paddingX = (THUMBNAIL_SIZE - Math.min(THUMBNAIL_SIZE, icon.getIconWidth())) / 2;
     final int paddingY = (THUMBNAIL_SIZE - Math.min(THUMBNAIL_SIZE, icon.getIconHeight())) / 2;
-    final boolean selected = blob == selectedBlob_;
+    final boolean selected = selection_.contains(blob);
 
     if (selected) {
       g.setColor(hasFocus() ? backgroundSelectionColor_ : backgroundSelectionColorUnfocused_);
