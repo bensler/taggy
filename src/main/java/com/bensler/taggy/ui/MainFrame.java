@@ -127,7 +127,7 @@ public class MainFrame {
     ((FormLayout)buttonPanel.getLayout()).setColumnGroups(new int[][] {{1, 3}});
     mainPanel.add(buttonPanel, new CellConstraints(2, 6, RIGHT, CENTER));
     final JButton testButton = new JButton("Orphan Files");
-    testButton.addActionListener(evt -> new OrphanDialog(dialog_, blobCtrl_).show(session_));
+    testButton.addActionListener(evt -> new OrphanDialog(blobCtrl_).show(session_));
     buttonPanel.add(testButton, new CellConstraints(1, 1, FILL, FILL));
     final JButton closeButton = new JButton("Close");
     closeButton.addActionListener(evt -> dialog_.dispose());
@@ -169,7 +169,7 @@ public class MainFrame {
 
   public BlobDialog getBlobDlg() {
     if (blobDlg_ == null) {
-      blobDlg_ = new BlobDialog(dialog_);
+      blobDlg_ = new BlobDialog();
     }
     return blobDlg_;
   }

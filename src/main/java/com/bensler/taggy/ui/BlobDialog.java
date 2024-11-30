@@ -22,8 +22,8 @@ public class BlobDialog extends JDialog {
   private final BlobController blobCtrl_;
   private final Thumbnailer thumbnailer_;
 
-  public BlobDialog(Window parent) {
-    super(parent, "Blob");
+  public BlobDialog() {
+    super((Window)null, "Blob");
 
     final JPanel mainPanel = new JPanel(new FormLayout(
       "3dlu, f:p:g, 3dlu",
@@ -37,6 +37,7 @@ public class BlobDialog extends JDialog {
     mainPanel.add(new JScrollPane(imageComponent_), new CellConstraints(2, 2));
     setContentPane(mainPanel);
     pack();
+    setDefaultCloseOperation(DISPOSE_ON_CLOSE);
   }
 
   public void setBlob(Blob blob) throws IOException, ImageReadException {

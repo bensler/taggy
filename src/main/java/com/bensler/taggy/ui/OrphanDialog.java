@@ -6,6 +6,7 @@ import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 import java.awt.Dimension;
+import java.awt.Window;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -24,8 +25,8 @@ public class OrphanDialog extends JDialog {
   private final BlobController blobController_;
   private final ThumbnailOverviewPanel thumbViewer_;
 
-  public OrphanDialog(JDialog parent, BlobController blobController) {
-    super(parent, "Uncategorized Files", true);
+  public OrphanDialog(BlobController blobController) {
+    super((Window)null, "Uncategorized Files");
     final JPanel mainPanel = new JPanel(new FormLayout(
       "3dlu, f:p:g, 3dlu",
       "3dlu, f:p:g, 3dlu, f:p, 3dlu"
@@ -45,6 +46,7 @@ public class OrphanDialog extends JDialog {
     mainPanel.setPreferredSize(new Dimension(400, 400));
     setContentPane(mainPanel);
     pack();
+    setDefaultCloseOperation(DISPOSE_ON_CLOSE);
   }
 
   public void show(Session session) {
