@@ -101,24 +101,36 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     final boolean doubleClick = (evt.getClickCount() == 2);
 
     requestFocus();
-    if (doubleClick) {
-      if (selection_.size() == 1) {
-        try {
-          final BlobDialog blobDlg = MainFrame.getInstance().getBlobDlg();
+    if (evt.getButton() == MouseEvent.BUTTON1) {
+      if (doubleClick) {
+        if (selection_.size() == 1) {
+          try {
+            final BlobDialog blobDlg = MainFrame.getInstance().getBlobDlg();
 
-          blobDlg.setVisible(true);
-          blobDlg.setBlob(selection_.get(0));
-        } catch (IOException | ImageReadException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
+            blobDlg.setVisible(true);
+            blobDlg.setBlob(selection_.get(0));
+          } catch (IOException | ImageReadException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          }
         }
-      }
-    } else {
-      selection_.clear();
-      blobAt(evt.getPoint()).ifPresent(selection_::add);
-      if (!oldSelection.equals(selection_)) {
-        // TODO fire event
-        repaint(); // TODO repaint tile only
+      } else {
+        blobAt(evt.getPoint()).ifPresent(blob -> {
+          if (evt.isControlDown()) {
+            if (selection_.contains(blob)) {
+              selection_.remove(blob);
+            } else {
+              selection_.add(blob);
+            }
+          } else {
+            selection_.clear();
+            selection_.add(blob);
+          }
+        });
+        if (!oldSelection.equals(selection_)) {
+          // TODO fire event
+          repaint(); // TODO repaint tile only
+        }
       }
     }
   }
