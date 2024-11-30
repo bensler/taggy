@@ -26,7 +26,7 @@ public class EditCategoriesDialog extends JDialog {
       "3dlu, f:p:g, 3dlu",
       "3dlu, f:p:g, 3dlu"
     ));
-    CheckboxTree<Tag> cbTree = new CheckboxTree<>(OldTagDialog.TAG_NAME_VIEW);
+    CheckboxTree<Tag> cbTree = new CheckboxTree<>(MainFrame.TAG_NAME_VIEW);
     cbTree.setData(allCategories);
     final Set<Tag> tags = blob.getTags();
 

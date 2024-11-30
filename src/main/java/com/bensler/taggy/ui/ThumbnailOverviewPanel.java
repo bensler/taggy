@@ -33,6 +33,7 @@ import javax.swing.UIManager;
 import org.apache.commons.imaging.ImageReadException;
 
 import com.bensler.decaf.swing.awt.ColorHelper;
+import com.bensler.decaf.swing.selection.EntitySelectionListener;
 import com.bensler.taggy.persist.Blob;
 
 public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
@@ -53,12 +54,14 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
   private final Map<Blob, ImageIcon> images_;
 
   private final List<Blob> selection_;
+  private EntitySelectionListener<Blob> selectionListener_;
 
   public ThumbnailOverviewPanel(BlobController blobController) {
     blobController_ = blobController;
     blobs_ = new ArrayList<>();
-    selection_ = new ArrayList<>();
     images_ = new HashMap<>();
+    selection_ = new ArrayList<>();
+    setSelectionListener(null);
 
     backgroundSelectionColor_ = UIManager.getColor("Tree.selectionBackground");
     backgroundSelectionColorUnfocused_ = ColorHelper.mix(
@@ -88,16 +91,16 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
       @Override
       public void keyPressed(KeyEvent evt) {
         if ((evt.getKeyCode() == KeyEvent.VK_A) && (evt.getModifiersEx() == KeyEvent.CTRL_DOWN_MASK)) {
-          selection_.clear();
-          selection_.addAll(blobs_);
-          repaint();
+          try (SelectionEvent selectionEvent = new SelectionEvent(() -> repaint())) {
+            selection_.clear();
+            selection_.addAll(blobs_);
+          }
         }
       }
     });
   }
 
   void mouseClicked(MouseEvent evt) {
-    final List<Blob> oldSelection = List.copyOf(selection_);
     final boolean doubleClick = (evt.getClickCount() == 2);
 
     requestFocus();
@@ -116,21 +119,19 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
         }
       } else {
         blobAt(evt.getPoint()).ifPresent(blob -> {
-          if (evt.isControlDown()) {
-            if (selection_.contains(blob)) {
-              selection_.remove(blob);
+          try (SelectionEvent selectionEvent = new SelectionEvent(() -> repaint())) {
+            if (evt.isControlDown()) {
+              if (selection_.contains(blob)) {
+                selection_.remove(blob);
+              } else {
+                selection_.add(blob);
+              }
             } else {
+              selection_.clear();
               selection_.add(blob);
             }
-          } else {
-            selection_.clear();
-            selection_.add(blob);
           }
         });
-        if (!oldSelection.equals(selection_)) {
-          // TODO fire event
-          repaint(); // TODO repaint tile only
-        }
       }
     }
   }
@@ -159,7 +160,10 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     blobs_.clear();
     images_.clear();
     blobs_.addAll(data);
-    selection_.clear();
+
+    try (SelectionEvent selectionEvent = new SelectionEvent(() -> {})) {
+      selection_.clear();
+    }
     for (Blob blob : blobs_) {
       try {
         images_.put(blob, new ImageIcon(ImageIO.read(blobController_.getFile(blob.getThumbnailSha()))));
@@ -243,7 +247,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     if (actualWidth <= 0) {
       return new Dimension(tilesCount, 1);
     } else {
-      final int colCount = (actualWidth - GAP) / (TILE_SIZE + GAP);
+      final int colCount = Math.max(1, (actualWidth - GAP) / (TILE_SIZE + GAP));
       final int rowCount = (tilesCount / colCount) + (((tilesCount % colCount) > 0) ? 1 : 0);
 
       return new Dimension(colCount, rowCount);
@@ -273,6 +277,30 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
   @Override
   public boolean getScrollableTracksViewportHeight() {
     return false;
+  }
+
+  private class SelectionEvent implements AutoCloseable {
+
+    final List<Blob> oldSelection_;
+    final Runnable onSelectionChange_;
+
+    SelectionEvent(Runnable onSelectionChange) {
+      oldSelection_ = List.copyOf(selection_);
+      onSelectionChange_ = onSelectionChange;
+    }
+
+    @Override
+    public void close() {
+      if (!oldSelection_.equals(selection_)) {
+        // TODO ----------------------------vvvv
+        selectionListener_.selectionChanged(null, selection_);
+        onSelectionChange_.run();
+      }
+    }
+  }
+
+  public void setSelectionListener(EntitySelectionListener<Blob> listener) {
+    selectionListener_ = ((listener == null) ? EntitySelectionListener.getNopInstance() : listener);
   }
 
 }

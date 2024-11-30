@@ -76,6 +76,7 @@ public class MainFrame {
     session_ = session;
     importCtrl_ = importCtrl;
     blobCtrl_ = blobController;
+    SelectionTagPanel selectionTagPanel = new SelectionTagPanel();
 
     final Hierarchy<Tag> data = new Hierarchy<>();
 
@@ -93,6 +94,7 @@ public class MainFrame {
     new Appearance(null, new ImageIcon(getClass().getResource("vacuum.png")), null, "Scan for new Images to import.");
 
     thumbnails_ = new ThumbnailOverviewPanel(blobCtrl_);
+    thumbnails_.setSelectionListener((source, selection) -> selectionTagPanel.setData(selection));
     tagTree_ = new EntityTree<>(TAG_NAME_VIEW);
     tagTree_.setVisibleRowCount(20, .5f);
     tagTree_.setSelectionListener((source, selection) -> {
@@ -112,11 +114,14 @@ public class MainFrame {
       )));
     final JScrollPane thumbnailScrollpane = new JScrollPane(thumbnails_, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
     thumbnailScrollpane.getViewport().setBackground(thumbnails_.getBackground());
-    mainPanel.add(new JSplitPane(
-      HORIZONTAL_SPLIT, true,
-      tagTree_.getScrollPane(),
-      thumbnailScrollpane
-    ), new CellConstraints(2, 4));
+    final JSplitPane largeSplitPane = new JSplitPane(HORIZONTAL_SPLIT, true,
+      new JSplitPane(HORIZONTAL_SPLIT, true,
+        tagTree_.getScrollPane(),
+        thumbnailScrollpane
+      ), selectionTagPanel.getComponent()
+    );
+    largeSplitPane.setResizeWeight(1);
+    mainPanel.add(largeSplitPane, new CellConstraints(2, 4));
 
     final JPanel buttonPanel = new JPanel(new FormLayout("f:p:g, 3dlu, f:p:g", "f:p:g"));
     ((FormLayout)buttonPanel.getLayout()).setColumnGroups(new int[][] {{1, 3}});
