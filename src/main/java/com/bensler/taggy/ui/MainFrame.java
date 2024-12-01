@@ -7,8 +7,6 @@ import static com.jgoodies.forms.layout.CellConstraints.CENTER;
 import static com.jgoodies.forms.layout.CellConstraints.FILL;
 import static com.jgoodies.forms.layout.CellConstraints.RIGHT;
 import static javax.swing.JSplitPane.HORIZONTAL_SPLIT;
-import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
-import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 import static javax.swing.WindowConstants.DISPOSE_ON_CLOSE;
 
 import java.awt.Dialog.ModalityType;
@@ -20,7 +18,6 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 
 import org.hibernate.Session;
@@ -67,7 +64,7 @@ public class MainFrame {
   private final BlobController blobCtrl_;
   private final Thumbnailer thumbnailer_;
   private final EntityTree<Tag> tagTree_;
-  private final ThumbnailOverviewPanel thumbnails_;
+  private final ThumbnailOverview thumbnails_;
 
   private BlobDialog blobDlg_;
 
@@ -93,7 +90,7 @@ public class MainFrame {
     mainPanel.add(toolbar, new CellConstraints(2, 2));
     new Appearance(null, new ImageIcon(getClass().getResource("vacuum.png")), null, "Scan for new Images to import.");
 
-    thumbnails_ = new ThumbnailOverviewPanel(blobCtrl_);
+    thumbnails_ = new ThumbnailOverview(blobCtrl_);
     thumbnails_.setSelectionListener((source, selection) -> selectionTagPanel.setData(selection));
     tagTree_ = new EntityTree<>(TAG_NAME_VIEW);
     tagTree_.setVisibleRowCount(20, .5f);
@@ -112,12 +109,10 @@ public class MainFrame {
         new SingleEntityFilter<>(ActionState.ENABLED),
         new SingleEntityActionAdapter<>((source, tag) -> createTagUi(tagTree_, tag))
       )));
-    final JScrollPane thumbnailScrollpane = new JScrollPane(thumbnails_, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
-    thumbnailScrollpane.getViewport().setBackground(thumbnails_.getBackground());
     final JSplitPane largeSplitPane = new JSplitPane(HORIZONTAL_SPLIT, true,
       new JSplitPane(HORIZONTAL_SPLIT, true,
         tagTree_.getScrollPane(),
-        thumbnailScrollpane
+        thumbnails_.getScrollPane()
       ), selectionTagPanel.getComponent()
     );
     largeSplitPane.setResizeWeight(1);

@@ -2,8 +2,6 @@ package com.bensler.taggy.ui;
 
 import static com.jgoodies.forms.layout.CellConstraints.FILL;
 import static com.jgoodies.forms.layout.CellConstraints.RIGHT;
-import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
-import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 import java.awt.Dimension;
 import java.awt.Window;
@@ -11,7 +9,6 @@ import java.awt.Window;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 
 import org.hibernate.Session;
@@ -23,7 +20,7 @@ import com.jgoodies.forms.layout.FormLayout;
 public class OrphanDialog extends JDialog {
 
   private final BlobController blobController_;
-  private final ThumbnailOverviewPanel thumbViewer_;
+  private final ThumbnailOverview thumbViewer_;
 
   public OrphanDialog(BlobController blobController) {
     super((Window)null, "Uncategorized Files");
@@ -34,10 +31,8 @@ public class OrphanDialog extends JDialog {
 
     blobController_ = blobController;
 
-    thumbViewer_ = new ThumbnailOverviewPanel(blobController_);
-    final JScrollPane scrollPane = new JScrollPane(thumbViewer_, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
-    scrollPane.getViewport().setBackground(thumbViewer_.getBackground());
-    mainPanel.add(scrollPane, new CellConstraints(2, 2));
+    thumbViewer_ = new ThumbnailOverview(blobController_);
+    mainPanel.add(thumbViewer_.getScrollPane(), new CellConstraints(2, 2));
 
     final JButton closeButton = new JButton("Close");
     closeButton.addActionListener(evt -> dispose());

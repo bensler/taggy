@@ -19,6 +19,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -91,7 +92,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
       @Override
       public void keyPressed(KeyEvent evt) {
         if ((evt.getKeyCode() == KeyEvent.VK_A) && (evt.getModifiersEx() == KeyEvent.CTRL_DOWN_MASK)) {
-          try (SelectionEvent selectionEvent = new SelectionEvent(() -> repaint())) {
+          try (SelectionEvent selectionEvent = new SelectionEvent()) {
             selection_.clear();
             selection_.addAll(blobs_);
           }
@@ -119,7 +120,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
         }
       } else {
         blobAt(evt.getPoint()).ifPresent(blob -> {
-          try (SelectionEvent selectionEvent = new SelectionEvent(() -> repaint())) {
+          try (SelectionEvent selectionEvent = new SelectionEvent()) {
             if (evt.isControlDown()) {
               if (selection_.contains(blob)) {
                 selection_.remove(blob);
@@ -161,9 +162,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     images_.clear();
     blobs_.addAll(data);
 
-    try (SelectionEvent selectionEvent = new SelectionEvent(() -> {})) {
-      selection_.clear();
-    }
+    clearSelection();
     for (Blob blob : blobs_) {
       try {
         images_.put(blob, new ImageIcon(ImageIO.read(blobController_.getFile(blob.getThumbnailSha()))));
@@ -178,6 +177,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
 
   public void clear() {
     setData(List.of());
+    clearSelection();
   }
 
   @Override
@@ -282,11 +282,9 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
   private class SelectionEvent implements AutoCloseable {
 
     final List<Blob> oldSelection_;
-    final Runnable onSelectionChange_;
 
-    SelectionEvent(Runnable onSelectionChange) {
+    SelectionEvent() {
       oldSelection_ = List.copyOf(selection_);
-      onSelectionChange_ = onSelectionChange;
     }
 
     @Override
@@ -294,13 +292,45 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
       if (!oldSelection_.equals(selection_)) {
         // TODO ----------------------------vvvv
         selectionListener_.selectionChanged(null, selection_);
-        onSelectionChange_.run();
+        repaint();
       }
     }
   }
 
   public void setSelectionListener(EntitySelectionListener<Blob> listener) {
     selectionListener_ = ((listener == null) ? EntitySelectionListener.getNopInstance() : listener);
+  }
+
+  public List<Blob> getSelection() {
+    return List.copyOf(selection_);
+  }
+
+  public Blob getSingleSelection() {
+    return ((selection_.isEmpty()) ? null : selection_.get(0));
+  }
+
+  public void clearSelection() {
+    try (SelectionEvent selectionEvent = new SelectionEvent()) {
+      selection_.clear();
+    }
+  }
+
+  public void select(Collection<Blob> blobs) {
+    try (SelectionEvent selectionEvent = new SelectionEvent()) {
+      selection_.clear();
+      selection_.addAll(blobs);
+    }
+  }
+
+  public void select(Blob blob) {
+    try (SelectionEvent selectionEvent = new SelectionEvent()) {
+      selection_.clear();
+      selection_.add(blob);
+    }
+  }
+
+  public boolean contains(Blob blob) {
+    return images_.containsKey(blob);
   }
 
 }
