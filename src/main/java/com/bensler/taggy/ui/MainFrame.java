@@ -105,10 +105,10 @@ public class MainFrame {
     dialog_.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     tagTree_.setData(data);
     tagTree_.setContextActions(new ActionGroup<>(new EntityAction<>(
-        new Appearance(null, null, "New Tag", "Creates a new Tag under the currently selected Tag"),
-        new SingleEntityFilter<>(ActionState.ENABLED),
-        new SingleEntityActionAdapter<>((source, tag) -> createTagUi(tagTree_, tag))
-      )));
+      new Appearance(null, null, "New Tag", "Creates a new Tag under the currently selected Tag"),
+      new SingleEntityFilter<>(ActionState.ENABLED),
+      new SingleEntityActionAdapter<>((source, tag) -> createTagUi(tagTree_, tag))
+    )));
     final JSplitPane largeSplitPane = new JSplitPane(HORIZONTAL_SPLIT, true,
       new JSplitPane(HORIZONTAL_SPLIT, true,
         tagTree_.getScrollPane(),

@@ -3,6 +3,7 @@ package com.bensler.taggy.ui;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
+import java.awt.event.MouseEvent;
 import java.util.Collection;
 import java.util.List;
 
@@ -10,6 +11,12 @@ import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 
 import com.bensler.decaf.swing.EntityComponent;
+import com.bensler.decaf.swing.action.ActionGroup;
+import com.bensler.decaf.swing.action.ActionState;
+import com.bensler.decaf.swing.action.Appearance;
+import com.bensler.decaf.swing.action.EntityAction;
+import com.bensler.decaf.swing.action.SingleEntityActionAdapter;
+import com.bensler.decaf.swing.action.SingleEntityFilter;
 import com.bensler.decaf.swing.selection.EntitySelectionListener;
 import com.bensler.taggy.persist.Blob;
 
@@ -17,12 +24,21 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
 
   private final JScrollPane scrollPane_;
   private final ThumbnailOverviewPanel comp_;
+  private final ActionGroup<Blob> contextActions_;
 
   public ThumbnailOverview(BlobController blobCtrl) {
     comp_ = new ThumbnailOverviewPanel(blobCtrl);
     scrollPane_ = new JScrollPane(comp_, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
     scrollPane_.getViewport().setBackground(comp_.getBackground());
+    contextActions_ = new ActionGroup<>(new EntityAction<>(
+      new Appearance(null, null, "Edit Tags", "Edit Tags of this Image"),
+      new SingleEntityFilter<>(ActionState.DISABLED),
+      new SingleEntityActionAdapter<>((source, blob) -> blob.ifPresent(this::editTags))
+    ));
+  }
 
+  void editTags(Blob blob) {
+    System.out.println("edit tags blob:" + blob.getId());
   }
 
   @Override
@@ -81,6 +97,15 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
 
   public void clear() {
     comp_.clear();
+  }
+
+  void triggerContextMenu(MouseEvent evt) {
+    if (evt.isPopupTrigger()) {
+//      final int selRow = comp_.getRowForLocation(evt.getX(), evt.getY());
+
+//      tree_.setSelectionRows((selRow > -1) ? new int[] {selRow} : new int[0]);
+      contextActions_.createContextMenu(this).ifPresent(popup -> popup.show(comp_, evt.getX(), evt.getY()));
+    }
   }
 
 }
