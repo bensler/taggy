@@ -101,9 +101,7 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
 
   void triggerContextMenu(MouseEvent evt) {
     if (evt.isPopupTrigger()) {
-//      final int selRow = comp_.getRowForLocation(evt.getX(), evt.getY());
-
-//      tree_.setSelectionRows((selRow > -1) ? new int[] {selRow} : new int[0]);
+      comp_.blobAt(evt.getPoint()).ifPresentOrElse(this::select, this::clearSelection);
       contextActions_.createContextMenu(this).ifPresent(popup -> popup.show(comp_, evt.getX(), evt.getY()));
     }
   }

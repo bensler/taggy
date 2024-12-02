@@ -137,7 +137,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     }
   }
 
-  private Optional<Blob> blobAt(Point position) {
+  Optional<Blob> blobAt(Point position) {
     final int gapPlusTileSize = GAP + TILE_SIZE;
 
     requestFocus();
