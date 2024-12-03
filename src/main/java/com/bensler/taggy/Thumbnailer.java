@@ -26,8 +26,6 @@ import org.apache.commons.imaging.formats.jpeg.JpegImageMetadata;
 import org.apache.commons.imaging.formats.tiff.TiffField;
 import org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants;
 
-import com.bensler.taggy.ui.BlobController;
-
 public class Thumbnailer {
 
   public static final String WORKING_SUBDIR = "thumbnailer";
@@ -40,6 +38,9 @@ public class Thumbnailer {
   );
 
   private final File tmpDir_;
+
+  /** Length of the largest side of a thumnail img. */
+  public static final int THUMBNAIL_SIZE = 150;
 
   public Thumbnailer(File tmpDir) {
     tmpDir_ = new File(tmpDir, WORKING_SUBDIR);
@@ -58,19 +59,23 @@ public class Thumbnailer {
     int width = srcImg.getWidth();
     int height = srcImg.getHeight();
 
-    if (width > height) {
-      width = BlobController.THUMBNAIL_SIZE;
-      height = -1;
+    if ((width > THUMBNAIL_SIZE) || (height > THUMBNAIL_SIZE)) {
+      if (width > height) {
+        width = THUMBNAIL_SIZE;
+        height = -1;
+      } else {
+        width = -1;
+        height = THUMBNAIL_SIZE;
+      }
+
+      final Image scaledImg = srcImg.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+      final BufferedImage bufferedImg = new BufferedImage(scaledImg.getWidth(null), scaledImg.getHeight(null), BufferedImage.TYPE_INT_RGB);
+
+      bufferedImg.getGraphics().drawImage(scaledImg, 0, 0 , null);
+      return bufferedImg;
     } else {
-      width = -1;
-      height = BlobController.THUMBNAIL_SIZE;
+      return srcImg;
     }
-
-    final Image scaledImg = srcImg.getScaledInstance(width, height, Image.SCALE_SMOOTH);
-    final BufferedImage bufferedImg = new BufferedImage(scaledImg.getWidth(null), scaledImg.getHeight(null), BufferedImage.TYPE_INT_RGB);
-
-    bufferedImg.getGraphics().drawImage(scaledImg, 0, 0 , null);
-    return bufferedImg;
   }
 
   private File writeImgToFile(BufferedImage img) throws IOException {
@@ -127,7 +132,7 @@ public class Thumbnailer {
 
     final Rectangle2D rotatedBounds = rotateTranslateOp.getBounds2D(scaledImg);
 
-    return writeImgToFile(rotateTranslateOp.filter( // no alpha as jpg does not supportit -------------------------------vvv
+    return writeImgToFile(rotateTranslateOp.filter( // no alpha as jpg does not support it ------------------------------vvv
       scaledImg, new BufferedImage((int)rotatedBounds.getWidth(), (int)rotatedBounds.getHeight(), BufferedImage.TYPE_INT_RGB)
     ));
   }

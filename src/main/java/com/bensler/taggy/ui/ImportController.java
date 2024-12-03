@@ -2,13 +2,17 @@ package com.bensler.taggy.ui;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.ImageIcon;
 
+import org.apache.commons.imaging.ImageReadException;
+
 import com.bensler.decaf.swing.action.Appearance;
 import com.bensler.decaf.swing.action.EntityAction;
+import com.bensler.taggy.persist.Blob;
 
 public class ImportController {
 
@@ -38,7 +42,7 @@ public class ImportController {
   private void doImport() {
     final MainFrame mainFrame = MainFrame.getInstance();
 
-    new ImportDialog(mainFrame.getFrame(), mainFrame.getBlobCtrl(), this).setVisible(true);
+    new ImportDialog(mainFrame.getFrame(), this).setVisible(true);
   }
 
   public List<File> getFilesToImport() {
@@ -50,6 +54,24 @@ public class ImportController {
 
   boolean hasKnownFileExtesion(File file) {
     return true; // TODO
+  }
+
+  public void importFile(File file) {
+    try {
+      final MainFrame mainFrame = MainFrame.getInstance();
+      final BlobController blobCtrl = mainFrame.getBlobCtrl();
+      final File thumbnail = mainFrame.getThumbnailer().scaleRotateImage(file);
+      final String fileSha = blobCtrl.storeBlob(file, false);
+      final String thumbSha = blobCtrl.storeBlob(thumbnail, false);
+
+      mainFrame.storeBlob(new Blob(file.getName(), fileSha, thumbSha));
+    } catch (ImageReadException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
   }
 
 }

@@ -1,6 +1,6 @@
 package com.bensler.taggy.ui;
 
-import static com.bensler.taggy.ui.BlobController.THUMBNAIL_SIZE;
+import static com.bensler.taggy.Thumbnailer.THUMBNAIL_SIZE;
 import static java.awt.BasicStroke.CAP_BUTT;
 import static java.awt.BasicStroke.JOIN_BEVEL;
 
@@ -261,12 +261,12 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
 
   @Override
   public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
-    return BlobController.THUMBNAIL_SIZE;
+    return THUMBNAIL_SIZE;
   }
 
   @Override
   public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
-    return BlobController.THUMBNAIL_SIZE;
+    return THUMBNAIL_SIZE;
   }
 
   @Override

@@ -154,6 +154,13 @@ public class MainFrame {
     tree.addData(newTag, true);
   }
 
+  void storeBlob(Blob blob) {
+    final Transaction txn = session_.beginTransaction();
+
+    session_.persist(blob);
+    txn.commit(); // TODO rollback in case of exc
+  }
+
   public void show() {
     dialog_.setVisible(true);
   }

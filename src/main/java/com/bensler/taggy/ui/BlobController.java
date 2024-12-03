@@ -15,9 +15,6 @@ import java.util.stream.IntStream;
 
 public class BlobController {
 
-  /** Length of the largest side of a thumnail img. */
-  public static final int THUMBNAIL_SIZE = 150;
-
   public static final String BLOB_FOLDER_BASE_NAME = "blobs";
   public static final String DIGEST_TYPE_SHA_256 = "SHA-256";
 

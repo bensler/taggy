@@ -18,9 +18,11 @@ public class Blob extends Object {
 
     Blob() {}
 
-    public Blob(final String filename) {
+    public Blob(final String filename, String shaSum, String thumbnailSha) {
       id_ = null;
       filename_ = filename;
+      sha256sum_ = shaSum;
+      thumbnailSha_ = thumbnailSha;
       tags_ = new HashSet<>();
     }
 
