@@ -3,17 +3,20 @@ package com.bensler.taggy.ui;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
+import java.awt.Window;
 import java.awt.event.MouseEvent;
 import java.util.Collection;
 import java.util.List;
 
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
+import javax.swing.SwingUtilities;
 
 import com.bensler.decaf.swing.EntityComponent;
 import com.bensler.decaf.swing.action.ActionGroup;
 import com.bensler.decaf.swing.action.ActionState;
 import com.bensler.decaf.swing.action.Appearance;
+import com.bensler.decaf.swing.action.ContextMenuMouseAdapter;
 import com.bensler.decaf.swing.action.EntityAction;
 import com.bensler.decaf.swing.action.SingleEntityActionAdapter;
 import com.bensler.decaf.swing.action.SingleEntityFilter;
@@ -35,10 +38,11 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
       new SingleEntityFilter<>(ActionState.DISABLED),
       new SingleEntityActionAdapter<>((source, blob) -> blob.ifPresent(this::editTags))
     ));
+    comp_.addMouseListener(new ContextMenuMouseAdapter(this::triggerContextMenu));
   }
 
   void editTags(Blob blob) {
-    System.out.println("edit tags blob:" + blob.getId());
+    new EditCategoriesDialog((Window)SwingUtilities.getRoot(comp_), MainFrame.getInstance().getAllTags(), blob).setVisible(true);
   }
 
   @Override
@@ -100,10 +104,8 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
   }
 
   void triggerContextMenu(MouseEvent evt) {
-    if (evt.isPopupTrigger()) {
-      comp_.blobAt(evt.getPoint()).ifPresentOrElse(this::select, this::clearSelection);
-      contextActions_.createContextMenu(this).ifPresent(popup -> popup.show(comp_, evt.getX(), evt.getY()));
-    }
+    comp_.blobAt(evt.getPoint()).ifPresentOrElse(this::select, this::clearSelection);
+    contextActions_.createContextMenu(this).ifPresent(popup -> popup.show(comp_, evt.getX(), evt.getY()));
   }
 
 }

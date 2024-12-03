@@ -1,6 +1,7 @@
 package com.bensler.taggy.ui;
 
 import java.awt.Dimension;
+import java.awt.Window;
 import java.util.Set;
 
 import javax.swing.JDialog;
@@ -15,12 +16,10 @@ import com.jgoodies.forms.layout.FormLayout;
 
 public class EditCategoriesDialog extends JDialog {
 
-  private final BlobController blobController_;
   private final Blob blob_;
 
-  public EditCategoriesDialog(JDialog parent, Hierarchy<Tag> allCategories, BlobController blobController, Blob blob) {
-    super(parent, "Edit Categories", true);
-    blobController_ = blobController;
+  public EditCategoriesDialog(Window window, Hierarchy<Tag> allCategories, Blob blob) {
+    super(window, "Edit Categories", ModalityType.DOCUMENT_MODAL);
     blob_ = blob;
     final JPanel mainPanel = new JPanel(new FormLayout(
       "3dlu, f:p:g, 3dlu",

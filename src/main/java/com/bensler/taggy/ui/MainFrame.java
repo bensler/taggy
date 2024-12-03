@@ -65,6 +65,7 @@ public class MainFrame {
   private final Thumbnailer thumbnailer_;
   private final EntityTree<Tag> tagTree_;
   private final ThumbnailOverview thumbnails_;
+  private final Hierarchy<Tag> allTags_;
 
   private BlobDialog blobDlg_;
 
@@ -75,11 +76,10 @@ public class MainFrame {
     blobCtrl_ = blobController;
     SelectionTagPanel selectionTagPanel = new SelectionTagPanel();
 
-    final Hierarchy<Tag> data = new Hierarchy<>();
-
+    allTags_ = new Hierarchy<>();
     thumbnailer_ = thumbnailer;
     dialog_ = new JDialog(null, "Taggy", ModalityType.MODELESS);
-    data.addAll(session_.createQuery("FROM Tag", Tag.class).getResultList());
+    allTags_.addAll(session_.createQuery("FROM Tag", Tag.class).getResultList());
     final JPanel mainPanel = new JPanel(new FormLayout(
       "3dlu, f:p:g, 3dlu",
       "3dlu, f:p, 3dlu, f:p:g, 3dlu, f:p, 3dlu"
@@ -103,7 +103,7 @@ public class MainFrame {
     });
 
     dialog_.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-    tagTree_.setData(data);
+    tagTree_.setData(allTags_);
     tagTree_.setContextActions(new ActionGroup<>(new EntityAction<>(
       new Appearance(null, null, "New Tag", "Creates a new Tag under the currently selected Tag"),
       new SingleEntityFilter<>(ActionState.ENABLED),
@@ -182,6 +182,10 @@ public class MainFrame {
 
   public Thumbnailer getThumbnailer() {
     return thumbnailer_;
+  }
+
+  public Hierarchy<Tag> getAllTags() {
+    return allTags_;
   }
 
 }
