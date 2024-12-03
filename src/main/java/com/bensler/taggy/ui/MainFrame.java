@@ -158,6 +158,10 @@ public class MainFrame {
     dialog_.setVisible(true);
   }
 
+  public JDialog getFrame() {
+    return dialog_;
+  }
+
   public BlobController getBlobCtrl() {
     return blobCtrl_;
   }
