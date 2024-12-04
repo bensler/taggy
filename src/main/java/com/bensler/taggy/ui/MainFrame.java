@@ -98,7 +98,10 @@ public class MainFrame {
       if (selection.isEmpty()) {
         thumbnails_.clear();
       } else {
-        thumbnails_.setData(List.copyOf(selection.get(0).getBlobs()));
+        final Tag tag = selection.get(0);
+
+        session_.refresh(tag);
+        thumbnails_.setData(List.copyOf(tag.getBlobs()));
       }
     });
 
@@ -157,7 +160,11 @@ public class MainFrame {
   void storeBlob(Blob blob) {
     final Transaction txn = session_.beginTransaction();
 
-    session_.persist(blob);
+    if (blob.getId() == null) {
+      session_.persist(blob);
+    } else {
+      session_.merge(blob);
+    }
     txn.commit(); // TODO rollback in case of exc
   }
 

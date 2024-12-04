@@ -63,11 +63,11 @@ public class Blob extends Object {
     }
 
     public Set<Tag> getTags() {
-      return Set.copyOf(tags_);
+      return tags_;
     }
 
-    void setTags(Set<Tag> tags) {
-      tags_ = tags;
+    public void setTags(Set<Tag> tags) {
+      tags_ = new HashSet<>(tags);
     }
 
     public Hierarchy<Tag> getTagHierarchy() {

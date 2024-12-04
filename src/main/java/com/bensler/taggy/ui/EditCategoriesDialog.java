@@ -1,12 +1,11 @@
 package com.bensler.taggy.ui;
 
+import static com.bensler.taggy.ui.MainFrame.TAG_NAME_VIEW;
+
 import java.awt.Dimension;
-import java.awt.Window;
 import java.util.Set;
 
-import javax.swing.JDialog;
-import javax.swing.JPanel;
-
+import com.bensler.decaf.swing.dialog.BasicContentPanel;
 import com.bensler.decaf.swing.tree.CheckboxTree;
 import com.bensler.decaf.util.tree.Hierarchy;
 import com.bensler.taggy.persist.Blob;
@@ -14,28 +13,33 @@ import com.bensler.taggy.persist.Tag;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class EditCategoriesDialog extends JDialog {
+public class EditCategoriesDialog extends BasicContentPanel<Blob, Set<Tag>> {
 
-  private final Blob blob_;
+  private final CheckboxTree<Tag> tagTree_;
 
-  public EditCategoriesDialog(Window window, Hierarchy<Tag> allCategories, Blob blob) {
-    super(window, "Edit Categories", ModalityType.DOCUMENT_MODAL);
-    blob_ = blob;
-    final JPanel mainPanel = new JPanel(new FormLayout(
+  public EditCategoriesDialog(Hierarchy<Tag> allCategories) {
+    super(new FormLayout(
       "3dlu, f:p:g, 3dlu",
       "3dlu, f:p:g, 3dlu"
     ));
-    CheckboxTree<Tag> cbTree = new CheckboxTree<>(MainFrame.TAG_NAME_VIEW);
-    cbTree.setData(allCategories);
+    tagTree_ = new CheckboxTree<>(TAG_NAME_VIEW);
+    tagTree_.setData(allCategories);
+    add(tagTree_.getScrollPane(), new CellConstraints(2, 2));
+    setPreferredSize(new Dimension(400, 400));
+  }
+
+  @Override
+  public Set<Tag> getData() {
+    return tagTree_.getCheckedNodes();
+  }
+
+  @Override
+  protected void setData(Blob blob) {
     final Set<Tag> tags = blob.getTags();
 
-    cbTree.setCheckedNodes(tags);
-    tags.forEach(tag -> cbTree.expandCollapse(tag, true));
-    mainPanel.add(cbTree.getScrollPane(), new CellConstraints(2, 2));
-
-    mainPanel.setPreferredSize(new Dimension(400, 400));
-    setContentPane(mainPanel);
-    pack();
+    tagTree_.setCheckedNodes(tags);
+    tags.forEach(tag -> tagTree_.expandCollapse(tag, true));
+    ctx_.setValid(true);
   }
 
 }

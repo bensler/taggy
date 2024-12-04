@@ -20,6 +20,7 @@ import com.bensler.decaf.swing.action.ContextMenuMouseAdapter;
 import com.bensler.decaf.swing.action.EntityAction;
 import com.bensler.decaf.swing.action.SingleEntityActionAdapter;
 import com.bensler.decaf.swing.action.SingleEntityFilter;
+import com.bensler.decaf.swing.dialog.OkCancelDialog;
 import com.bensler.decaf.swing.selection.EntitySelectionListener;
 import com.bensler.taggy.persist.Blob;
 
@@ -42,7 +43,10 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
   }
 
   void editTags(Blob blob) {
-    new EditCategoriesDialog((Window)SwingUtilities.getRoot(comp_), MainFrame.getInstance().getAllTags(), blob).setVisible(true);
+    new OkCancelDialog<>((Window)SwingUtilities.getRoot(comp_), "Edit Image Tags", new EditCategoriesDialog(MainFrame.getInstance().getAllTags())).show(blob, tags -> {
+      blob.setTags(tags);
+      MainFrame.getInstance().storeBlob(blob);
+    });
   }
 
   @Override
