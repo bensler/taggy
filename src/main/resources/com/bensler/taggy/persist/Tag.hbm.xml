@@ -5,13 +5,13 @@
 
 <hibernate-mapping>
   <class name = "com.bensler.taggy.persist.Tag" table = "tag">
-    <id name = "id" type = "int" column = "id">
+    <id access="field" name = "id_" type = "int" column = "id">
       <generator class="identity"/>
     </id>
 
-    <property name = "name" column = "name" type = "string"/>
-    <many-to-one name="parent" class="com.bensler.taggy.persist.Tag" column="parent_id"/>
-    <set name="blobs" table="blob_tag_xref" lazy="true">
+    <property access="field" name = "name_" column = "name" type = "string"/>
+    <many-to-one access="field" name="parent_" class="com.bensler.taggy.persist.Tag" column="parent_id"/>
+    <set access="field" name="blobs_" table="blob_tag_xref" lazy="true">
       <key><column name="tag_id" not-null="true" /></key>
       <many-to-many entity-name="com.bensler.taggy.persist.Blob">
         <column name="blob_id" />

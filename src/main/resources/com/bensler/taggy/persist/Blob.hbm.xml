@@ -5,14 +5,14 @@
 
 <hibernate-mapping>
   <class name="com.bensler.taggy.persist.Blob" table="blob">
-    <id name="id" type="int" column="id">
+    <id access="field" name="id_" type="int" column="id">
       <generator class="identity"/>
     </id>
 
-    <property name="filename" column="filename" type="string"/>
-    <property name="sha256sum" column="sha256sum" type="string"/>
-    <property name="thumbnailSha" column="thumbnail_sha" type="string"/>
-    <set name="tags" table="blob_tag_xref" lazy="false" fetch="join">
+    <property access="field" name="filename_" column="filename" type="string"/>
+    <property access="field" name="sha256sum_" column="sha256sum" type="string"/>
+    <property access="field" name="thumbnailSha_" column="thumbnail_sha" type="string"/>
+    <set access="field" name="tags_" table="blob_tag_xref" lazy="false" fetch="join">
       <key><column name="blob_id" not-null="true" /></key>
       <many-to-many entity-name="com.bensler.taggy.persist.Tag">
         <column name="tag_id" />

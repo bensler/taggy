@@ -63,11 +63,11 @@ public class Blob extends Object {
     }
 
     public Set<Tag> getTags() {
-      return tags_;
+      return Set.copyOf(tags_);
     }
 
     public void setTags(Set<Tag> tags) {
-      tags_ = new HashSet<>(tags);
+      tags_ = new HashSet<  >(tags);
     }
 
     public Hierarchy<Tag> getTagHierarchy() {
@@ -85,6 +85,17 @@ public class Blob extends Object {
     @Override
     public String toString() {
       return filename_;
+    }
+
+    @Override
+    public int hashCode() {
+      return id_;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      return (obj instanceof Blob blob)
+      && (id_.equals(blob.id_));
     }
 
 }

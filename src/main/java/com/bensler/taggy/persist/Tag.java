@@ -55,17 +55,24 @@ public class Tag extends Object implements Hierarchical<Tag>, Named {
       return Set.copyOf(blobs_);
     }
 
-    public void addBlob(Blob blob) {
-      blobs_.add(blob);
-    }
-
     void setBlobs(Set<Blob> blobs) {
-      blobs_ = blobs;
+      blobs_ = new HashSet<>(blobs);
     }
 
     @Override
     public String toString() {
       return name_;
+    }
+
+    @Override
+    public int hashCode() {
+      return id_;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      return (obj instanceof Tag tag)
+      && (id_.equals(tag.id_));
     }
 
 }
