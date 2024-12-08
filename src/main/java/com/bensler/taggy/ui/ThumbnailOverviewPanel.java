@@ -35,6 +35,7 @@ import org.apache.commons.imaging.ImageReadException;
 
 import com.bensler.decaf.swing.awt.ColorHelper;
 import com.bensler.decaf.swing.selection.EntitySelectionListener;
+import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
 
 public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
@@ -50,15 +51,17 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
   private final Color backgroundSelectionColor_;
   private final Color backgroundSelectionColorUnfocused_;
 
-  private final BlobController blobController_;
+  private final App app_;
+  private final BlobController blobCtrl_;
   private final List<Blob> blobs_;
   private final Map<Blob, ImageIcon> images_;
 
   private final List<Blob> selection_;
   private EntitySelectionListener<Blob> selectionListener_;
 
-  public ThumbnailOverviewPanel(BlobController blobController) {
-    blobController_ = blobController;
+  public ThumbnailOverviewPanel(App app) {
+    app_ = app;
+    blobCtrl_ = app_.getBlobCtrl();
     blobs_ = new ArrayList<>();
     images_ = new HashMap<>();
     selection_ = new ArrayList<>();
@@ -109,7 +112,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
       if (doubleClick) {
         if (selection_.size() == 1) {
           try {
-            final BlobDialog blobDlg = MainFrame.getInstance().getBlobDlg();
+            final BlobDialog blobDlg = app_.getMainFrame().getBlobDlg();
 
             blobDlg.setVisible(true);
             blobDlg.setBlob(selection_.get(0));
@@ -165,7 +168,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     clearSelection();
     for (Blob blob : blobs_) {
       try {
-        images_.put(blob, new ImageIcon(ImageIO.read(blobController_.getFile(blob.getThumbnailSha()))));
+        images_.put(blob, new ImageIcon(ImageIO.read(blobCtrl_.getFile(blob.getThumbnailSha()))));
       } catch (IOException e) {
         // TODO display error thumb
         e.printStackTrace();

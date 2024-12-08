@@ -15,7 +15,7 @@ import org.apache.commons.imaging.ImageReadException;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
 
-import com.bensler.taggy.Main;
+import com.bensler.taggy.App;
 import com.bensler.taggy.Thumbnailer;
 import com.bensler.taggy.ui.BlobController;
 
@@ -26,7 +26,7 @@ public class V008__CreateThumbnails extends BaseJavaMigration {
   private final Thumbnailer thumbnailer_;
 
   public V008__CreateThumbnails() throws NoSuchAlgorithmException {
-    dataDir_ = Main.getDataDir();
+    dataDir_ = App.getDataDir();
     blobCtrl_ = new BlobController(dataDir_, new int[] {1, 1});
     thumbnailer_ = new Thumbnailer(dataDir_);
   }

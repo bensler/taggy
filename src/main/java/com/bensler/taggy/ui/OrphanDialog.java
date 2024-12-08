@@ -11,27 +11,23 @@ import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
-import org.hibernate.Session;
-
-import com.bensler.taggy.persist.Blob;
+import com.bensler.taggy.App;
+import com.bensler.taggy.persist.DbAccess;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
 public class OrphanDialog extends JDialog {
 
-  private final BlobController blobController_;
   private final ThumbnailOverview thumbViewer_;
 
-  public OrphanDialog(BlobController blobController) {
+  public OrphanDialog(App app) {
     super((Window)null, "Uncategorized Files");
     final JPanel mainPanel = new JPanel(new FormLayout(
       "3dlu, f:p:g, 3dlu",
       "3dlu, f:p:g, 3dlu, f:p, 3dlu"
     ));
 
-    blobController_ = blobController;
-
-    thumbViewer_ = new ThumbnailOverview(blobController_);
+    thumbViewer_ = new ThumbnailOverview(app);
     mainPanel.add(thumbViewer_.getScrollPane(), new CellConstraints(2, 2));
 
     final JButton closeButton = new JButton("Close");
@@ -44,13 +40,8 @@ public class OrphanDialog extends JDialog {
     setDefaultCloseOperation(DISPOSE_ON_CLOSE);
   }
 
-  public void show(Session session) {
-    SwingUtilities.invokeLater(() -> thumbViewer_.setData(session.createQuery(
-      "from Blob as blob " +
-      "left join fetch blob.tags as tags " +
-      "group by blob " +
-      "having count(tags) < 1", Blob.class
-    ).getResultList()));
+  public void show(DbAccess dbAccess) {
+    SwingUtilities.invokeLater(() -> thumbViewer_.setData(dbAccess.findOrphanBlobs()));
     setVisible(true);
   }
 

@@ -22,16 +22,19 @@ import com.bensler.decaf.swing.action.SingleEntityActionAdapter;
 import com.bensler.decaf.swing.action.SingleEntityFilter;
 import com.bensler.decaf.swing.dialog.OkCancelDialog;
 import com.bensler.decaf.swing.selection.EntitySelectionListener;
+import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
 
 public class ThumbnailOverview implements EntityComponent<Blob> {
 
+  private final App app_;
   private final JScrollPane scrollPane_;
   private final ThumbnailOverviewPanel comp_;
   private final ActionGroup<Blob> contextActions_;
 
-  public ThumbnailOverview(BlobController blobCtrl) {
-    comp_ = new ThumbnailOverviewPanel(blobCtrl);
+  public ThumbnailOverview(App app) {
+    app_ = app;
+    comp_ = new ThumbnailOverviewPanel(app);
     scrollPane_ = new JScrollPane(comp_, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
     scrollPane_.getViewport().setBackground(comp_.getBackground());
     contextActions_ = new ActionGroup<>(new EntityAction<>(
@@ -43,9 +46,9 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
   }
 
   void editTags(Blob blob) {
-    new OkCancelDialog<>((Window)SwingUtilities.getRoot(comp_), "Edit Image Tags", new EditCategoriesDialog(MainFrame.getInstance().getAllTags())).show(blob, tags -> {
+    new OkCancelDialog<>((Window)SwingUtilities.getRoot(comp_), "Edit Image Tags", new EditCategoriesDialog(app_.getMainFrame().getAllTags())).show(blob, tags -> {
       blob.setTags(tags);
-      MainFrame.getInstance().storeBlob(blob);
+      app_.getDbAccess().storeObject(blob);
     });
   }
 

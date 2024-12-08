@@ -10,7 +10,7 @@ import javax.swing.JScrollPane;
 
 import org.apache.commons.imaging.ImageReadException;
 
-import com.bensler.taggy.Thumbnailer;
+import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -18,9 +18,6 @@ import com.jgoodies.forms.layout.FormLayout;
 public class BlobDialog extends JDialog {
 
   private final ImageComponent imageComponent_;
-
-  private final BlobController blobCtrl_;
-  private final Thumbnailer thumbnailer_;
 
   public BlobDialog() {
     super((Window)null, "Blob");
@@ -30,9 +27,6 @@ public class BlobDialog extends JDialog {
       "3dlu, f:p:g, 3dlu"
     ));
 
-    final MainFrame mainFrame = MainFrame.getInstance();
-    blobCtrl_ = mainFrame.getBlobCtrl();
-    thumbnailer_ = mainFrame.getThumbnailer();
     imageComponent_ = new ImageComponent();
     mainPanel.add(new JScrollPane(imageComponent_), new CellConstraints(2, 2));
     setContentPane(mainPanel);
@@ -41,8 +35,9 @@ public class BlobDialog extends JDialog {
   }
 
   public void setBlob(Blob blob) throws IOException, ImageReadException {
-    final File imgFile = blobCtrl_.getFile(blob.getSha256sum());
+    final App app = App.getApp();
+    final File imgFile = app.getBlobCtrl().getFile(blob.getSha256sum());
 
-    imageComponent_.setImage(thumbnailer_.loadRotated(imgFile));
+    imageComponent_.setImage(app.getThumbnailer().loadRotated(imgFile));
   }
 }

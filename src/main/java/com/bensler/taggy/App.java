@@ -5,6 +5,7 @@ import java.util.Arrays;
 
 import javax.swing.UIManager;
 
+import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.persist.DbConnector;
 import com.bensler.taggy.persist.SqliteDbConnector;
 import com.bensler.taggy.ui.BlobController;
@@ -13,13 +14,15 @@ import com.bensler.taggy.ui.MainFrame;
 import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 import com.jgoodies.looks.plastic.theme.DesertYellow;
 
-public class Main {
-
-  public static void main(String[] args) throws Exception {
-    new Main().run();
-  }
+public class App {
 
   private static final int[] FOLDER_PATTERN = new int[] {1, 1};
+
+  private static App app_;
+
+  public static void main(String[] args) throws Exception {
+    (app_ = new App()).run();
+  }
 
   public static int[] getFolderPattern() {
     return Arrays.copyOf(FOLDER_PATTERN, FOLDER_PATTERN.length);
@@ -33,25 +36,53 @@ public class Main {
     return new File(getBaseDir(), "data");
   }
 
-  private final BlobController blobController_;
-  private final Thumbnailer thumbnailer_;
-  private final DbConnector db_;
-  private final ImportController importCtrl_;
+  public static App getApp() {
+    return app_;
+  }
 
-  private Main() throws Exception {
+  private final DbConnector db_;
+  private final BlobController blobCtrl_;
+  private final DbAccess dbAccess_;
+  private final ImportController importCtrl_;
+  private final Thumbnailer thumbnailer_;
+  private final MainFrame mainFrame_;
+
+  private App() throws Exception {
     Plastic3DLookAndFeel.setCurrentTheme(new DesertYellow());
     UIManager.setLookAndFeel(new Plastic3DLookAndFeel());
 
     final File dataDir = getDataDir();
     db_ = new SqliteDbConnector(dataDir, "taggy.sqlite.db");
     db_.performFlywayMigration();
-    blobController_ = new BlobController(dataDir, FOLDER_PATTERN);
-    importCtrl_ = new ImportController(getBaseDir());
+    dbAccess_ = new DbAccess(db_.getSession());
+    blobCtrl_ = new BlobController(dataDir, FOLDER_PATTERN);
+    importCtrl_ = new ImportController(this, getBaseDir());
     thumbnailer_ = new Thumbnailer(dataDir);
+    mainFrame_ = new MainFrame(this);
+  }
+
+  public BlobController getBlobCtrl() {
+    return blobCtrl_;
+  }
+
+  public DbAccess getDbAccess() {
+    return dbAccess_;
+  }
+
+  public Thumbnailer getThumbnailer() {
+    return thumbnailer_;
+  }
+
+  public ImportController getImportCtrl() {
+    return importCtrl_;
+  }
+
+  public MainFrame getMainFrame() {
+    return mainFrame_;
   }
 
   public void run() {
-    new MainFrame(blobController_, importCtrl_, db_.getSession(), thumbnailer_).show();
+    mainFrame_.show();
   }
 
 }

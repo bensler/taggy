@@ -15,7 +15,7 @@ import org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
 
-import com.bensler.taggy.Main;
+import com.bensler.taggy.App;
 import com.bensler.taggy.ui.BlobController;
 
 public class V008__CollectOrientationStatistics extends BaseJavaMigration {
@@ -28,7 +28,7 @@ public class V008__CollectOrientationStatistics extends BaseJavaMigration {
 
   @Override
   public void migrate(Context context) throws Exception {
-    final File dataDir = Main.getDataDir();
+    final File dataDir = App.getDataDir();
     final BlobController blobCtrl = new BlobController(dataDir, new int[] {1, 1});
     final Connection connection = context.getConnection();
 

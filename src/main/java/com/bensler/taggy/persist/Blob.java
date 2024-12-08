@@ -8,7 +8,7 @@ import com.bensler.decaf.util.tree.Hierarchy;
 /**
  * Sample of an entity or business class having hierarchical nature.
  */
-public class Blob extends Object {
+public class Blob extends Object implements Entity {
 
     private Integer id_;
     private String filename_;
@@ -26,6 +26,7 @@ public class Blob extends Object {
       tags_ = new HashSet<>();
     }
 
+    @Override
     public Integer getId() {
       return id_;
     }

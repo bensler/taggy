@@ -9,7 +9,7 @@ import com.bensler.decaf.util.tree.Hierarchical;
 /**
  * Sample of an entity or business class having hierarchical nature.
  */
-public class Tag extends Object implements Hierarchical<Tag>, Named {
+public class Tag extends Object implements Hierarchical<Tag>, Named, Entity {
 
     private Integer id_;
     private Tag parent_;
@@ -25,6 +25,7 @@ public class Tag extends Object implements Hierarchical<Tag>, Named {
       blobs_ = new HashSet<>();
     }
 
+    @Override
     public Integer getId() {
       return id_;
     }
