@@ -41,7 +41,7 @@ public class MainFrame {
     createComparablePropertyGetter(Blob::getId)
   );
   public static final PropertyViewImpl<Tag, String> TAG_NAME_VIEW = new PropertyViewImpl<>(
-    createStringPropertyGetter(Tag::getName)
+    new ImageIcon(ImportController.class.getResource("tag.png")), createStringPropertyGetter(Tag::getName)
   );
 
   private final JDialog dialog_;
