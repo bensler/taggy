@@ -3,6 +3,7 @@ package com.bensler.taggy.ui;
 import java.util.Optional;
 import java.util.Set;
 
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
@@ -24,16 +25,19 @@ public class NewTagDialog extends BasicContentPanel<Optional<Tag>, Tag> {
   public NewTagDialog(Hierarchy<Tag> pAllTags) {
     super(new FormLayout(
       "r:p, 3dlu, f:p:g",
-      "f:p:g, 3dlu, c:p"
+      "p,  3dlu, f:p:g, 3dlu, c:p"
     ));
     allTags_ = pAllTags;
 
     final CellConstraints cc = new CellConstraints();
+    final JLabel iconLabel = new JLabel(new ImageIcon(MainFrame.class.getResource("tags.png")));
+
+    add(iconLabel, cc.xyw(1, 1, 3, "r, t"));
     parentTag_ = new EntityTree<>(MainFrame.TAG_NAME_VIEW);
     parentTag_.setSelectionListener((source, selection) -> validateContent());
     parentTag_.setVisibleRowCount(5, 2.0f);
-    add(new JLabel("Parent Tag:"), cc.xy(1, 1, "r, t"));
-    add(parentTag_.getScrollPane(), cc.xy(3, 1));
+    add(new JLabel("Parent Tag:"), cc.xy(1, 3, "r, t"));
+    add(parentTag_.getScrollPane(), cc.xy(3, 3));
     nameTextfield_ = new JTextField(20);
     nameTextfield_.getDocument().addDocumentListener(new DocumentListener() {
       @Override
@@ -51,8 +55,8 @@ public class NewTagDialog extends BasicContentPanel<Optional<Tag>, Tag> {
         validateContent();
       }
     });
-    add(new JLabel("Name:"), cc.xy(1, 3));
-    add(nameTextfield_, cc.xy(3, 3));
+    add(new JLabel("Name:"), cc.xy(1, 5));
+    add(nameTextfield_, cc.xy(3, 5));
   }
 
   @Override
