@@ -30,7 +30,7 @@ public class NewTagDialog extends BasicContentPanel<Optional<Tag>, Tag> {
     allTags_ = pAllTags;
 
     final CellConstraints cc = new CellConstraints();
-    final JLabel iconLabel = new JLabel(new ImageIcon(MainFrame.class.getResource("tags.png")));
+    final JLabel iconLabel = new JLabel(new ImageIcon(MainFrame.class.getResource("tags_48x48.png")));
 
     add(iconLabel, cc.xyw(1, 1, 3, "r, t"));
     parentTag_ = new EntityTree<>(MainFrame.TAG_NAME_VIEW);
