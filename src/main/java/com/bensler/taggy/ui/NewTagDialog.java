@@ -7,6 +7,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 
+import com.bensler.decaf.swing.awt.IconComponent;
 import com.bensler.decaf.swing.dialog.BasicContentPanel;
 import com.bensler.decaf.swing.tree.EntityTree;
 import com.bensler.decaf.util.tree.Hierarchy;
@@ -28,9 +29,9 @@ public class NewTagDialog extends BasicContentPanel<Optional<Tag>, Tag> {
     allTags_ = pAllTags;
 
     final CellConstraints cc = new CellConstraints();
-    final JLabel iconLabel = new JLabel(new ImageIcon(MainFrame.class.getResource("tags_48x48.png")));
+    final IconComponent icon = new IconComponent(new ImageIcon(getClass().getResource("tags_48x48.png")));
 
-    add(iconLabel, cc.xyw(1, 1, 3, "r, t"));
+    add(icon, cc.xyw(1, 1, 3, "r, t"));
     parentTag_ = new EntityTree<>(MainFrame.TAG_NAME_VIEW);
     addValidationSource(parentTag_);
     parentTag_.setVisibleRowCount(5, 2.0f);
