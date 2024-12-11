@@ -39,7 +39,11 @@ public class EditCategoriesDialog extends BasicContentPanel<Blob, Set<Tag>> {
 
     tagTree_.setCheckedNodes(tags);
     tags.forEach(tag -> tagTree_.expandCollapse(tag, true));
-    ctx_.setValid(true);
+  }
+
+  @Override
+  protected boolean validateContent(Object eventSource) {
+    return true;
   }
 
 }
