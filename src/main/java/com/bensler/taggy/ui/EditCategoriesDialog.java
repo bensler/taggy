@@ -7,6 +7,9 @@ import java.util.Set;
 
 import javax.swing.ImageIcon;
 
+import com.bensler.decaf.swing.awt.OverlayIcon;
+import com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D;
+import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
 import com.bensler.decaf.swing.dialog.BasicContentPanel;
 import com.bensler.decaf.swing.dialog.DialogAppearance;
 import com.bensler.decaf.swing.tree.CheckboxTree;
@@ -18,11 +21,11 @@ import com.jgoodies.forms.layout.FormLayout;
 
 public class EditCategoriesDialog extends BasicContentPanel<Blob, Set<Tag>> {
 
-//  final OverlayIcon overlayIcon = new OverlayIcon(new ImageIcon(getClass().getResource("image_48x48.png")));
-//  overlayIcon.addIcon(new ImageIcon(getClass().getResource("tags_24x24.png")), Alignment2D.SW);
-
   public static final DialogAppearance APPEARANCE = new DialogAppearance(
-    new ImageIcon(EditCategoriesDialog.class.getResource("image_48x48.png")),
+    new OverlayIcon(
+      new ImageIcon(EditCategoriesDialog.class.getResource("image_48x48.png")),
+      new Overlay(new ImageIcon(EditCategoriesDialog.class.getResource("tags_36x36.png")), Alignment2D.SE)
+    ),
     "Edit Image Tags",
     "Assign Tags to an Image"
   );
