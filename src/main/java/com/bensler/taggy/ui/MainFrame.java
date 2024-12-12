@@ -21,10 +21,11 @@ import javax.swing.JSplitPane;
 
 import com.bensler.decaf.swing.action.ActionGroup;
 import com.bensler.decaf.swing.action.ActionState;
-import com.bensler.decaf.swing.action.Appearance;
+import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.EntityAction;
 import com.bensler.decaf.swing.action.SingleEntityActionAdapter;
 import com.bensler.decaf.swing.action.SingleEntityFilter;
+import com.bensler.decaf.swing.dialog.DialogAppearance;
 import com.bensler.decaf.swing.dialog.OkCancelDialog;
 import com.bensler.decaf.swing.tree.EntityTree;
 import com.bensler.decaf.swing.view.PropertyViewImpl;
@@ -67,7 +68,7 @@ public class MainFrame {
     final JPanel toolbar = new JPanel(new FormLayout("f:p, 3dlu:g", "f:p"));
     toolbar.add(app_.getImportCtrl().getImportAction().createToolbarButton(), new CellConstraints(1, 1));
     mainPanel.add(toolbar, new CellConstraints(2, 2));
-    new Appearance(null, new ImageIcon(getClass().getResource("vacuum.png")), null, "Scan for new Images to import.");
+    new ActionAppearance(null, new ImageIcon(getClass().getResource("vacuum.png")), null, "Scan for new Images to import.");
 
     thumbnails_ = new ThumbnailOverview(app_);
     thumbnails_.setSelectionListener((source, selection) -> selectionTagPanel.setData(selection));
@@ -87,7 +88,7 @@ public class MainFrame {
     dialog_.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     tagTree_.setData(allTags_);
     tagTree_.setContextActions(new ActionGroup<>(new EntityAction<>(
-      new Appearance(null, null, "New Tag", "Creates a new Tag under the currently selected Tag"),
+      new ActionAppearance(null, null, "New Tag", "Creates a new Tag under the currently selected Tag"),
       new SingleEntityFilter<>(ActionState.ENABLED),
       new SingleEntityActionAdapter<>((source, tag) -> createTagUi(tagTree_, tag))
     )));
@@ -116,7 +117,7 @@ public class MainFrame {
   }
 
   void createTagUi(EntityTree<Tag> tree, Optional<Tag> parentTag) {
-    new OkCancelDialog<>(blobDlg_, "ToDo", new NewTagDialog(tree.getData())).show(
+    new OkCancelDialog<>(blobDlg_, new DialogAppearance(null, "ToDo", null), new NewTagDialog(tree.getData())).show(
       parentTag, newTag -> tree.addData(app_.getDbAccess().createObject(newTag), true)
     );
   }

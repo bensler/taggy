@@ -3,23 +3,22 @@ package com.bensler.taggy.ui;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
-import java.awt.Window;
 import java.awt.event.MouseEvent;
 import java.util.Collection;
 import java.util.List;
 
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
-import javax.swing.SwingUtilities;
 
 import com.bensler.decaf.swing.EntityComponent;
+import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.ActionGroup;
 import com.bensler.decaf.swing.action.ActionState;
-import com.bensler.decaf.swing.action.Appearance;
 import com.bensler.decaf.swing.action.ContextMenuMouseAdapter;
 import com.bensler.decaf.swing.action.EntityAction;
 import com.bensler.decaf.swing.action.SingleEntityActionAdapter;
 import com.bensler.decaf.swing.action.SingleEntityFilter;
+import com.bensler.decaf.swing.dialog.DialogAppearance;
 import com.bensler.decaf.swing.dialog.OkCancelDialog;
 import com.bensler.decaf.swing.selection.EntitySelectionListener;
 import com.bensler.taggy.App;
@@ -38,7 +37,7 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
     scrollPane_ = new JScrollPane(comp_, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
     scrollPane_.getViewport().setBackground(comp_.getBackground());
     contextActions_ = new ActionGroup<>(new EntityAction<>(
-      new Appearance(null, null, "Edit Tags", "Edit Tags of this Image"),
+      new ActionAppearance(null, null, "Edit Tags", "Edit Tags of this Image"),
       new SingleEntityFilter<>(ActionState.DISABLED),
       new SingleEntityActionAdapter<>((source, blob) -> blob.ifPresent(this::editTags))
     ));
@@ -46,7 +45,7 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
   }
 
   void editTags(Blob blob) {
-    new OkCancelDialog<>((Window)SwingUtilities.getRoot(comp_), "Edit Image Tags", new EditCategoriesDialog(app_.getMainFrame().getAllTags())).show(blob, tags -> {
+    new OkCancelDialog<>(comp_, new DialogAppearance(null, "Edit Image Tags", null), new EditCategoriesDialog(app_.getMainFrame().getAllTags())).show(blob, tags -> {
       blob.setTags(tags);
       app_.getDbAccess().storeObject(blob);
     });

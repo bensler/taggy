@@ -10,7 +10,7 @@ import javax.swing.ImageIcon;
 
 import org.apache.commons.imaging.ImageReadException;
 
-import com.bensler.decaf.swing.action.Appearance;
+import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.EntityAction;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
@@ -20,7 +20,7 @@ public class ImportController {
   private static final List<String> KNOWN_FILEEXTENSIONS = List.of("JPG", "JPEG", "PNG");
   private static final String IMPORT_DIR = "import";
 
-  public static final Appearance IMPORT_ACTION_APPEARANCE =  new Appearance(
+  public static final ActionAppearance IMPORT_ACTION_APPEARANCE =  new ActionAppearance(
     null, new ImageIcon(ImportController.class.getResource("vacuum.png")), null, "Scan for new Images to import."
   );
 
