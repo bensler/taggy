@@ -30,7 +30,7 @@ public class EditCategoriesDialog extends BasicContentPanel<Blob, Set<Tag>> {
     final CellConstraints cc = new CellConstraints();
     final OverlayIcon overlayIcon = new OverlayIcon(new ImageIcon(getClass().getResource("image_48x48.png")));
 
-    overlayIcon.addIcon(new ImageIcon(getClass().getResource("tags_24x24.png")), Alignment2D.SW);
+    overlayIcon.addIcon(new ImageIcon(getClass().getResource("tags_36x36.png")), Alignment2D.SE);
     add(new IconComponent(overlayIcon), cc.xy(1, 1, "r, t"));
     tagTree_ = new CheckboxTree<>(TAG_NAME_VIEW);
     tagTree_.setData(allCategories);
