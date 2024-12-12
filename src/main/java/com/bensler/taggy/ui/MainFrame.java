@@ -19,13 +19,12 @@ import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 
+import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.ActionGroup;
 import com.bensler.decaf.swing.action.ActionState;
-import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.EntityAction;
 import com.bensler.decaf.swing.action.SingleEntityActionAdapter;
 import com.bensler.decaf.swing.action.SingleEntityFilter;
-import com.bensler.decaf.swing.dialog.DialogAppearance;
 import com.bensler.decaf.swing.dialog.OkCancelDialog;
 import com.bensler.decaf.swing.tree.EntityTree;
 import com.bensler.decaf.swing.view.PropertyViewImpl;
@@ -117,7 +116,9 @@ public class MainFrame {
   }
 
   void createTagUi(EntityTree<Tag> tree, Optional<Tag> parentTag) {
-    new OkCancelDialog<>(blobDlg_, new DialogAppearance(null, "ToDo", null), new NewTagDialog(tree.getData())).show(
+    new OkCancelDialog<>(
+      blobDlg_, NewTagDialog.APPEARANCE, new NewTagDialog(tree.getData())
+    ).show(
       parentTag, newTag -> tree.addData(app_.getDbAccess().createObject(newTag), true)
     );
   }
