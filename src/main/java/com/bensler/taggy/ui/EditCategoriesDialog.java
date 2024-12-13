@@ -33,8 +33,7 @@ public class EditCategoriesDialog extends BasicContentPanel<Blob, Set<Tag>> {
       new ImageIcon(EditCategoriesDialog.class.getResource("image_48x48.png")),
       new Overlay(new ImageIcon(EditCategoriesDialog.class.getResource("tags_36x36.png")), Alignment2D.SE)
     ),
-    "Edit Image Tags",
-    "Assign Tags to an Image"
+    "Edit Image Tags", "Assign Tags to an Image"
   );
 
   private final CheckboxTree<Tag> allTags_;
@@ -48,13 +47,20 @@ public class EditCategoriesDialog extends BasicContentPanel<Blob, Set<Tag>> {
     allTags_ = new CheckboxTree<>(TAG_NAME_VIEW);
     allTags_.setVisibleRowCount(20, 1);
     allTags_.setData(app_.getMainFrame().getAllTags());
+    allTags_.addCheckedListener(this::allTagsTreeChanged);
     imgComp_ = new ImageComponent();
     assignedTags_ = new CheckboxTree<>(TAG_NAME_VIEW);
     assignedTags_.setVisibleRowCount(15, 1);
+    assignedTags_.addCheckedListener(this::assignedTagsTreeChanged);
     add(new JSplitPane(HORIZONTAL_SPLIT, true,
       allTags_.getScrollPane(),
       new JSplitPane(VERTICAL_SPLIT, true, imgComp_, assignedTags_.getScrollPane())
     ), new CellConstraints(1, 1));
+  }
+
+  @Override
+  public DialogAppearance getAppearance() {
+    return APPEARANCE;
   }
 
   @Override
@@ -86,6 +92,14 @@ public class EditCategoriesDialog extends BasicContentPanel<Blob, Set<Tag>> {
   @Override
   protected boolean validateContent(Object eventSource) {
     return true;
+  }
+
+  private void allTagsTreeChanged(Set<Tag> checkedNodes) {
+    // TODO Auto-generated method stub
+  }
+
+  private void assignedTagsTreeChanged(Set<Tag> checkedNodes) {
+    // TODO Auto-generated method stub
   }
 
 }

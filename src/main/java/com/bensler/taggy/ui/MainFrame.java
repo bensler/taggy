@@ -116,9 +116,7 @@ public class MainFrame {
   }
 
   void createTagUi(EntityTree<Tag> tree, Optional<Tag> parentTag) {
-    new OkCancelDialog<>(
-      blobDlg_, NewTagDialog.APPEARANCE, new NewTagDialog(tree.getData())
-    ).show(
+    new OkCancelDialog<>(blobDlg_, new NewTagDialog(tree.getData())).show(
       parentTag, newTag -> tree.addData(app_.getDbAccess().createObject(newTag), true)
     );
   }

@@ -46,6 +46,11 @@ public class NewTagDialog extends BasicContentPanel<Optional<Tag>, Tag> {
   }
 
   @Override
+  public DialogAppearance getAppearance() {
+    return APPEARANCE;
+  }
+
+  @Override
   public void setData(Optional<Tag> inData) {
     final Hierarchy<Tag> parents = new Hierarchy<>();
     Tag parent = inData.orElse(null);
