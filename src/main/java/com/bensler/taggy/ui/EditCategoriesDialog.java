@@ -47,7 +47,7 @@ public class EditCategoriesDialog extends BasicContentPanel<Blob, Set<Tag>> {
     allTags_ = new CheckboxTree<>(TAG_NAME_VIEW);
     allTags_.setVisibleRowCount(20, 1);
     allTags_.setData(app_.getMainFrame().getAllTags());
-    allTags_.addCheckedListener(this::allTagsTreeChanged);
+    allTags_.addCheckedListener(this::setAssignedTags);
     imgComp_ = new ImageComponent();
     assignedTags_ = new CheckboxTree<>(TAG_NAME_VIEW);
     assignedTags_.setVisibleRowCount(15, 1);
@@ -77,12 +77,7 @@ public class EditCategoriesDialog extends BasicContentPanel<Blob, Set<Tag>> {
       allTags_.expandCollapseAll(false);
       allTags_.setCheckedNodes(tags);
       tags.forEach(tag -> allTags_.expandCollapse(tag, true));
-      assignedTags_.setData(new Hierarchy<>(blob.getTags().stream()
-        .flatMap(tag -> Hierarchical.toPath(tag).stream())
-        .distinct()
-        .collect(Collectors.toSet())));
-      assignedTags_.setCheckedNodes(tags);
-      assignedTags_.expandCollapseAll(true);
+      setAssignedTags(tags);
     } catch (IOException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
@@ -94,12 +89,18 @@ public class EditCategoriesDialog extends BasicContentPanel<Blob, Set<Tag>> {
     return true;
   }
 
-  private void allTagsTreeChanged(Set<Tag> checkedNodes) {
-    // TODO Auto-generated method stub
+  private void setAssignedTags(Set<Tag> checkedTags) {
+    assignedTags_.setData(new Hierarchy<>(checkedTags.stream()
+      .flatMap(tag -> Hierarchical.toPath(tag).stream())
+      .distinct()
+      .collect(Collectors.toSet())));
+    assignedTags_.setCheckedNodes(checkedTags);
+    assignedTags_.expandCollapseAll(true);
   }
 
-  private void assignedTagsTreeChanged(Set<Tag> checkedNodes) {
-    // TODO Auto-generated method stub
+  private void assignedTagsTreeChanged(Set<Tag> checkedTags) {
+    allTags_.setCheckedNodes(checkedTags);
+    setAssignedTags(checkedTags);
   }
 
 }
