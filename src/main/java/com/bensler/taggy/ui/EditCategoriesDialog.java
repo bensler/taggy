@@ -1,21 +1,26 @@
 package com.bensler.taggy.ui;
 
 import static com.bensler.taggy.ui.MainFrame.TAG_NAME_VIEW;
+import static javax.swing.JSplitPane.HORIZONTAL_SPLIT;
+import static javax.swing.JSplitPane.VERTICAL_SPLIT;
 
-import java.awt.Dimension;
+import java.io.IOException;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import javax.swing.Icon;
+import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
+import javax.swing.JSplitPane;
 
-import com.bensler.decaf.swing.awt.IconComponent;
 import com.bensler.decaf.swing.awt.OverlayIcon;
 import com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D;
 import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
 import com.bensler.decaf.swing.dialog.BasicContentPanel;
 import com.bensler.decaf.swing.dialog.DialogAppearance;
 import com.bensler.decaf.swing.tree.CheckboxTree;
+import com.bensler.decaf.util.tree.Hierarchical;
 import com.bensler.decaf.util.tree.Hierarchy;
+import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.Tag;
 import com.jgoodies.forms.layout.CellConstraints;
@@ -32,37 +37,50 @@ public class EditCategoriesDialog extends BasicContentPanel<Blob, Set<Tag>> {
     "Assign Tags to an Image"
   );
 
-  private final CheckboxTree<Tag> tagTree_;
+  private final CheckboxTree<Tag> allTags_;
   private final CheckboxTree<Tag> assignedTags_;
+  private final ImageComponent imgComp_;
+  private final App app_;
 
-  public EditCategoriesDialog(Icon thumbnail, Hierarchy<Tag> allCategories) {
-    super(new FormLayout(
-      "f:p:g, 3dlu, f:p",
-      "f:p, 3dlu, f:p:g"
-    ));
-    final CellConstraints cc = new CellConstraints();
-
-    tagTree_ = new CheckboxTree<>(TAG_NAME_VIEW);
-    tagTree_.setData(allCategories);
-    add(tagTree_.getScrollPane(), cc.xywh(1, 1, 1, 3, "d, f"));
-    add(new IconComponent(thumbnail), cc.xy(3, 1, "c, c"));
+  public EditCategoriesDialog() {
+    super(new FormLayout("f:p:g", "f:p:g"));
+    app_ = App.getApp();
+    allTags_ = new CheckboxTree<>(TAG_NAME_VIEW);
+    allTags_.setVisibleRowCount(20, 1);
+    allTags_.setData(app_.getMainFrame().getAllTags());
+    imgComp_ = new ImageComponent();
     assignedTags_ = new CheckboxTree<>(TAG_NAME_VIEW);
     assignedTags_.setVisibleRowCount(15, 1);
-    add(assignedTags_.getScrollPane(), cc.xy(3, 3));
-    setPreferredSize(new Dimension(600, 600));
+    add(new JSplitPane(HORIZONTAL_SPLIT, true,
+      allTags_.getScrollPane(),
+      new JSplitPane(VERTICAL_SPLIT, true, imgComp_, assignedTags_.getScrollPane())
+    ), new CellConstraints(1, 1));
   }
 
   @Override
   public Set<Tag> getData() {
-    return tagTree_.getCheckedNodes();
+    return allTags_.getCheckedNodes();
   }
 
   @Override
   protected void setData(Blob blob) {
-    final Set<Tag> tags = blob.getTags();
+    try {
+      final Set<Tag> tags = blob.getTags();
 
-    tagTree_.setCheckedNodes(tags);
-    tags.forEach(tag -> tagTree_.expandCollapse(tag, true));
+      imgComp_.setImage(ImageIO.read(app_.getBlobCtrl().getFile(blob.getSha256sum())));
+      allTags_.expandCollapseAll(false);
+      allTags_.setCheckedNodes(tags);
+      tags.forEach(tag -> allTags_.expandCollapse(tag, true));
+      assignedTags_.setData(new Hierarchy<>(blob.getTags().stream()
+        .flatMap(tag -> Hierarchical.toPath(tag).stream())
+        .distinct()
+        .collect(Collectors.toSet())));
+      assignedTags_.setCheckedNodes(tags);
+      assignedTags_.expandCollapseAll(true);
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
   }
 
   @Override
