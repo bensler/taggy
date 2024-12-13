@@ -5,8 +5,10 @@ import static com.bensler.taggy.ui.MainFrame.TAG_NAME_VIEW;
 import java.awt.Dimension;
 import java.util.Set;
 
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
+import com.bensler.decaf.swing.awt.IconComponent;
 import com.bensler.decaf.swing.awt.OverlayIcon;
 import com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D;
 import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
@@ -31,18 +33,23 @@ public class EditCategoriesDialog extends BasicContentPanel<Blob, Set<Tag>> {
   );
 
   private final CheckboxTree<Tag> tagTree_;
+  private final CheckboxTree<Tag> assignedTags_;
 
-  public EditCategoriesDialog(Hierarchy<Tag> allCategories) {
+  public EditCategoriesDialog(Icon thumbnail, Hierarchy<Tag> allCategories) {
     super(new FormLayout(
-      "f:p:g",
-      "f:p:g"
+      "f:p:g, 3dlu, f:p",
+      "f:p, 3dlu, f:p:g"
     ));
     final CellConstraints cc = new CellConstraints();
 
     tagTree_ = new CheckboxTree<>(TAG_NAME_VIEW);
     tagTree_.setData(allCategories);
-    add(tagTree_.getScrollPane(), cc.xy(1, 1));
-    setPreferredSize(new Dimension(400, 400));
+    add(tagTree_.getScrollPane(), cc.xywh(1, 1, 1, 3, "d, f"));
+    add(new IconComponent(thumbnail), cc.xy(3, 1, "c, c"));
+    assignedTags_ = new CheckboxTree<>(TAG_NAME_VIEW);
+    assignedTags_.setVisibleRowCount(15, 1);
+    add(assignedTags_.getScrollPane(), cc.xy(3, 3));
+    setPreferredSize(new Dimension(600, 600));
   }
 
   @Override

@@ -4,9 +4,13 @@ import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 
@@ -44,10 +48,20 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
   }
 
   void editTags(Blob blob) {
-    new OkCancelDialog<>(comp_, EditCategoriesDialog.APPEARANCE, new EditCategoriesDialog(app_.getMainFrame().getAllTags())).show(blob, tags -> {
-      blob.setTags(tags);
-      app_.getDbAccess().storeObject(blob);
-    });
+    try {
+      final BufferedImage image = ImageIO.read(app_.getBlobCtrl().getFile(blob.getThumbnailSha()));
+
+      new OkCancelDialog<>(comp_, EditCategoriesDialog.APPEARANCE, new EditCategoriesDialog(
+        new ImageIcon(image),
+        app_.getMainFrame().getAllTags()
+      )).show(blob, tags -> {
+        blob.setTags(tags);
+        app_.getDbAccess().storeObject(blob);
+      });
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
   }
 
   @Override
