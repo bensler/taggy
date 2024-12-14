@@ -19,7 +19,7 @@ public class BlobDialog extends JDialog {
 
   private final ImageComponent imageComponent_;
 
-  public BlobDialog() {
+  public BlobDialog(App app) {
     super((Window)null, "Blob");
 
     final JPanel mainPanel = new JPanel(new FormLayout(
@@ -32,6 +32,7 @@ public class BlobDialog extends JDialog {
     setContentPane(mainPanel);
     pack();
     setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    app.getWindowSizePersister().listenTo(this);
   }
 
   public void setBlob(Blob blob) throws IOException, ImageReadException {

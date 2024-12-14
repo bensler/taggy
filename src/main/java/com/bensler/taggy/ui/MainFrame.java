@@ -123,6 +123,7 @@ public class MainFrame {
 
   public void show() {
     dialog_.setVisible(true);
+    app_.getWindowSizePersister().listenTo(dialog_, getClass().getSimpleName());
   }
 
   public JDialog getFrame() {
@@ -131,7 +132,7 @@ public class MainFrame {
 
   public BlobDialog getBlobDlg() {
     if (blobDlg_ == null) {
-      blobDlg_ = new BlobDialog();
+      blobDlg_ = new BlobDialog(app_);
     }
     return blobDlg_;
   }

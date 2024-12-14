@@ -11,6 +11,7 @@ import com.bensler.decaf.swing.dialog.BasicContentPanel;
 import com.bensler.decaf.swing.dialog.DialogAppearance;
 import com.bensler.decaf.swing.tree.EntityTree;
 import com.bensler.decaf.util.tree.Hierarchy;
+import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Tag;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -43,6 +44,11 @@ public class NewTagDialog extends BasicContentPanel<Optional<Tag>, Tag> {
     addValidationSource(nameTextfield_);
     add(new JLabel("Name:"), cc.xy(1, 3));
     add(nameTextfield_, cc.xy(3, 3));
+  }
+
+  @Override
+  protected void setContext(Context ctx) {
+    App.getApp().getWindowSizePersister().listenTo(ctx_.getDialog(), getClass().getSimpleName());
   }
 
   @Override

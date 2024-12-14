@@ -15,6 +15,7 @@ import com.bensler.decaf.swing.table.TablePropertyView;
 import com.bensler.decaf.swing.table.TableView;
 import com.bensler.decaf.swing.view.PropertyViewImpl;
 import com.bensler.decaf.swing.view.SimplePropertyGetter;
+import com.bensler.taggy.App;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
@@ -23,9 +24,9 @@ public class ImportDialog extends JDialog {
   private final ImportController importController_;
   private final EntityTable<File> files_;
 
-  public ImportDialog(JDialog parent, ImportController importController) {
-    super(parent, "Import Files", true);
-    importController_ = importController;
+  public ImportDialog(App app) {
+    super(app.getMainFrame().getFrame(), "Import Files", true);
+    importController_ = app.getImportCtrl();
     final JPanel mainPanel = new JPanel(new FormLayout(
       "3dlu, f:p:g, 3dlu",
       "3dlu, f:p:g, 3dlu, p, 3dlu"
@@ -46,6 +47,7 @@ public class ImportDialog extends JDialog {
     setContentPane(mainPanel);
     files_.setData(importController_.getFilesToImport());
     pack();
+    app.getWindowSizePersister().listenTo(this);
   }
 
   private void importSelection() {

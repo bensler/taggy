@@ -5,6 +5,7 @@ import java.util.Arrays;
 
 import javax.swing.UIManager;
 
+import com.bensler.decaf.swing.dialog.WindowSizePersister;
 import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.persist.DbConnector;
 import com.bensler.taggy.persist.SqliteDbConnector;
@@ -41,6 +42,7 @@ public class App {
   }
 
   private final DbConnector db_;
+  private final WindowSizePersister windowSizePersister_;
   private final BlobController blobCtrl_;
   private final DbAccess dbAccess_;
   private final ImportController importCtrl_;
@@ -55,6 +57,7 @@ public class App {
     db_ = new SqliteDbConnector(dataDir, "taggy.sqlite.db");
     db_.performFlywayMigration();
     dbAccess_ = new DbAccess(db_.getSession());
+    windowSizePersister_ = new WindowSizePersister();
     blobCtrl_ = new BlobController(dataDir, FOLDER_PATTERN);
     importCtrl_ = new ImportController(this, getBaseDir());
     thumbnailer_ = new Thumbnailer(dataDir);
@@ -79,6 +82,10 @@ public class App {
 
   public MainFrame getMainFrame() {
     return mainFrame_;
+  }
+
+  public WindowSizePersister getWindowSizePersister() {
+    return windowSizePersister_;
   }
 
   public void run() {

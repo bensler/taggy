@@ -43,7 +43,7 @@ public class ImportController {
   }
 
   private void doImport() {
-    new ImportDialog(app_.getMainFrame().getFrame(), this).setVisible(true);
+    new ImportDialog(app_).setVisible(true);
   }
 
   public List<File> getFilesToImport() {
