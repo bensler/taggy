@@ -1,0 +1,4 @@
+<!ELEMENT node (node*) >
+<!ATTLIST node name CDATA #REQUIRED>
+<!ATTLIST node value CDATA #IMPLIED>
+
