@@ -21,9 +21,9 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-public class XmlTest {
+import com.bensler.decaf.util.prefs.Prefs;
 
-  private static final String PREFS_DTD_SYSTEM_ID = "com.bensler.taggy.Prefs";
+public class XmlTest {
 
   public static void main(String[] args) throws Exception {
     write();
@@ -37,14 +37,13 @@ public class XmlTest {
     builder.setEntityResolver(new EntityResolver() {
       @Override
       public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
-        return (PREFS_DTD_SYSTEM_ID.equals(publicId)
-          ? new InputSource(XmlTest.class.getResourceAsStream("/com/bensler/taggy/prefs.dtd"))
+        return (Prefs.DTD_SYSTEM_ID_1_0.equals(publicId)
+          ? new InputSource(Prefs.class.getResourceAsStream(Prefs.DTD_RESOURCE_1_0))
           : null
         );
       }
     });
     builder.setErrorHandler(new ErrorHandler() {
-
       @Override
       public void warning(SAXParseException exception) throws SAXException {
         throw exception;
@@ -60,7 +59,7 @@ public class XmlTest {
         throw exception;
       }
     });
-    Document document = builder.parse(new File("/home/thomas/Documents/dev/own/taggy/x.xml"));
+    Document document = builder.parse(new File(new File(System.getProperty("user.dir")), "x.xml"));
     readElement(document.getDocumentElement(), "");
   }
 
@@ -74,8 +73,6 @@ public class XmlTest {
         readElement((Element) item, indent + "  ");
       }
     }
-    // TODO Auto-generated method stub
-
   }
 
   static void write() throws Exception {
@@ -100,8 +97,8 @@ public class XmlTest {
     Transformer transformer = transformerFactory.newTransformer();
     transformer.setOutputProperty(OutputKeys.INDENT, "yes");
     transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
-    transformer.setOutputProperty(OutputKeys.DOCTYPE_PUBLIC, PREFS_DTD_SYSTEM_ID);
+    transformer.setOutputProperty(OutputKeys.DOCTYPE_PUBLIC, Prefs.DTD_SYSTEM_ID_1_0);
     transformer.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, "");
-    transformer.transform(new DOMSource(document), new StreamResult(new File("/home/thomas/Documents/dev/own/taggy/x.xml")));
+    transformer.transform(new DOMSource(document), new StreamResult(new File(new File(System.getProperty("user.dir")), "x.xml")));
   }
 }
