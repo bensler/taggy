@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE node PUBLIC "com.bensler.taggy.Prefs.1.0" "">
-<node name="taggy">
-  <node name="a" value="blah"/>
-  <node name="b" value="blubb"/>
-</node>

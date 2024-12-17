@@ -8,14 +8,13 @@ import static com.jgoodies.forms.layout.CellConstraints.RIGHT;
 import static javax.swing.JSplitPane.HORIZONTAL_SPLIT;
 import static javax.swing.WindowConstants.DISPOSE_ON_CLOSE;
 
-import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
 import java.util.List;
 import java.util.Optional;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 
@@ -44,7 +43,7 @@ public class MainFrame {
     new ImageIcon(MainFrame.class.getResource("tag_13x13.png")), createStringPropertyGetter(Tag::getName)
   );
 
-  private final JDialog dialog_;
+  private final JFrame frame_;
   private final App app_;
   private final EntityTree<Tag> tagTree_;
   private final ThumbnailOverview thumbnails_;
@@ -57,7 +56,7 @@ public class MainFrame {
     SelectionTagPanel selectionTagPanel = new SelectionTagPanel();
 
     allTags_ = new Hierarchy<>();
-    dialog_ = new JDialog(null, "Taggy", ModalityType.MODELESS);
+    frame_ = new JFrame("Taggy");
     allTags_.addAll(app_.getDbAccess().loadAllTags());
     final JPanel mainPanel = new JPanel(new FormLayout(
       "3dlu, f:p:g, 3dlu",
@@ -84,7 +83,7 @@ public class MainFrame {
       }
     });
 
-    dialog_.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    frame_.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     tagTree_.setData(allTags_);
     tagTree_.setContextActions(new ActionGroup<>(new EntityAction<>(
       new ActionAppearance(null, null, "New Tag", "Creates a new Tag under the currently selected Tag"),
@@ -107,12 +106,12 @@ public class MainFrame {
     testButton.addActionListener(evt -> new OrphanDialog(app_).show(app_.getDbAccess()));
     buttonPanel.add(testButton, new CellConstraints(1, 1, FILL, FILL));
     final JButton closeButton = new JButton("Close");
-    closeButton.addActionListener(evt -> dialog_.dispose());
+    closeButton.addActionListener(evt -> frame_.dispose());
     buttonPanel.add(closeButton, new CellConstraints(3, 1, FILL, FILL));
 
     mainPanel.setPreferredSize(new Dimension(750, 750));
-    dialog_.setContentPane(mainPanel);
-    dialog_.pack();
+    frame_.setContentPane(mainPanel);
+    frame_.pack();
   }
 
   void createTagUi(EntityTree<Tag> tree, Optional<Tag> parentTag) {
@@ -122,12 +121,12 @@ public class MainFrame {
   }
 
   public void show() {
-    dialog_.setVisible(true);
-    app_.getWindowSizePersister().listenTo(dialog_, getClass().getSimpleName());
+    frame_.setVisible(true);
+    app_.getWindowSizePersister().listenTo(frame_, getClass().getSimpleName());
   }
 
-  public JDialog getFrame() {
-    return dialog_;
+  public JFrame getFrame() {
+    return frame_;
   }
 
   public BlobDialog getBlobDlg() {
