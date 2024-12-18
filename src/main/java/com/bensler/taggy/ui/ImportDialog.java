@@ -47,7 +47,7 @@ public class ImportDialog extends JDialog {
     setContentPane(mainPanel);
     files_.setData(importController_.getFilesToImport());
     pack();
-    app.getWindowSizePersister().listenTo(this);
+//    app.getWindowSizePersister().listenTo(this);
   }
 
   private void importSelection() {

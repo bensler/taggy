@@ -1,26 +1,27 @@
 package com.bensler.taggy.ui;
 
-import java.awt.Window;
 import java.io.File;
 import java.io.IOException;
 
-import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 import org.apache.commons.imaging.ImageReadException;
 
+import com.bensler.decaf.swing.dialog.WindowSizePersister;
+import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class BlobDialog extends JDialog {
+public class ImageFrame extends JFrame {
 
   private final ImageComponent imageComponent_;
 
-  public BlobDialog(App app) {
-    super((Window)null, "Blob");
+  public ImageFrame(App app) {
+    super("View Image");
 
     final JPanel mainPanel = new JPanel(new FormLayout(
       "3dlu, f:p:g, 3dlu",
@@ -32,7 +33,7 @@ public class BlobDialog extends JDialog {
     setContentPane(mainPanel);
     pack();
     setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-    app.getWindowSizePersister().listenTo(this);
+    new WindowSizePersister(app.getPrefs(), new PrefKey(App.PREFS_APP_ROOT, getClass().getSimpleName()), this);
   }
 
   public void setBlob(Blob blob) throws IOException, ImageReadException {
@@ -41,4 +42,5 @@ public class BlobDialog extends JDialog {
 
     imageComponent_.setImage(app.getThumbnailer().loadRotated(imgFile));
   }
+
 }

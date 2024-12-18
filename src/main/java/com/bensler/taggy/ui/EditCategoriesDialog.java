@@ -60,7 +60,7 @@ public class EditCategoriesDialog extends BasicContentPanel<Blob, Set<Tag>> {
 
   @Override
   protected void setContext(Context ctx) {
-    app_.getWindowSizePersister().listenTo(ctx.getDialog(), getClass().getSimpleName());
+//    app_.getWindowSizePersister().listenTo(ctx.getDialog(), getClass().getSimpleName());
   }
 
   @Override

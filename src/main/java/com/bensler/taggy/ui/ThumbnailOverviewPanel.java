@@ -112,7 +112,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
       if (doubleClick) {
         if (selection_.size() == 1) {
           try {
-            final BlobDialog blobDlg = app_.getMainFrame().getBlobDlg();
+            final ImageFrame blobDlg = app_.getMainFrame().getBlobDlg();
 
             blobDlg.setVisible(true);
             blobDlg.setBlob(selection_.get(0));

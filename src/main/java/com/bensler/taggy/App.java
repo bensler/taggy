@@ -5,7 +5,8 @@ import java.util.Arrays;
 
 import javax.swing.UIManager;
 
-import com.bensler.decaf.swing.dialog.WindowSizePersister;
+import com.bensler.decaf.util.prefs.PrefKey;
+import com.bensler.decaf.util.prefs.Prefs;
 import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.persist.DbConnector;
 import com.bensler.taggy.persist.SqliteDbConnector;
@@ -16,6 +17,8 @@ import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 import com.jgoodies.looks.plastic.theme.DesertYellow;
 
 public class App {
+
+  public static final PrefKey PREFS_APP_ROOT = new PrefKey(PrefKey.ROOT, "taggy");
 
   private static final int[] FOLDER_PATTERN = new int[] {1, 1};
 
@@ -42,7 +45,7 @@ public class App {
   }
 
   private final DbConnector db_;
-  private final WindowSizePersister windowSizePersister_;
+  private final Prefs prefs_;
   private final BlobController blobCtrl_;
   private final DbAccess dbAccess_;
   private final ImportController importCtrl_;
@@ -57,7 +60,7 @@ public class App {
     db_ = new SqliteDbConnector(dataDir, "taggy.sqlite.db");
     db_.performFlywayMigration();
     dbAccess_ = new DbAccess(db_.getSession());
-    windowSizePersister_ = new WindowSizePersister();
+    prefs_ = new Prefs(new File(getBaseDir(), "prefs.xml"));
     blobCtrl_ = new BlobController(dataDir, FOLDER_PATTERN);
     importCtrl_ = new ImportController(this, getBaseDir());
     thumbnailer_ = new Thumbnailer(dataDir);
@@ -84,8 +87,8 @@ public class App {
     return mainFrame_;
   }
 
-  public WindowSizePersister getWindowSizePersister() {
-    return windowSizePersister_;
+  public Prefs getPrefs() {
+    return prefs_;
   }
 
   public void run() {
