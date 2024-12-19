@@ -9,8 +9,7 @@ import javax.swing.JScrollPane;
 
 import org.apache.commons.imaging.ImageReadException;
 
-import com.bensler.decaf.swing.dialog.WindowSizePersister;
-import com.bensler.decaf.util.prefs.PrefKey;
+import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
 import com.jgoodies.forms.layout.CellConstraints;
@@ -19,7 +18,7 @@ import com.jgoodies.forms.layout.FormLayout;
 public class ImageFrame extends JFrame {
 
   private final ImageComponent imageComponent_;
-  private final WindowSizePersister prefsPersister_;
+  private final WindowPrefsPersister prefsPersister_;
 
   public ImageFrame(App app) {
     super("View Image");
@@ -34,7 +33,7 @@ public class ImageFrame extends JFrame {
     setContentPane(mainPanel);
     pack();
     setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-    prefsPersister_ = new WindowSizePersister(app.getPrefs(), new PrefKey(App.PREFS_APP_ROOT, getClass().getSimpleName()), this);
+    prefsPersister_ = new WindowPrefsPersister(app.getPrefs(), App.PREFS_APP_ROOT, this);
   }
 
   public void setBlob(Blob blob) throws IOException, ImageReadException {

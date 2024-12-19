@@ -27,8 +27,10 @@ import com.bensler.decaf.swing.action.EntityAction;
 import com.bensler.decaf.swing.action.SingleEntityActionAdapter;
 import com.bensler.decaf.swing.action.SingleEntityFilter;
 import com.bensler.decaf.swing.dialog.OkCancelDialog;
+import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
 import com.bensler.decaf.swing.tree.EntityTree;
 import com.bensler.decaf.swing.view.PropertyViewImpl;
+import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.tree.Hierarchy;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
@@ -45,8 +47,9 @@ public class MainFrame {
     new ImageIcon(MainFrame.class.getResource("tag_13x13.png")), createStringPropertyGetter(Tag::getName)
   );
 
-  private final JFrame frame_;
   private final App app_;
+  private final JFrame frame_;
+  private final WindowPrefsPersister prefsPersister_;
   private final EntityTree<Tag> tagTree_;
   private final ThumbnailOverview thumbnails_;
   private final Hierarchy<Tag> allTags_;
@@ -120,13 +123,16 @@ public class MainFrame {
         frameClosing();
       }
     });
-//    app_.getWindowSizePersister().listenTo(frame_, getClass().getSimpleName());
+    prefsPersister_ = new WindowPrefsPersister(app.getPrefs(), new PrefKey(App.PREFS_APP_ROOT, getClass().getSimpleName()), frame_, prefs -> {
+      System.out.println(largeSplitPane.getDividerLocation());
+    });
   }
 
   private void frameClosing() {
     if (imageFrame_ != null) {
       imageFrame_.close();
     }
+    prefsPersister_.save();
     try {
       app_.getPrefs().store();
     } catch (Exception e) {
