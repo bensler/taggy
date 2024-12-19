@@ -51,7 +51,7 @@ public class MainFrame {
   private final ThumbnailOverview thumbnails_;
   private final Hierarchy<Tag> allTags_;
 
-  private ImageFrame blobDlg_;
+  private ImageFrame imageFrame_;
 
   public MainFrame(App app) {
     app_ = app;
@@ -124,6 +124,9 @@ public class MainFrame {
   }
 
   private void frameClosing() {
+    if (imageFrame_ != null) {
+      imageFrame_.close();
+    }
     try {
       app_.getPrefs().store();
     } catch (Exception e) {
@@ -133,7 +136,7 @@ public class MainFrame {
   }
 
   void createTagUi(EntityTree<Tag> tree, Optional<Tag> parentTag) {
-    new OkCancelDialog<>(blobDlg_, new NewTagDialog(tree.getData())).show(
+    new OkCancelDialog<>(imageFrame_, new NewTagDialog(tree.getData())).show(
       parentTag, newTag -> tree.addData(app_.getDbAccess().createObject(newTag), true)
     );
   }
@@ -147,10 +150,10 @@ public class MainFrame {
   }
 
   public ImageFrame getBlobDlg() {
-    if (blobDlg_ == null) {
-      blobDlg_ = new ImageFrame(app_);
+    if (imageFrame_ == null) {
+      imageFrame_ = new ImageFrame(app_);
     }
-    return blobDlg_;
+    return imageFrame_;
   }
 
   public Hierarchy<Tag> getAllTags() {

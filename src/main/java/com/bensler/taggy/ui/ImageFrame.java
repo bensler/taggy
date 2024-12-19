@@ -19,6 +19,7 @@ import com.jgoodies.forms.layout.FormLayout;
 public class ImageFrame extends JFrame {
 
   private final ImageComponent imageComponent_;
+  private final WindowSizePersister prefsPersister_;
 
   public ImageFrame(App app) {
     super("View Image");
@@ -33,7 +34,7 @@ public class ImageFrame extends JFrame {
     setContentPane(mainPanel);
     pack();
     setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-    new WindowSizePersister(app.getPrefs(), new PrefKey(App.PREFS_APP_ROOT, getClass().getSimpleName()), this);
+    prefsPersister_ = new WindowSizePersister(app.getPrefs(), new PrefKey(App.PREFS_APP_ROOT, getClass().getSimpleName()), this);
   }
 
   public void setBlob(Blob blob) throws IOException, ImageReadException {
@@ -41,6 +42,12 @@ public class ImageFrame extends JFrame {
     final File imgFile = app.getBlobCtrl().getFile(blob.getSha256sum());
 
     imageComponent_.setImage(app.getThumbnailer().loadRotated(imgFile));
+  }
+
+  public void close() {
+    prefsPersister_.save();
+    setVisible(false);
+    dispose();
   }
 
 }
