@@ -123,9 +123,10 @@ public class MainFrame {
         frameClosing();
       }
     });
-    prefsPersister_ = new WindowPrefsPersister(app.getPrefs(), new PrefKey(App.PREFS_APP_ROOT, getClass().getSimpleName()), frame_, prefs -> {
-      System.out.println(largeSplitPane.getDividerLocation());
-    });
+
+    final PrefKey baseKey = new PrefKey(App.PREFS_APP_ROOT, getClass().getSimpleName());
+    new SplitpanePrefPersister(new PrefKey(baseKey, "splitRight"), largeSplitPane);
+    prefsPersister_ = new WindowPrefsPersister(app.getPrefs(), baseKey, frame_);
   }
 
   private void frameClosing() {
