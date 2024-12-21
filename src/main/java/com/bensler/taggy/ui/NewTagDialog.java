@@ -9,8 +9,13 @@ import javax.swing.JTextField;
 
 import com.bensler.decaf.swing.dialog.BasicContentPanel;
 import com.bensler.decaf.swing.dialog.DialogAppearance;
+import com.bensler.decaf.swing.dialog.WindowClosingTrigger;
+import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
 import com.bensler.decaf.swing.tree.EntityTree;
+import com.bensler.decaf.util.prefs.BulkPrefPersister;
+import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.tree.Hierarchy;
+import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Tag;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -47,7 +52,13 @@ public class NewTagDialog extends BasicContentPanel<Optional<Tag>, Tag> {
 
   @Override
   protected void setContext(Context ctx) {
-//    App.getApp().getWindowSizePersister().listenTo(ctx_.getDialog(), getClass().getSimpleName());
+    final BulkPrefPersister prefs = new BulkPrefPersister(
+      App.getApp().getPrefs(),
+      new WindowPrefsPersister(new PrefKey(App.PREFS_APP_ROOT, getClass()), ctx.getDialog())
+    );
+
+    prefs.apply();
+    new WindowClosingTrigger(ctx.getDialog(), evt -> prefs.store());
   }
 
   @Override

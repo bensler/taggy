@@ -30,6 +30,7 @@ import com.bensler.decaf.swing.dialog.OkCancelDialog;
 import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
 import com.bensler.decaf.swing.tree.EntityTree;
 import com.bensler.decaf.swing.view.PropertyViewImpl;
+import com.bensler.decaf.util.prefs.BulkPrefPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.tree.Hierarchy;
 import com.bensler.taggy.App;
@@ -49,7 +50,7 @@ public class MainFrame {
 
   private final App app_;
   private final JFrame frame_;
-  private final WindowPrefsPersister prefsPersister_;
+  private final BulkPrefPersister prefs_;
   private final EntityTree<Tag> tagTree_;
   private final ThumbnailOverview thumbnails_;
   private final Hierarchy<Tag> allTags_;
@@ -124,16 +125,18 @@ public class MainFrame {
       }
     });
 
-    final PrefKey baseKey = new PrefKey(App.PREFS_APP_ROOT, getClass().getSimpleName());
-    new SplitpanePrefPersister(new PrefKey(baseKey, "splitRight"), largeSplitPane);
-    prefsPersister_ = new WindowPrefsPersister(app.getPrefs(), baseKey, frame_);
+    final PrefKey baseKey = new PrefKey(App.PREFS_APP_ROOT, getClass());
+    (prefs_ = new BulkPrefPersister(app.getPrefs(), List.of(
+      new WindowPrefsPersister(baseKey, frame_),
+      new SplitpanePrefPersister(new PrefKey(baseKey, "splitRight"), largeSplitPane)
+    ))).apply();
   }
 
   private void frameClosing() {
     if (imageFrame_ != null) {
       imageFrame_.close();
     }
-    prefsPersister_.save();
+    prefs_.store();
     try {
       app_.getPrefs().store();
     } catch (Exception e) {

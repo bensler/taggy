@@ -9,12 +9,16 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 
+import com.bensler.decaf.swing.dialog.WindowClosingTrigger;
+import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
 import com.bensler.decaf.swing.selection.SelectionMode;
 import com.bensler.decaf.swing.table.EntityTable;
 import com.bensler.decaf.swing.table.TablePropertyView;
 import com.bensler.decaf.swing.table.TableView;
 import com.bensler.decaf.swing.view.PropertyViewImpl;
 import com.bensler.decaf.swing.view.SimplePropertyGetter;
+import com.bensler.decaf.util.prefs.BulkPrefPersister;
+import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.taggy.App;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -47,7 +51,12 @@ public class ImportDialog extends JDialog {
     setContentPane(mainPanel);
     files_.setData(importController_.getFilesToImport());
     pack();
-//    app.getWindowSizePersister().listenTo(this);
+    final BulkPrefPersister prefs = new BulkPrefPersister(
+      app.getPrefs(), new WindowPrefsPersister(new PrefKey(App.PREFS_APP_ROOT, getClass()), this)
+    );
+
+    prefs.apply();
+    new WindowClosingTrigger(this, evt -> prefs.store());
   }
 
   private void importSelection() {

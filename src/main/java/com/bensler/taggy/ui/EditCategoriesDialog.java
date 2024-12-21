@@ -17,7 +17,11 @@ import com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D;
 import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
 import com.bensler.decaf.swing.dialog.BasicContentPanel;
 import com.bensler.decaf.swing.dialog.DialogAppearance;
+import com.bensler.decaf.swing.dialog.WindowClosingTrigger;
+import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
 import com.bensler.decaf.swing.tree.CheckboxTree;
+import com.bensler.decaf.util.prefs.BulkPrefPersister;
+import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.tree.Hierarchical;
 import com.bensler.decaf.util.tree.Hierarchy;
 import com.bensler.taggy.App;
@@ -39,6 +43,8 @@ public class EditCategoriesDialog extends BasicContentPanel<Blob, Set<Tag>> {
   private final CheckboxTree<Tag> allTags_;
   private final CheckboxTree<Tag> assignedTags_;
   private final ImageComponent imgComp_;
+  private final JSplitPane verticalSplitpane_;
+  private final JSplitPane horizontalSplitpane_;
   private final App app_;
 
   public EditCategoriesDialog() {
@@ -52,15 +58,23 @@ public class EditCategoriesDialog extends BasicContentPanel<Blob, Set<Tag>> {
     assignedTags_ = new CheckboxTree<>(TAG_NAME_VIEW);
     assignedTags_.setVisibleRowCount(15, 1);
     assignedTags_.addCheckedListener(this::assignedTagsTreeChanged);
-    add(new JSplitPane(HORIZONTAL_SPLIT, true,
-      allTags_.getScrollPane(),
-      new JSplitPane(VERTICAL_SPLIT, true, imgComp_, assignedTags_.getScrollPane())
-    ), new CellConstraints(1, 1));
+    verticalSplitpane_ = new JSplitPane(VERTICAL_SPLIT, true, imgComp_, assignedTags_.getScrollPane());
+    horizontalSplitpane_ = new JSplitPane(HORIZONTAL_SPLIT, true, allTags_.getScrollPane(), verticalSplitpane_);
+    add(horizontalSplitpane_, new CellConstraints(1, 1));
   }
 
   @Override
   protected void setContext(Context ctx) {
-//    app_.getWindowSizePersister().listenTo(ctx.getDialog(), getClass().getSimpleName());
+    final PrefKey baseKey = new PrefKey(App.PREFS_APP_ROOT, getClass());
+    final BulkPrefPersister prefs = new BulkPrefPersister(
+      app_.getPrefs(),
+      new WindowPrefsPersister(baseKey, ctx.getDialog()),
+      new SplitpanePrefPersister(new PrefKey(baseKey, "verticalSplitpane"), verticalSplitpane_),
+      new SplitpanePrefPersister(new PrefKey(baseKey, "horizontalSplitpane"), horizontalSplitpane_)
+    );
+
+    prefs.apply();
+    new WindowClosingTrigger(ctx.getDialog(), evt -> prefs.store());
   }
 
   @Override

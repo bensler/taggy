@@ -3,9 +3,10 @@ package com.bensler.taggy.ui;
 import javax.swing.JSplitPane;
 
 import com.bensler.decaf.util.prefs.PrefKey;
+import com.bensler.decaf.util.prefs.PrefPersister;
 import com.bensler.decaf.util.prefs.Prefs;
 
-public class SplitpanePrefPersister {
+public class SplitpanePrefPersister implements PrefPersister {
 
   private final PrefKey prefKey_;
   private final JSplitPane splitPane_;
@@ -15,10 +16,12 @@ public class SplitpanePrefPersister {
      splitPane_ = splitPane;
   }
 
+  @Override
   public void apply(Prefs prefs) {
     prefs.get(prefKey_).flatMap(Prefs::tryParseInt).ifPresent(splitPane_::setDividerLocation);
   }
 
+  @Override
   public void store(Prefs prefs) {
     prefs.put(prefKey_, String.valueOf(splitPane_.getDividerLocation()));
   }
