@@ -9,8 +9,6 @@ import static javax.swing.JSplitPane.HORIZONTAL_SPLIT;
 import static javax.swing.WindowConstants.DISPOSE_ON_CLOSE;
 
 import java.awt.Dimension;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,6 +25,7 @@ import com.bensler.decaf.swing.action.EntityAction;
 import com.bensler.decaf.swing.action.SingleEntityActionAdapter;
 import com.bensler.decaf.swing.action.SingleEntityFilter;
 import com.bensler.decaf.swing.dialog.OkCancelDialog;
+import com.bensler.decaf.swing.dialog.WindowClosingTrigger;
 import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
 import com.bensler.decaf.swing.tree.EntityTree;
 import com.bensler.decaf.swing.view.PropertyViewImpl;
@@ -96,14 +95,14 @@ public class MainFrame {
       new SingleEntityFilter<>(ActionState.ENABLED),
       new SingleEntityActionAdapter<>((source, tag) -> createTagUi(tagTree_, tag))
     )));
-    final JSplitPane largeSplitPane = new JSplitPane(HORIZONTAL_SPLIT, true,
-      new JSplitPane(HORIZONTAL_SPLIT, true,
-        tagTree_.getScrollPane(),
-        thumbnails_.getScrollPane()
-      ), selectionTagPanel.getComponent()
+    final JSplitPane leftSplitpane = new JSplitPane(HORIZONTAL_SPLIT, true,
+      tagTree_.getScrollPane(), thumbnails_.getScrollPane()
     );
-    largeSplitPane.setResizeWeight(1);
-    mainPanel.add(largeSplitPane, new CellConstraints(2, 4));
+    final JSplitPane rightSplitpane = new JSplitPane(HORIZONTAL_SPLIT, true,
+      leftSplitpane, selectionTagPanel.getComponent()
+    );
+    rightSplitpane.setResizeWeight(1);
+    mainPanel.add(rightSplitpane, new CellConstraints(2, 4));
 
     final JPanel buttonPanel = new JPanel(new FormLayout("f:p:g, 3dlu, f:p:g", "f:p:g"));
     ((FormLayout)buttonPanel.getLayout()).setColumnGroups(new int[][] {{1, 3}});
@@ -118,17 +117,13 @@ public class MainFrame {
     mainPanel.setPreferredSize(new Dimension(750, 750));
     frame_.setContentPane(mainPanel);
     frame_.pack();
-    frame_.addWindowListener(new WindowAdapter() {
-      @Override
-      public void windowClosing(WindowEvent e) {
-        frameClosing();
-      }
-    });
+    new WindowClosingTrigger(frame_, evt -> frameClosing());
 
     final PrefKey baseKey = new PrefKey(App.PREFS_APP_ROOT, getClass());
     (prefs_ = new BulkPrefPersister(app.getPrefs(), List.of(
       new WindowPrefsPersister(baseKey, frame_),
-      new SplitpanePrefPersister(new PrefKey(baseKey, "splitRight"), largeSplitPane)
+      new SplitpanePrefPersister(new PrefKey(baseKey, "splitLeft"), leftSplitpane),
+      new SplitpanePrefPersister(new PrefKey(baseKey, "splitRight"), rightSplitpane)
     ))).apply();
   }
 
