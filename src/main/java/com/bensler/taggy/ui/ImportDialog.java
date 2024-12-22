@@ -55,7 +55,6 @@ public class ImportDialog extends JDialog {
       app.getPrefs(), new WindowPrefsPersister(new PrefKey(App.PREFS_APP_ROOT, getClass()), this)
     );
 
-    prefs.apply();
     new WindowClosingTrigger(this, evt -> prefs.store());
   }
 

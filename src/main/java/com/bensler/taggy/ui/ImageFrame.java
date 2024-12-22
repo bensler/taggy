@@ -36,9 +36,9 @@ public class ImageFrame extends JFrame {
     pack();
     setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
-    (prefs_ = new BulkPrefPersister(
+    prefs_ = new BulkPrefPersister(
       app.getPrefs(), new WindowPrefsPersister(new PrefKey(App.PREFS_APP_ROOT, getClass()), this)
-    )).apply();
+    );
   }
 
   public void setBlob(Blob blob) throws IOException, ImageReadException {

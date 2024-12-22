@@ -51,14 +51,13 @@ public class NewTagDialog extends BasicContentPanel<Optional<Tag>, Tag> {
   }
 
   @Override
-  protected void setContext(Context ctx) {
+  protected void contextSet() {
     final BulkPrefPersister prefs = new BulkPrefPersister(
       App.getApp().getPrefs(),
-      new WindowPrefsPersister(new PrefKey(App.PREFS_APP_ROOT, getClass()), ctx.getDialog())
+      new WindowPrefsPersister(new PrefKey(App.PREFS_APP_ROOT, getClass()), ctx_.getDialog())
     );
 
-    prefs.apply();
-    new WindowClosingTrigger(ctx.getDialog(), evt -> prefs.store());
+    new WindowClosingTrigger(ctx_.getDialog(), evt -> prefs.store());
   }
 
   @Override

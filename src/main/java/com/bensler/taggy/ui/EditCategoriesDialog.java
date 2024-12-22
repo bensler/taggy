@@ -64,17 +64,16 @@ public class EditCategoriesDialog extends BasicContentPanel<Blob, Set<Tag>> {
   }
 
   @Override
-  protected void setContext(Context ctx) {
+  protected void contextSet() {
     final PrefKey baseKey = new PrefKey(App.PREFS_APP_ROOT, getClass());
     final BulkPrefPersister prefs = new BulkPrefPersister(
       app_.getPrefs(),
-      new WindowPrefsPersister(baseKey, ctx.getDialog()),
+      new WindowPrefsPersister(baseKey, ctx_.getDialog()),
       new SplitpanePrefPersister(new PrefKey(baseKey, "verticalSplitpane"), verticalSplitpane_),
       new SplitpanePrefPersister(new PrefKey(baseKey, "horizontalSplitpane"), horizontalSplitpane_)
     );
 
-    prefs.apply();
-    new WindowClosingTrigger(ctx.getDialog(), evt -> prefs.store());
+    new WindowClosingTrigger(ctx_.getDialog(), evt -> prefs.store());
   }
 
   @Override
