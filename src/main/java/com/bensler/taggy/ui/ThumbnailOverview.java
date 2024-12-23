@@ -47,6 +47,7 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
     new OkCancelDialog<>(comp_, new EditCategoriesDialog()).show(blob, tags -> {
       blob.setTags(tags);
       app_.getDbAccess().storeObject(blob);
+      app_.getMainFrame().displayThumbnailsOfSelectedTag();
     });
   }
 

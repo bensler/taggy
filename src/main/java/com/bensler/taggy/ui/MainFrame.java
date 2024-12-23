@@ -77,17 +77,7 @@ public class MainFrame {
     thumbnails_.setSelectionListener((source, selection) -> selectionTagPanel.setData(selection));
     tagTree_ = new EntityTree<>(TAG_NAME_VIEW);
     tagTree_.setVisibleRowCount(20, .5f);
-    tagTree_.setSelectionListener((source, selection) -> {
-      if (selection.isEmpty()) {
-        thumbnails_.clear();
-      } else {
-        final Tag tag = selection.get(0);
-
-        app_.getDbAccess().refresh(tag);
-        thumbnails_.setData(List.copyOf(tag.getBlobs()));
-      }
-    });
-
+    tagTree_.setSelectionListener((source, selection) -> displayThumbnailsOfSelectedTag());
     frame_.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     tagTree_.setData(allTags_);
     tagTree_.setContextActions(new ActionGroup<>(new EntityAction<>(
@@ -163,6 +153,17 @@ public class MainFrame {
 
   public Hierarchy<Tag> getAllTags() {
     return allTags_;
+  }
+
+  public void displayThumbnailsOfSelectedTag() {
+    final Tag tag = tagTree_.getSingleSelection();
+
+    if (tag == null) {
+      thumbnails_.clear();
+    } else {
+      app_.getDbAccess().refresh(tag);
+      thumbnails_.setData(List.copyOf(tag.getBlobs()));
+    }
   }
 
 }
