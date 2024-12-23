@@ -81,7 +81,8 @@ public class NewTagDialog extends BasicContentPanel<Optional<Tag>, Tag> {
     final Set<Tag> potentialSiblings = allTags_.getChildren(selectedTag);
     final String newName = getNewName();
 
-    return potentialSiblings.stream()
+    return (!newName.isEmpty())
+      && potentialSiblings.stream()
       .map(Tag::getName)
       .filter(newName::equals)
       .findFirst()
