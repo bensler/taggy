@@ -17,7 +17,6 @@ import com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D;
 import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
 import com.bensler.decaf.swing.dialog.BasicContentPanel;
 import com.bensler.decaf.swing.dialog.DialogAppearance;
-import com.bensler.decaf.swing.dialog.WindowClosingTrigger;
 import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
 import com.bensler.decaf.swing.tree.CheckboxTree;
 import com.bensler.decaf.util.prefs.BulkPrefPersister;
@@ -64,16 +63,15 @@ public class EditCategoriesDialog extends BasicContentPanel<Blob, Set<Tag>> {
   }
 
   @Override
-  protected void contextSet() {
+  protected void contextSet(Context ctx) {
     final PrefKey baseKey = new PrefKey(App.PREFS_APP_ROOT, getClass());
-    final BulkPrefPersister prefs = new BulkPrefPersister(
+
+    ctx.setPrefs(new BulkPrefPersister(
       app_.getPrefs(),
       new WindowPrefsPersister(baseKey, ctx_.getDialog()),
       new SplitpanePrefPersister(new PrefKey(baseKey, "verticalSplitpane"), verticalSplitpane_),
       new SplitpanePrefPersister(new PrefKey(baseKey, "horizontalSplitpane"), horizontalSplitpane_)
-    );
-
-    new WindowClosingTrigger(ctx_.getDialog(), evt -> prefs.store());
+    ));
   }
 
   @Override
