@@ -4,6 +4,7 @@ import static com.bensler.taggy.ui.MainFrame.TAG_NAME_VIEW;
 import static javax.swing.JSplitPane.HORIZONTAL_SPLIT;
 import static javax.swing.JSplitPane.VERTICAL_SPLIT;
 
+import java.awt.Dimension;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -56,8 +57,12 @@ public class EditCategoriesDialog extends BasicContentPanel<Blob, Set<Tag>> {
     assignedTags_.setVisibleRowCount(15, 1);
     assignedTags_.addCheckedListener(this::assignedTagsTreeChanged);
     verticalSplitpane_ = new JSplitPane(VERTICAL_SPLIT, true, imgComp_, assignedTags_.getScrollPane());
+    verticalSplitpane_.setResizeWeight(.5f);
     horizontalSplitpane_ = new JSplitPane(HORIZONTAL_SPLIT, true, allTags_.getScrollPane(), verticalSplitpane_);
+    horizontalSplitpane_.setResizeWeight(.5f);
     add(horizontalSplitpane_, new CellConstraints(1, 1));
+    // TODO crap, hard coded size ----------------------vvvvvvvv
+    horizontalSplitpane_.setPreferredSize(new Dimension(200, 200));
   }
 
   @Override
