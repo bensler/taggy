@@ -4,11 +4,9 @@ import static com.bensler.taggy.ui.MainFrame.TAG_NAME_VIEW;
 import static javax.swing.JSplitPane.HORIZONTAL_SPLIT;
 import static javax.swing.JSplitPane.VERTICAL_SPLIT;
 
-import java.io.IOException;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JSplitPane;
 
@@ -89,12 +87,14 @@ public class EditCategoriesDialog extends BasicContentPanel<Blob, Set<Tag>> {
     try {
       final Set<Tag> tags = blob.getTags();
 
-      imgComp_.setImage(ImageIO.read(app_.getBlobCtrl().getFile(blob.getSha256sum())));
+      imgComp_.setImage(app_.getThumbnailer().loadRotated(
+        app_.getBlobCtrl().getFile(blob.getSha256sum())
+      ));
       allTags_.expandCollapseAll(false);
       allTags_.setCheckedNodes(tags);
       tags.forEach(tag -> allTags_.expandCollapse(tag, true));
       setAssignedTags(tags);
-    } catch (IOException e) {
+    } catch (Exception e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
