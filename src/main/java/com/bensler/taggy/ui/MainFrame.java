@@ -40,11 +40,13 @@ import com.jgoodies.forms.layout.FormLayout;
 
 public class MainFrame {
 
+  public static final ImageIcon ICON_TAG_13 = new ImageIcon(MainFrame.class.getResource("tag_13x13.png"));
+
   public static final PropertyViewImpl<Blob, Integer> BLOB_ID_VIEW = new PropertyViewImpl<>(
     createComparablePropertyGetter(Blob::getId)
   );
   public static final PropertyViewImpl<Tag, String> TAG_NAME_VIEW = new PropertyViewImpl<>(
-    new ImageIcon(MainFrame.class.getResource("tag_13x13.png")), createStringPropertyGetter(Tag::getName)
+    ICON_TAG_13, createStringPropertyGetter(Tag::getName)
   );
 
   private final App app_;

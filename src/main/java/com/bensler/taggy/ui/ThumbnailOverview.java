@@ -1,5 +1,6 @@
 package com.bensler.taggy.ui;
 
+import static com.bensler.taggy.ui.MainFrame.ICON_TAG_13;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
@@ -36,7 +37,7 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
     scrollPane_ = new JScrollPane(comp_, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
     scrollPane_.getViewport().setBackground(comp_.getBackground());
     contextActions_ = new ActionGroup<>(new EntityAction<>(
-      new ActionAppearance(null, null, "Edit Tags", "Edit Tags of this Image"),
+      new ActionAppearance(ICON_TAG_13, null, "Edit Tags", "Edit Tags of this Image"),
       new SingleEntityFilter<>(ActionState.DISABLED),
       new SingleEntityActionAdapter<>((source, blob) -> blob.ifPresent(this::editTags))
     ));
