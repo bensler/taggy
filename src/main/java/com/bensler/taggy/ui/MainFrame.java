@@ -1,5 +1,6 @@
 package com.bensler.taggy.ui;
 
+import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
 import static com.bensler.decaf.swing.view.SimplePropertyGetter.createComparablePropertyGetter;
 import static com.bensler.decaf.swing.view.SimplePropertyGetter.createStringPropertyGetter;
 import static com.jgoodies.forms.layout.CellConstraints.CENTER;
@@ -24,6 +25,8 @@ import com.bensler.decaf.swing.action.ActionState;
 import com.bensler.decaf.swing.action.EntityAction;
 import com.bensler.decaf.swing.action.SingleEntityActionAdapter;
 import com.bensler.decaf.swing.action.SingleEntityFilter;
+import com.bensler.decaf.swing.awt.OverlayIcon;
+import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
 import com.bensler.decaf.swing.dialog.OkCancelDialog;
 import com.bensler.decaf.swing.dialog.WindowClosingTrigger;
 import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
@@ -41,6 +44,8 @@ import com.jgoodies.forms.layout.FormLayout;
 public class MainFrame {
 
   public static final ImageIcon ICON_TAG_13 = new ImageIcon(MainFrame.class.getResource("tag_13x13.png"));
+
+  public static final ImageIcon ICON_PLUS_10 = new ImageIcon(MainFrame.class.getResource("plus_10x10.png"));
 
   public static final PropertyViewImpl<Blob, Integer> BLOB_ID_VIEW = new PropertyViewImpl<>(
     createComparablePropertyGetter(Blob::getId)
@@ -82,11 +87,17 @@ public class MainFrame {
     tagTree_.setSelectionListener((source, selection) -> displayThumbnailsOfSelectedTag());
     frame_.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     tagTree_.setData(allTags_);
-    tagTree_.setContextActions(new ActionGroup<>(new EntityAction<>(
-      new ActionAppearance(null, null, "New Tag", "Creates a new Tag under the currently selected Tag"),
+    final EntityAction<Tag> newTagAction = new EntityAction<>(
+      new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_PLUS_10, SE)), null, "New Tag", "Creates a new Tag under the currently selected Tag"),
       new SingleEntityFilter<>(ActionState.ENABLED),
       new SingleEntityActionAdapter<>((source, tag) -> createTagUi(tagTree_, tag))
-    )));
+    );
+    final EntityAction<Tag> editTagAction = new EntityAction<>(
+      new ActionAppearance(ICON_TAG_13, null, "Edit Tag", "Edit currently selected Tag"),
+      new SingleEntityFilter<>(ActionState.DISABLED),
+      new SingleEntityActionAdapter<>((source, tag) -> editTagUi(tagTree_, tag))
+    );
+    tagTree_.setContextActions(new ActionGroup<>(editTagAction, newTagAction));
     final JSplitPane leftSplitpane = new JSplitPane(HORIZONTAL_SPLIT, true,
       tagTree_.getScrollPane(), thumbnails_.getScrollPane()
     );
@@ -133,6 +144,12 @@ public class MainFrame {
   }
 
   void createTagUi(EntityTree<Tag> tree, Optional<Tag> parentTag) {
+    new OkCancelDialog<>(imageFrame_, new NewTagDialog(tree.getData())).show(
+      parentTag, newTag -> tree.addData(app_.getDbAccess().createObject(newTag), true)
+    );
+  }
+
+  void editTagUi(EntityTree<Tag> tree, Optional<Tag> parentTag) {
     new OkCancelDialog<>(imageFrame_, new NewTagDialog(tree.getData())).show(
       parentTag, newTag -> tree.addData(app_.getDbAccess().createObject(newTag), true)
     );
