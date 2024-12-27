@@ -17,6 +17,7 @@ import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.ActionGroup;
 import com.bensler.decaf.swing.action.ActionState;
 import com.bensler.decaf.swing.action.ContextMenuMouseAdapter;
+import com.bensler.decaf.swing.action.DoubleClickMouseAdapter;
 import com.bensler.decaf.swing.action.EntityAction;
 import com.bensler.decaf.swing.action.SingleEntityActionAdapter;
 import com.bensler.decaf.swing.action.SingleEntityFilter;
@@ -44,10 +45,26 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
     );
     final EntityAction<Blob> slideshowAction = new EntityAction<>(
       new ActionAppearance(null, null, "Slide Show", "ViewImages in full detail"),
-      null, (source, blobs) -> System.out.println(blobs.size())
+      null, (source, blobs) -> app_.getMainFrame().getSlideShowFrame().show(blobs)
     );
     contextActions_ = new ActionGroup<>(editTagAction, slideshowAction);
     comp_.addMouseListener(new ContextMenuMouseAdapter(this::triggerContextMenu));
+    comp_.addMouseListener(new DoubleClickMouseAdapter(evt -> doubleClick()));
+  }
+
+  void doubleClick() {
+    contextActions_.createContextMenu(this).triggerPrimaryAction();
+  }
+
+  void triggerContextMenu(MouseEvent evt) {
+    final Optional<Blob> clickedBlob = comp_.blobAt(evt.getPoint());
+
+    clickedBlob.ifPresent(blob -> {
+      if (!getSelection().contains(blob)) {
+        select(blob);
+      }
+    });
+    contextActions_.createContextMenu(this).showPopupMenu(evt);
   }
 
   void editTags(Blob blob) {
@@ -114,21 +131,6 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
 
   public void clear() {
     comp_.clear();
-  }
-
-  void triggerContextMenu(MouseEvent evt) {
-    final Optional<Blob> clickedBlob = comp_.blobAt(evt.getPoint());
-
-    if (clickedBlob.isPresent()) {
-      final Blob blob = clickedBlob.get();
-
-      if (!getSelection().contains(blob)) {
-        select(blob);
-      }
-    } else {
-      clearSelection();
-    }
-    contextActions_.createContextMenu(this).showPopupMenu(evt);
   }
 
 }

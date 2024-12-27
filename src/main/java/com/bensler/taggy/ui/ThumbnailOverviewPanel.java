@@ -31,8 +31,6 @@ import javax.swing.JComponent;
 import javax.swing.Scrollable;
 import javax.swing.UIManager;
 
-import org.apache.commons.imaging.ImageReadException;
-
 import com.bensler.decaf.swing.awt.ColorHelper;
 import com.bensler.decaf.swing.selection.EntitySelectionListener;
 import com.bensler.taggy.App;
@@ -72,6 +70,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
       backgroundSelectionColor_, 2,
       UIManager.getColor("Tree.background"), 1
     );
+    setFocusable(true);
     setBackground(UIManager.getColor("Tree.textBackground"));
     addFocusListener(new FocusListener() {
 
@@ -105,24 +104,10 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
   }
 
   void mouseClicked(MouseEvent evt) {
-    final boolean doubleClick = (evt.getClickCount() == 2);
-
     requestFocus();
     if (evt.getButton() == MouseEvent.BUTTON1) {
-      if (doubleClick) {
-        if (selection_.size() == 1) {
-          try {
-            final ImageFrame blobDlg = app_.getMainFrame().getBlobDlg();
-
-            blobDlg.setVisible(true);
-            blobDlg.setBlob(selection_.get(0));
-          } catch (IOException | ImageReadException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-          }
-        }
-      } else {
-        blobAt(evt.getPoint()).ifPresent(blob -> {
+      if ((evt.getClickCount() == 1)) {
+        blobAt(evt.getPoint()).ifPresentOrElse(blob -> {
           try (SelectionEvent selectionEvent = new SelectionEvent()) {
             if (evt.isControlDown()) {
               if (selection_.contains(blob)) {
@@ -135,6 +120,10 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
               selection_.add(blob);
             }
           }
+        }, () -> {
+          if (evt.isControlDown()) {
+            clearSelection();
+          }
         });
       }
     }
@@ -143,7 +132,6 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
   Optional<Blob> blobAt(Point position) {
     final int gapPlusTileSize = GAP + TILE_SIZE;
 
-    requestFocus();
     if ((position.x % gapPlusTileSize) > GAP) {
       int col = (position.x / gapPlusTileSize);
       int row = (position.y / gapPlusTileSize);

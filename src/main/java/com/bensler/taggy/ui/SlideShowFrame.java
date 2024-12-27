@@ -2,6 +2,7 @@ package com.bensler.taggy.ui;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -17,12 +18,12 @@ import com.bensler.taggy.persist.Blob;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class ImageFrame extends JFrame {
+public class SlideShowFrame extends JFrame {
 
   private final ImageComponent imageComponent_;
   private final BulkPrefPersister prefs_;
 
-  public ImageFrame(App app) {
+  public SlideShowFrame(App app) {
     super("View Image");
 
     final JPanel mainPanel = new JPanel(new FormLayout(
@@ -52,6 +53,16 @@ public class ImageFrame extends JFrame {
     prefs_.store();
     setVisible(false);
     dispose();
+  }
+
+  public void show(List<Blob> blobs) {
+    try {
+      setVisible(true);
+      setBlob(blobs.get(0));
+    } catch (IOException | ImageReadException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
   }
 
 }

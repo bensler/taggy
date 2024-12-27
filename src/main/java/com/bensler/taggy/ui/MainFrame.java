@@ -61,7 +61,7 @@ public class MainFrame {
   private final ThumbnailOverview thumbnails_;
   private final Hierarchy<Tag> allTags_;
 
-  private ImageFrame imageFrame_;
+  private SlideShowFrame slideShowFrame_;
 
   public MainFrame(App app) {
     app_ = app;
@@ -131,8 +131,8 @@ public class MainFrame {
   }
 
   private void frameClosing() {
-    if (imageFrame_ != null) {
-      imageFrame_.close();
+    if (slideShowFrame_ != null) {
+      slideShowFrame_.close();
     }
     prefs_.store();
     try {
@@ -144,13 +144,13 @@ public class MainFrame {
   }
 
   void createTagUi(EntityTree<Tag> tree, Optional<Tag> parentTag) {
-    new OkCancelDialog<>(imageFrame_, new NewTagDialog(tree.getData())).show(
+    new OkCancelDialog<>(slideShowFrame_, new NewTagDialog(tree.getData())).show(
       parentTag, newTag -> tree.addData(app_.getDbAccess().createObject(newTag), true)
     );
   }
 
   void editTagUi(EntityTree<Tag> tree, Optional<Tag> parentTag) {
-    new OkCancelDialog<>(imageFrame_, new NewTagDialog(tree.getData())).show(
+    new OkCancelDialog<>(slideShowFrame_, new NewTagDialog(tree.getData())).show(
       parentTag, newTag -> tree.addData(app_.getDbAccess().createObject(newTag), true)
     );
   }
@@ -163,11 +163,11 @@ public class MainFrame {
     return frame_;
   }
 
-  public ImageFrame getBlobDlg() {
-    if (imageFrame_ == null) {
-      imageFrame_ = new ImageFrame(app_);
+  public SlideShowFrame getSlideShowFrame() {
+    if (slideShowFrame_ == null) {
+      slideShowFrame_ = new SlideShowFrame(app_);
     }
-    return imageFrame_;
+    return slideShowFrame_;
   }
 
   public Hierarchy<Tag> getAllTags() {
