@@ -7,6 +7,7 @@ import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 import java.awt.event.MouseEvent;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
@@ -36,11 +37,16 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
     comp_ = new ThumbnailOverviewPanel(app);
     scrollPane_ = new JScrollPane(comp_, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
     scrollPane_.getViewport().setBackground(comp_.getBackground());
-    contextActions_ = new ActionGroup<>(new EntityAction<>(
+    final EntityAction<Blob> editTagAction = new EntityAction<>(
       new ActionAppearance(ICON_TAG_13, null, "Edit Tags", "Edit Tags of this Image"),
       new SingleEntityFilter<>(ActionState.DISABLED),
       new SingleEntityActionAdapter<>((source, blob) -> blob.ifPresent(this::editTags))
-    ));
+    );
+    final EntityAction<Blob> slideshowAction = new EntityAction<>(
+      new ActionAppearance(null, null, "Slide Show", "ViewImages in full detail"),
+      null, (source, blobs) -> System.out.println(blobs.size())
+    );
+    contextActions_ = new ActionGroup<>(editTagAction, slideshowAction);
     comp_.addMouseListener(new ContextMenuMouseAdapter(this::triggerContextMenu));
   }
 
@@ -111,7 +117,17 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
   }
 
   void triggerContextMenu(MouseEvent evt) {
-    comp_.blobAt(evt.getPoint()).ifPresentOrElse(this::select, this::clearSelection);
+    final Optional<Blob> clickedBlob = comp_.blobAt(evt.getPoint());
+
+    if (clickedBlob.isPresent()) {
+      final Blob blob = clickedBlob.get();
+
+      if (!getSelection().contains(blob)) {
+        select(blob);
+      }
+    } else {
+      clearSelection();
+    }
     contextActions_.createContextMenu(this).ifPresent(popup -> popup.show(comp_, evt.getX(), evt.getY()));
   }
 

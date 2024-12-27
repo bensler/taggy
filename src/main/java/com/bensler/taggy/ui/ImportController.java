@@ -18,6 +18,7 @@ import com.bensler.taggy.persist.Blob;
 public class ImportController {
 
   private static final List<String> KNOWN_FILEEXTENSIONS = List.of("JPG", "JPEG", "PNG");
+
   private static final String IMPORT_DIR = "import";
 
   public static final ActionAppearance IMPORT_ACTION_APPEARANCE =  new ActionAppearance(
@@ -49,7 +50,7 @@ public class ImportController {
   public List<File> getFilesToImport() {
     return Arrays.stream(importDir_.listFiles((FileFilter)null))
     .filter(File::isFile)
-    .filter(this:: hasKnownFileExtesion)
+    .filter(this::hasKnownFileExtesion)
     .toList();
   }
 
