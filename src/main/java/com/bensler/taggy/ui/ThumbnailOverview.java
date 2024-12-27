@@ -128,7 +128,7 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
     } else {
       clearSelection();
     }
-    contextActions_.createContextMenu(this).ifPresent(popup -> popup.show(comp_, evt.getX(), evt.getY()));
+    contextActions_.createContextMenu(this).showPopupMenu(evt);
   }
 
 }
