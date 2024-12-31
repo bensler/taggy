@@ -46,6 +46,7 @@ public class MainFrame {
   public static final ImageIcon ICON_TAG_13 = new ImageIcon(MainFrame.class.getResource("tag_13x13.png"));
 
   public static final ImageIcon ICON_PLUS_10 = new ImageIcon(MainFrame.class.getResource("plus_10x10.png"));
+  public static final ImageIcon ICON_X_10 = new ImageIcon(MainFrame.class.getResource("x_10x10.png"));
 
   public static final PropertyViewImpl<Blob, Integer> BLOB_ID_VIEW = new PropertyViewImpl<>(
     createComparablePropertyGetter(Blob::getId)
@@ -87,17 +88,22 @@ public class MainFrame {
     tagTree_.setSelectionListener((source, selection) -> displayThumbnailsOfSelectedTag());
     frame_.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     tagTree_.setData(allTags_);
-    final EntityAction<Tag> newTagAction = new EntityAction<>(
-      new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_PLUS_10, SE)), null, "New Tag", "Creates a new Tag under the currently selected Tag"),
-      new SingleEntityFilter<>(ActionState.ENABLED),
-      new SingleEntityActionAdapter<>((source, tag) -> createTagUi(tagTree_, tag))
-    );
     final EntityAction<Tag> editTagAction = new EntityAction<>(
       new ActionAppearance(ICON_TAG_13, null, "Edit Tag", "Edit currently selected Tag"),
       new SingleEntityFilter<>(ActionState.DISABLED),
       new SingleEntityActionAdapter<>((source, tag) -> editTagUi(tagTree_, tag))
     );
-    tagTree_.setContextActions(new ActionGroup<>(editTagAction, newTagAction));
+    final EntityAction<Tag> newTagAction = new EntityAction<>(
+      new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_PLUS_10, SE)), null, "New Tag", "Creates a new Tag under the currently selected Tag"),
+      new SingleEntityFilter<>(ActionState.ENABLED),
+      new SingleEntityActionAdapter<>((source, tag) -> createTagUi(tagTree_, tag))
+    );
+    final EntityAction<Tag> deleteTagAction = new EntityAction<>(
+      new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_X_10, SE)), null, "Delete Tag", "Remove currently selected Tag"),
+      new SingleEntityFilter<>(ActionState.ENABLED),
+      new SingleEntityActionAdapter<>((source, tag) -> createTagUi(tagTree_, tag))
+    );
+    tagTree_.setContextActions(new ActionGroup<>(editTagAction, newTagAction, deleteTagAction));
     final JSplitPane leftSplitpane = new JSplitPane(HORIZONTAL_SPLIT, true,
       tagTree_.getScrollPane(), thumbnails_.getScrollPane()
     );
@@ -149,9 +155,15 @@ public class MainFrame {
     );
   }
 
-  void editTagUi(EntityTree<Tag> tree, Optional<Tag> parentTag) {
+  void deleteTagUi(EntityTree<Tag> tree, Optional<Tag> tag) {
     new OkCancelDialog<>(slideShowFrame_, new NewTagDialog(tree.getData())).show(
-      parentTag, newTag -> tree.addData(app_.getDbAccess().createObject(newTag), true)
+      tag, newTag -> tree.addData(app_.getDbAccess().createObject(newTag), true)
+    );
+  }
+
+  void editTagUi(EntityTree<Tag> tree, Optional<Tag> tag) {
+    new OkCancelDialog<>(slideShowFrame_, new NewTagDialog(tree.getData())).show(
+      tag, newTag -> tree.addData(app_.getDbAccess().createObject(newTag), true)
     );
   }
 

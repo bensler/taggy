@@ -47,7 +47,7 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
       new ActionAppearance(null, null, "Slide Show", "ViewImages in full detail"),
       null, (source, blobs) -> app_.getMainFrame().getSlideShowFrame().show(blobs)
     );
-    contextActions_ = new ActionGroup<>(editTagAction, slideshowAction);
+    contextActions_ = new ActionGroup<>(slideshowAction, editTagAction);
     comp_.addMouseListener(new ContextMenuMouseAdapter(this::triggerContextMenu));
     comp_.addMouseListener(new DoubleClickMouseAdapter(evt -> doubleClick()));
   }
