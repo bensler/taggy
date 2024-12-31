@@ -44,6 +44,7 @@ import com.jgoodies.forms.layout.FormLayout;
 public class MainFrame {
 
   public static final ImageIcon ICON_TAG_13 = new ImageIcon(MainFrame.class.getResource("tag_13x13.png"));
+  public static final ImageIcon ICON_IMAGE_13 = new ImageIcon(MainFrame.class.getResource("image_13x13.png"));
 
   public static final ImageIcon ICON_PLUS_10 = new ImageIcon(MainFrame.class.getResource("plus_10x10.png"));
   public static final ImageIcon ICON_X_10 = new ImageIcon(MainFrame.class.getResource("x_10x10.png"));
@@ -156,15 +157,13 @@ public class MainFrame {
   }
 
   void deleteTagUi(EntityTree<Tag> tree, Optional<Tag> tag) {
-    new OkCancelDialog<>(slideShowFrame_, new NewTagDialog(tree.getData())).show(
-      tag, newTag -> tree.addData(app_.getDbAccess().createObject(newTag), true)
-    );
+//    TODO
+    throw new UnsupportedOperationException();
   }
 
   void editTagUi(EntityTree<Tag> tree, Optional<Tag> tag) {
-    new OkCancelDialog<>(slideShowFrame_, new NewTagDialog(tree.getData())).show(
-      tag, newTag -> tree.addData(app_.getDbAccess().createObject(newTag), true)
-    );
+//    TODO
+    throw new UnsupportedOperationException();
   }
 
   public void show() {
