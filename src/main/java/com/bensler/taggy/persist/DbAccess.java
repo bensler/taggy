@@ -47,7 +47,7 @@ public class DbAccess {
   public List<Blob> findOrphanBlobs() {
     return session_.createQuery(
       "FROM Blob AS blob " +
-      "LEFT JOIN FETCH blob.tags AS tags " +
+      "LEFT JOIN FETCH blob.tags_ AS tags " +
       "GROUP BY blob " +
       "HAVING COUNT(tags) < 1", Blob.class
     ).getResultList();
