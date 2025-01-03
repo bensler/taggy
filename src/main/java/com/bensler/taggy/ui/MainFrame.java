@@ -27,6 +27,8 @@ import com.bensler.decaf.swing.action.SingleEntityActionAdapter;
 import com.bensler.decaf.swing.action.SingleEntityFilter;
 import com.bensler.decaf.swing.awt.OverlayIcon;
 import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
+import com.bensler.decaf.swing.dialog.ConfirmationDialog;
+import com.bensler.decaf.swing.dialog.DialogAppearance;
 import com.bensler.decaf.swing.dialog.OkCancelDialog;
 import com.bensler.decaf.swing.dialog.WindowClosingTrigger;
 import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
@@ -44,10 +46,13 @@ import com.jgoodies.forms.layout.FormLayout;
 public class MainFrame {
 
   public static final ImageIcon ICON_TAG_13 = new ImageIcon(MainFrame.class.getResource("tag_13x13.png"));
+  public static final ImageIcon ICON_TAG_48 = new ImageIcon(MainFrame.class.getResource("tag_48x48.png"));
   public static final ImageIcon ICON_IMAGE_13 = new ImageIcon(MainFrame.class.getResource("image_13x13.png"));
+  public static final ImageIcon ICON_IMAGE_48 = new ImageIcon(MainFrame.class.getResource("image_48x48.png"));
 
   public static final ImageIcon ICON_PLUS_10 = new ImageIcon(MainFrame.class.getResource("plus_10x10.png"));
   public static final ImageIcon ICON_X_10 = new ImageIcon(MainFrame.class.getResource("x_10x10.png"));
+  public static final ImageIcon ICON_X_30 = new ImageIcon(MainFrame.class.getResource("x_30x30.png"));
 
   public static final PropertyViewImpl<Blob, Integer> BLOB_ID_VIEW = new PropertyViewImpl<>(
     createComparablePropertyGetter(Blob::getId)
@@ -101,8 +106,8 @@ public class MainFrame {
     );
     final EntityAction<Tag> deleteTagAction = new EntityAction<>(
       new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_X_10, SE)), null, "Delete Tag", "Remove currently selected Tag"),
-      new SingleEntityFilter<>(ActionState.ENABLED),
-      new SingleEntityActionAdapter<>((source, tag) -> createTagUi(tagTree_, tag))
+      new SingleEntityFilter<>(ActionState.DISABLED),
+      new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(this::deleteTagUi))
     );
     tagTree_.setContextActions(new ActionGroup<>(editTagAction, newTagAction, deleteTagAction));
     final JSplitPane leftSplitpane = new JSplitPane(HORIZONTAL_SPLIT, true,
@@ -156,9 +161,17 @@ public class MainFrame {
     );
   }
 
-  void deleteTagUi(EntityTree<Tag> tree, Optional<Tag> tag) {
-//    TODO
-    throw new UnsupportedOperationException();
+  void deleteTagUi(Tag tag) {
+    if (new ConfirmationDialog(new DialogAppearance(
+      new OverlayIcon(ICON_TAG_48, new Overlay(ICON_X_30, SE)), "Confirmation: Delete Tag",
+      "Do you really want to delete tag \"%s\" under \"%s\"?".formatted(
+        tag.getName(), Optional.ofNullable(tag.getParent()).map(Tag::getName).orElse("Root")
+      )
+    )).show(frame_)) {
+      System.out.println("Delete Tag");
+    } else {
+      System.out.println("Canceled: Delete Tag");
+    }
   }
 
   void editTagUi(EntityTree<Tag> tree, Optional<Tag> tag) {
