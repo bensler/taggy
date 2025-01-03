@@ -1,5 +1,6 @@
 package com.bensler.taggy.ui;
 
+import static com.bensler.decaf.swing.action.ActionState.DISABLED;
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
 import static com.bensler.taggy.ui.MainFrame.ICON_IMAGE_13;
 import static com.bensler.taggy.ui.MainFrame.ICON_IMAGE_48;
@@ -20,7 +21,6 @@ import javax.swing.JScrollPane;
 import com.bensler.decaf.swing.EntityComponent;
 import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.ActionGroup;
-import com.bensler.decaf.swing.action.ActionState;
 import com.bensler.decaf.swing.action.ContextMenuMouseAdapter;
 import com.bensler.decaf.swing.action.DoubleClickMouseAdapter;
 import com.bensler.decaf.swing.action.EntityAction;
@@ -53,13 +53,12 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
     );
     final EntityAction<Blob> editImageTagsAction = new EntityAction<>(
       new ActionAppearance(ICON_TAG_13, null, "Edit Image Tags", "Edit Tags of this Image"),
-      new SingleEntityFilter<>(ActionState.DISABLED),
+      new SingleEntityFilter<>(DISABLED),
       new SingleEntityActionAdapter<>((source, blob) -> blob.ifPresent(this::editTags))
     );
     final EntityAction<Blob> deleteImageAction = new EntityAction<>(
-      new ActionAppearance(new OverlayIcon(ICON_IMAGE_13, new Overlay(ICON_X_10, SE)), null, "Delete Image", "Remove currently selected Image"),
-      new SingleEntityFilter<>(ActionState.DISABLED),
-      new SingleEntityActionAdapter<>((source, blob) -> blob.ifPresent(this::deleteImageUi))
+      new ActionAppearance(new OverlayIcon(ICON_IMAGE_13, new Overlay(ICON_X_10, SE)), null, "Delete Image(s)", "Remove currently selected Image(s)"),
+      EntityAction.atLeastOneFilter(DISABLED), (source, blobs) -> deleteImageUi(blobs)
     );
     contextActions_ = new ActionGroup<>(slideshowAction, editImageTagsAction, deleteImageAction);
     comp_.addMouseListener(new ContextMenuMouseAdapter(this::triggerContextMenu));
@@ -81,15 +80,12 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
     contextActions_.createContextMenu(this).showPopupMenu(evt);
   }
 
-  void deleteImageUi(Blob blob) {
+  void deleteImageUi(List<Blob> blobs) {
     if (new ConfirmationDialog(new DialogAppearance(
       new OverlayIcon(ICON_IMAGE_48, new Overlay(ICON_X_30, SE)), "Confirmation: Delete Image", "Do you really want to delete this image?"
     )).show(comp_)) {
       System.out.println("Delete Image");
-    } else {
-      System.out.println("Canceled: Delete Image");
     }
-
   }
 
   void editTags(Blob blob) {

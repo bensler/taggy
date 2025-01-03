@@ -97,12 +97,12 @@ public class MainFrame {
     final EntityAction<Tag> editTagAction = new EntityAction<>(
       new ActionAppearance(ICON_TAG_13, null, "Edit Tag", "Edit currently selected Tag"),
       new SingleEntityFilter<>(ActionState.DISABLED),
-      new SingleEntityActionAdapter<>((source, tag) -> editTagUi(tagTree_, tag))
+      new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(this::editTagUi))
     );
     final EntityAction<Tag> newTagAction = new EntityAction<>(
       new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_PLUS_10, SE)), null, "New Tag", "Creates a new Tag under the currently selected Tag"),
       new SingleEntityFilter<>(ActionState.ENABLED),
-      new SingleEntityActionAdapter<>((source, tag) -> createTagUi(tagTree_, tag))
+      new SingleEntityActionAdapter<>((source, tag) -> createTagUi(tag))
     );
     final EntityAction<Tag> deleteTagAction = new EntityAction<>(
       new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_X_10, SE)), null, "Delete Tag", "Remove currently selected Tag"),
@@ -155,9 +155,9 @@ public class MainFrame {
     }
   }
 
-  void createTagUi(EntityTree<Tag> tree, Optional<Tag> parentTag) {
-    new OkCancelDialog<>(slideShowFrame_, new NewTagDialog(tree.getData())).show(
-      parentTag, newTag -> tree.addData(app_.getDbAccess().createObject(newTag), true)
+  void createTagUi(Optional<Tag> parentTag) {
+    new OkCancelDialog<>(slideShowFrame_, new NewTagDialog(tagTree_.getData())).show(
+      parentTag, newTag -> tagTree_.addData(app_.getDbAccess().createObject(newTag), true)
     );
   }
 
@@ -169,12 +169,10 @@ public class MainFrame {
       )
     )).show(frame_)) {
       System.out.println("Delete Tag");
-    } else {
-      System.out.println("Canceled: Delete Tag");
     }
   }
 
-  void editTagUi(EntityTree<Tag> tree, Optional<Tag> tag) {
+  void editTagUi(Tag tag) {
 //    TODO
     throw new UnsupportedOperationException();
   }
