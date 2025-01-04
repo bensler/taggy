@@ -68,6 +68,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
   private final BlobController blobCtrl_;
   private final List<Blob> blobs_;
   private final Map<Blob, ImageIcon> images_;
+  private Dimension gridOffsetPx;
 
   private final List<Blob> selection_;
   private EntitySelectionListener<Blob> selectionListener_;
@@ -85,6 +86,8 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
       backgroundSelectionColor_, 2,
       UIManager.getColor("Tree.background"), 1
     );
+    setBackground(UIManager.getColor("Tree.textBackground"));
+    gridOffsetPx = new Dimension();
   }
 
   public JScrollPane wrapInScrollpane(ScrollingPolicy scrollingPolicy) {
@@ -98,7 +101,6 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
 
   public void setFocusable() {
     setFocusable(true);
-    setBackground(UIManager.getColor("Tree.textBackground"));
     addFocusListener(new FocusListener() {
 
       @Override
@@ -159,6 +161,8 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
   Optional<Blob> blobAt(Point position) {
     final int gapPlusTileSize = GAP + TILE_SIZE;
 
+    position.x -= gridOffsetPx.width;
+    position.y -= gridOffsetPx.height;
     if ((position.x % gapPlusTileSize) > GAP) {
       int col = (position.x / gapPlusTileSize);
       int row = (position.y / gapPlusTileSize);
@@ -207,7 +211,15 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     g.setColor(getBackground());
     g.fillRect(0, 0, size.width, size.height);
 
-    final Dimension gridSize = getGridSize();
+    final Dimension gridSize = getGridSize(); // unit: tiles
+    final Dimension gridDimension = new Dimension( // unit: px
+      GAP + (gridSize.width * (TILE_SIZE + GAP)),
+      GAP + (gridSize.height * (TILE_SIZE + GAP))
+    );
+    gridOffsetPx = new Dimension(
+      (Math.max(0, (size.width  - gridDimension.width )) / 2),
+      (Math.max(0, (size.height - gridDimension.height)) / 2)
+    );
     int tileCounter = 0;
 
     for (Blob blob : blobs_) {
@@ -222,8 +234,8 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
 
   private void drawTile(int row, int col, Blob blob, Graphics2D g) {
     final ImageIcon icon = images_.get(blob);
-    final int tileOriginX = GAP + (col * (TILE_SIZE + GAP));
-    final int tileOriginY = GAP + (row * (TILE_SIZE + GAP));
+    final int tileOriginX = gridOffsetPx.width + GAP + (col * (TILE_SIZE + GAP));
+    final int tileOriginY = gridOffsetPx.height + GAP + (row * (TILE_SIZE + GAP));
     final int paddingX = (THUMBNAIL_SIZE - Math.min(THUMBNAIL_SIZE, icon.getIconWidth())) / 2;
     final int paddingY = (THUMBNAIL_SIZE - Math.min(THUMBNAIL_SIZE, icon.getIconHeight())) / 2;
     final boolean selected = selection_.contains(blob);
@@ -267,7 +279,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
       final int colCount = Math.max(1, (actualWidth - GAP) / (TILE_SIZE + GAP));
       final int rowCount = (tilesCount / colCount) + (((tilesCount % colCount) > 0) ? 1 : 0);
 
-      return new Dimension(colCount, rowCount);
+      return new Dimension(((rowCount < 2) ? tilesCount : colCount), rowCount);
     }
   }
 
