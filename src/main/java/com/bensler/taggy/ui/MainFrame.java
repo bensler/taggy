@@ -50,6 +50,8 @@ public class MainFrame {
 
   public static final ImageIcon ICON_IMAGES_48 = new ImageIcon(MainFrame.class.getResource("images_48x48.png"));
 
+  public static final ImageIcon ICON_SLIDESHOW_13 = new ImageIcon(MainFrame.class.getResource("slideshow_13x13.png"));
+
   public static final ImageIcon ICON_TAG_13 = new ImageIcon(MainFrame.class.getResource("tag_13x13.png"));
   public static final ImageIcon ICON_TAG_48 = new ImageIcon(MainFrame.class.getResource("tag_48x48.png"));
 

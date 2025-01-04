@@ -3,6 +3,7 @@ package com.bensler.taggy.ui;
 import static com.bensler.decaf.swing.action.ActionState.DISABLED;
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
 import static com.bensler.taggy.ui.MainFrame.ICON_IMAGE_13;
+import static com.bensler.taggy.ui.MainFrame.ICON_SLIDESHOW_13;
 import static com.bensler.taggy.ui.MainFrame.ICON_TAG_13;
 import static com.bensler.taggy.ui.MainFrame.ICON_X_10;
 
@@ -43,7 +44,7 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
     comp_.setFocusable();
     scrollPane_ = comp_.wrapInScrollpane(ScrollingPolicy.SCROLL_VERTICALLY);
     final EntityAction<Blob> slideshowAction = new EntityAction<>(
-      new ActionAppearance(null, null, "Slide Show", "ViewImages in full detail"),
+      new ActionAppearance(ICON_SLIDESHOW_13, null, "Slide Show", "ViewImages in full detail"),
       null, (source, blobs) -> app_.getMainFrame().getSlideShowFrame().show(blobs)
     );
     final EntityAction<Blob> editImageTagsAction = new EntityAction<>(
