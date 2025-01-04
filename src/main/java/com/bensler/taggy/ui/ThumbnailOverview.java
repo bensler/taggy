@@ -3,12 +3,8 @@ package com.bensler.taggy.ui;
 import static com.bensler.decaf.swing.action.ActionState.DISABLED;
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
 import static com.bensler.taggy.ui.MainFrame.ICON_IMAGE_13;
-import static com.bensler.taggy.ui.MainFrame.ICON_IMAGE_48;
 import static com.bensler.taggy.ui.MainFrame.ICON_TAG_13;
 import static com.bensler.taggy.ui.MainFrame.ICON_X_10;
-import static com.bensler.taggy.ui.MainFrame.ICON_X_30;
-import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
-import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 import java.awt.event.MouseEvent;
 import java.util.Collection;
@@ -28,12 +24,11 @@ import com.bensler.decaf.swing.action.SingleEntityActionAdapter;
 import com.bensler.decaf.swing.action.SingleEntityFilter;
 import com.bensler.decaf.swing.awt.OverlayIcon;
 import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
-import com.bensler.decaf.swing.dialog.ConfirmationDialog;
-import com.bensler.decaf.swing.dialog.DialogAppearance;
 import com.bensler.decaf.swing.dialog.OkCancelDialog;
 import com.bensler.decaf.swing.selection.EntitySelectionListener;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
+import com.bensler.taggy.ui.ThumbnailOverviewPanel.ScrollingPolicy;
 
 public class ThumbnailOverview implements EntityComponent<Blob> {
 
@@ -45,8 +40,8 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
   public ThumbnailOverview(App app) {
     app_ = app;
     comp_ = new ThumbnailOverviewPanel(app);
-    scrollPane_ = new JScrollPane(comp_, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
-    scrollPane_.getViewport().setBackground(comp_.getBackground());
+    comp_.setFocusable();
+    scrollPane_ = comp_.wrapInScrollpane(ScrollingPolicy.SCROLL_VERTICALLY);
     final EntityAction<Blob> slideshowAction = new EntityAction<>(
       new ActionAppearance(null, null, "Slide Show", "ViewImages in full detail"),
       null, (source, blobs) -> app_.getMainFrame().getSlideShowFrame().show(blobs)
@@ -81,11 +76,9 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
   }
 
   void deleteImageUi(List<Blob> blobs) {
-    if (new ConfirmationDialog(new DialogAppearance(
-      new OverlayIcon(ICON_IMAGE_48, new Overlay(ICON_X_30, SE)), "Confirmation: Delete Image", "Do you really want to delete this image?"
-    )).show(comp_)) {
-      System.out.println("Delete Image");
-    }
+    new OkCancelDialog<>(comp_, new DeleteImagesConfirmDialog(blobs.size())).show(blobs).ifPresent(confirmedBlobs -> {
+      System.out.println("Delete Images");
+    });
   }
 
   void editTags(Blob blob) {

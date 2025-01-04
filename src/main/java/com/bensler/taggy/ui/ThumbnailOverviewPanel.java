@@ -3,6 +3,8 @@ package com.bensler.taggy.ui;
 import static com.bensler.taggy.Thumbnailer.THUMBNAIL_SIZE;
 import static java.awt.BasicStroke.CAP_BUTT;
 import static java.awt.BasicStroke.JOIN_BEVEL;
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
+import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -28,6 +30,7 @@ import java.util.Optional;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
+import javax.swing.JScrollPane;
 import javax.swing.Scrollable;
 import javax.swing.UIManager;
 
@@ -37,6 +40,18 @@ import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
 
 public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
+
+  public enum ScrollingPolicy {
+    SCROLL_HORIZONTALLY(VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER),
+    SCROLL_VERTICALLY(VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
+
+    final int verticalScrollbarPolicy_, horizontalScrollbarPolicy_;
+
+    ScrollingPolicy(int verticalScrollbarPolicy, int horizontalScrollbarPolicy) {
+      verticalScrollbarPolicy_ = verticalScrollbarPolicy;
+      horizontalScrollbarPolicy_ = horizontalScrollbarPolicy;
+    }
+  }
 
   private final static int GAP = 4;
   private final static int INSET = 5;
@@ -70,6 +85,18 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
       backgroundSelectionColor_, 2,
       UIManager.getColor("Tree.background"), 1
     );
+  }
+
+  public JScrollPane wrapInScrollpane(ScrollingPolicy scrollingPolicy) {
+    final JScrollPane scrollPane = new JScrollPane(
+      this, scrollingPolicy.verticalScrollbarPolicy_, scrollingPolicy.horizontalScrollbarPolicy_
+    );
+
+    scrollPane.getViewport().setBackground(getBackground());
+    return scrollPane;
+  }
+
+  public void setFocusable() {
     setFocusable(true);
     setBackground(UIManager.getColor("Tree.textBackground"));
     addFocusListener(new FocusListener() {
@@ -176,8 +203,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     final Dimension size = getSize();
     final Graphics2D g2d = (Graphics2D)g;
 
-    // TODO render tiles inside clip region only
-    // g.getClipBounds());
+    // TODO render tiles inside clip region only (g.getClipBounds()))
     g.setColor(getBackground());
     g.fillRect(0, 0, size.width, size.height);
 

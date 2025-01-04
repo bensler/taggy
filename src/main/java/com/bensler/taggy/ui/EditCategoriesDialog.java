@@ -1,5 +1,8 @@
 package com.bensler.taggy.ui;
 
+import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
+import static com.bensler.taggy.ui.MainFrame.ICON_IMAGE_48;
+import static com.bensler.taggy.ui.MainFrame.ICON_TAGS_36;
 import static com.bensler.taggy.ui.MainFrame.TAG_NAME_VIEW;
 import static javax.swing.JSplitPane.HORIZONTAL_SPLIT;
 import static javax.swing.JSplitPane.VERTICAL_SPLIT;
@@ -8,11 +11,9 @@ import java.awt.Dimension;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.swing.ImageIcon;
 import javax.swing.JSplitPane;
 
 import com.bensler.decaf.swing.awt.OverlayIcon;
-import com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D;
 import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
 import com.bensler.decaf.swing.dialog.BasicContentPanel;
 import com.bensler.decaf.swing.dialog.DialogAppearance;
@@ -31,10 +32,7 @@ import com.jgoodies.forms.layout.FormLayout;
 public class EditCategoriesDialog extends BasicContentPanel<Blob, Set<Tag>> {
 
   public static final DialogAppearance APPEARANCE = new DialogAppearance(
-    new OverlayIcon(
-      new ImageIcon(EditCategoriesDialog.class.getResource("image_48x48.png")),
-      new Overlay(new ImageIcon(EditCategoriesDialog.class.getResource("tags_36x36.png")), Alignment2D.SE)
-    ),
+    new OverlayIcon(ICON_IMAGE_48, new Overlay(ICON_TAGS_36, SE)),
     "Edit Image Tags", "Assign Tags to an Image"
   );
 

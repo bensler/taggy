@@ -45,12 +45,18 @@ import com.jgoodies.forms.layout.FormLayout;
 
 public class MainFrame {
 
-  public static final ImageIcon ICON_TAG_13 = new ImageIcon(MainFrame.class.getResource("tag_13x13.png"));
-  public static final ImageIcon ICON_TAG_48 = new ImageIcon(MainFrame.class.getResource("tag_48x48.png"));
   public static final ImageIcon ICON_IMAGE_13 = new ImageIcon(MainFrame.class.getResource("image_13x13.png"));
   public static final ImageIcon ICON_IMAGE_48 = new ImageIcon(MainFrame.class.getResource("image_48x48.png"));
 
+  public static final ImageIcon ICON_IMAGES_48 = new ImageIcon(MainFrame.class.getResource("images_48x48.png"));
+
+  public static final ImageIcon ICON_TAG_13 = new ImageIcon(MainFrame.class.getResource("tag_13x13.png"));
+  public static final ImageIcon ICON_TAG_48 = new ImageIcon(MainFrame.class.getResource("tag_48x48.png"));
+
+  public static final ImageIcon ICON_TAGS_36 = new ImageIcon(MainFrame.class.getResource("tags_36x36.png"));
+
   public static final ImageIcon ICON_PLUS_10 = new ImageIcon(MainFrame.class.getResource("plus_10x10.png"));
+
   public static final ImageIcon ICON_X_10 = new ImageIcon(MainFrame.class.getResource("x_10x10.png"));
   public static final ImageIcon ICON_X_30 = new ImageIcon(MainFrame.class.getResource("x_30x30.png"));
 
