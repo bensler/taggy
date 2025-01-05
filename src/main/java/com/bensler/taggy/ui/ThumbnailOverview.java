@@ -45,7 +45,7 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
     scrollPane_ = comp_.wrapInScrollpane(ScrollingPolicy.SCROLL_VERTICALLY);
     final EntityAction<Blob> slideshowAction = new EntityAction<>(
       new ActionAppearance(ICON_SLIDESHOW_13, null, "Slide Show", "ViewImages in full detail"),
-      null, (source, blobs) -> app_.getMainFrame().getSlideShowFrame().show(blobs)
+      null, (source, blobs) -> app_.getMainFrame().getSlideshowFrame().show(blobs)
     );
     final EntityAction<Blob> editImageTagsAction = new EntityAction<>(
       new ActionAppearance(ICON_TAG_13, null, "Edit Image Tags", "Edit Tags of this Image"),
@@ -83,7 +83,7 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
   }
 
   void editTags(Blob blob) {
-    new OkCancelDialog<>(comp_, new EditCategoriesDialog()).show(blob, tags -> {
+    new OkCancelDialog<>(comp_, new EditImageTagsDialog()).show(blob, tags -> {
       blob.setTags(tags);
       app_.getDbAccess().storeObject(blob);
       app_.getMainFrame().displayThumbnailsOfSelectedTag();

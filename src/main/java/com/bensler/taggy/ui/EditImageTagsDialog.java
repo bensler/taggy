@@ -29,7 +29,7 @@ import com.bensler.taggy.persist.Tag;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class EditCategoriesDialog extends BasicContentPanel<Blob, Set<Tag>> {
+public class EditImageTagsDialog extends BasicContentPanel<Blob, Set<Tag>> {
 
   public static final DialogAppearance APPEARANCE = new DialogAppearance(
     new OverlayIcon(ICON_IMAGE_48, new Overlay(ICON_TAGS_36, SE)),
@@ -43,7 +43,7 @@ public class EditCategoriesDialog extends BasicContentPanel<Blob, Set<Tag>> {
   private final JSplitPane horizontalSplitpane_;
   private final App app_;
 
-  public EditCategoriesDialog() {
+  public EditImageTagsDialog() {
     super(new FormLayout("f:p:g", "f:p:g"));
     app_ = App.getApp();
     allTags_ = new CheckboxTree<>(TAG_NAME_VIEW);

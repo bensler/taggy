@@ -18,19 +18,20 @@ import com.bensler.taggy.persist.Blob;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class SlideShowFrame extends JFrame {
+public class SlideshowFrame extends JFrame {
 
   private final ImageComponent imageComponent_;
   private final BulkPrefPersister prefs_;
 
-  public SlideShowFrame(App app) {
-    super("View Image");
+  public SlideshowFrame(App app) {
+    super("Slideshow");
 
     final JPanel mainPanel = new JPanel(new FormLayout(
       "3dlu, f:p:g, 3dlu",
       "3dlu, f:p:g, 3dlu"
     ));
 
+    setIconImages(List.of(MainFrame.ICON_SLIDESHOW_48.getImage()));
     imageComponent_ = new ImageComponent();
     mainPanel.add(new JScrollPane(imageComponent_), new CellConstraints(2, 2));
     setContentPane(mainPanel);

@@ -6,13 +6,17 @@ import static com.bensler.decaf.swing.view.SimplePropertyGetter.createStringProp
 import static com.jgoodies.forms.layout.CellConstraints.CENTER;
 import static com.jgoodies.forms.layout.CellConstraints.FILL;
 import static com.jgoodies.forms.layout.CellConstraints.RIGHT;
+import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 import static javax.swing.JSplitPane.HORIZONTAL_SPLIT;
 import static javax.swing.WindowConstants.DISPOSE_ON_CLOSE;
 
 import java.awt.Dimension;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.Optional;
 
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -51,6 +55,7 @@ public class MainFrame {
   public static final ImageIcon ICON_IMAGES_48 = new ImageIcon(MainFrame.class.getResource("images_48x48.png"));
 
   public static final ImageIcon ICON_SLIDESHOW_13 = new ImageIcon(MainFrame.class.getResource("slideshow_13x13.png"));
+  public static final ImageIcon ICON_SLIDESHOW_48 = new ImageIcon(MainFrame.class.getResource("slideshow_48x48.png"));
 
   public static final ImageIcon ICON_TAG_13 = new ImageIcon(MainFrame.class.getResource("tag_13x13.png"));
   public static final ImageIcon ICON_TAG_48 = new ImageIcon(MainFrame.class.getResource("tag_48x48.png"));
@@ -76,20 +81,21 @@ public class MainFrame {
   private final ThumbnailOverview thumbnails_;
   private final Hierarchy<Tag> allTags_;
 
-  private SlideShowFrame slideShowFrame_;
+  private SlideshowFrame slideshowFrame_;
 
   public MainFrame(App app) {
     app_ = app;
-    SelectionTagPanel selectionTagPanel = new SelectionTagPanel();
 
     allTags_ = new Hierarchy<>();
     frame_ = new JFrame("Taggy");
+    frame_.setIconImages(List.of(createImage()));
     allTags_.addAll(app_.getDbAccess().loadAllTags());
     final JPanel mainPanel = new JPanel(new FormLayout(
       "3dlu, f:p:g, 3dlu",
       "3dlu, f:p, 3dlu, f:p:g, 3dlu, f:p, 3dlu"
     ));
 
+    final SelectionTagPanel selectionTagPanel = new SelectionTagPanel();
     final JPanel toolbar = new JPanel(new FormLayout("f:p, 3dlu:g", "f:p"));
     toolbar.add(app_.getImportCtrl().getImportAction().createToolbarButton(), new CellConstraints(1, 1));
     mainPanel.add(toolbar, new CellConstraints(2, 2));
@@ -150,9 +156,17 @@ public class MainFrame {
     ));
   }
 
+  private Image createImage() {
+    final Icon icon = new OverlayIcon(ICON_IMAGE_48, new Overlay(ICON_TAGS_36, SE));
+    final BufferedImage image = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(), TYPE_INT_ARGB);
+
+    icon.paintIcon(frame_, image.getGraphics(), 0, 0);
+    return image;
+  }
+
   private void frameClosing() {
-    if (slideShowFrame_ != null) {
-      slideShowFrame_.close();
+    if (slideshowFrame_ != null) {
+      slideshowFrame_.close();
     }
     prefs_.store();
     try {
@@ -164,7 +178,7 @@ public class MainFrame {
   }
 
   void createTagUi(Optional<Tag> parentTag) {
-    new OkCancelDialog<>(slideShowFrame_, new NewTagDialog(tagTree_.getData())).show(
+    new OkCancelDialog<>(slideshowFrame_, new NewTagDialog(tagTree_.getData())).show(
       parentTag, newTag -> tagTree_.addData(app_.getDbAccess().createObject(newTag), true)
     );
   }
@@ -193,11 +207,11 @@ public class MainFrame {
     return frame_;
   }
 
-  public SlideShowFrame getSlideShowFrame() {
-    if (slideShowFrame_ == null) {
-      slideShowFrame_ = new SlideShowFrame(app_);
+  public SlideshowFrame getSlideshowFrame() {
+    if (slideshowFrame_ == null) {
+      slideshowFrame_ = new SlideshowFrame(app_);
     }
-    return slideShowFrame_;
+    return slideshowFrame_;
   }
 
   public Hierarchy<Tag> getAllTags() {
