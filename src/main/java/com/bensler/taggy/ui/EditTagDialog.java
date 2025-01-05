@@ -1,12 +1,17 @@
 package com.bensler.taggy.ui;
 
+import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
+import static com.bensler.taggy.ui.MainFrame.ICON_PLUS_30;
+import static com.bensler.taggy.ui.MainFrame.ICON_TAGS_48;
+
 import java.util.Optional;
 import java.util.Set;
 
-import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 
+import com.bensler.decaf.swing.awt.OverlayIcon;
+import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
 import com.bensler.decaf.swing.dialog.BasicContentPanel;
 import com.bensler.decaf.swing.dialog.DialogAppearance;
 import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
@@ -19,17 +24,17 @@ import com.bensler.taggy.persist.Tag;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class NewTagDialog extends BasicContentPanel<Optional<Tag>, Tag> {
+public class EditTagDialog extends BasicContentPanel<Optional<Tag>, Tag> {
 
   public static final DialogAppearance APPEARANCE = new DialogAppearance(
-    new ImageIcon(NewTagDialog.class.getResource("tags_48x48.png")), "New Tag", "Create a New Tag"
+    new OverlayIcon(ICON_TAGS_48, new Overlay(ICON_PLUS_30, SE)), "Create Tag", "Create a New Tag"
   );
 
   private final EntityTree<Tag> parentTag_;
   private final JTextField nameTextfield_;
   private final Hierarchy<Tag> allTags_;
 
-  public NewTagDialog(Hierarchy<Tag> pAllTags) {
+  public EditTagDialog(Hierarchy<Tag> pAllTags) {
     super(new FormLayout(
       "r:p, 3dlu, f:p:g",
       "f:p:g, 3dlu, c:p"

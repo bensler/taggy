@@ -62,8 +62,10 @@ public class MainFrame {
   public static final ImageIcon ICON_TAG_48 = new ImageIcon(MainFrame.class.getResource("tag_48x48.png"));
 
   public static final ImageIcon ICON_TAGS_36 = new ImageIcon(MainFrame.class.getResource("tags_36x36.png"));
+  public static final ImageIcon ICON_TAGS_48 = new ImageIcon(MainFrame.class.getResource("tags_48x48.png"));
 
   public static final ImageIcon ICON_PLUS_10 = new ImageIcon(MainFrame.class.getResource("plus_10x10.png"));
+  public static final ImageIcon ICON_PLUS_30 = new ImageIcon(MainFrame.class.getResource("plus_30x30.png"));
 
   public static final ImageIcon ICON_X_10 = new ImageIcon(MainFrame.class.getResource("x_10x10.png"));
   public static final ImageIcon ICON_X_30 = new ImageIcon(MainFrame.class.getResource("x_30x30.png"));
@@ -115,7 +117,7 @@ public class MainFrame {
       new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(this::editTagUi))
     );
     final EntityAction<Tag> newTagAction = new EntityAction<>(
-      new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_PLUS_10, SE)), null, "New Tag", "Creates a new Tag under the currently selected Tag"),
+      new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_PLUS_10, SE)), null, "Create Tag", "Creates a new Tag under the currently selected Tag"),
       new SingleEntityFilter<>(ActionState.ENABLED),
       new SingleEntityActionAdapter<>((source, tag) -> createTagUi(tag))
     );
@@ -179,7 +181,7 @@ public class MainFrame {
   }
 
   void createTagUi(Optional<Tag> parentTag) {
-    new OkCancelDialog<>(slideshowFrame_, new NewTagDialog(tagTree_.getData())).show(
+    new OkCancelDialog<>(slideshowFrame_, new EditTagDialog(tagTree_.getData())).show(
       parentTag, newTag -> tagTree_.addData(app_.getDbAccess().createObject(newTag), true)
     );
   }
