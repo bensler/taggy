@@ -3,7 +3,7 @@ CREATE TABLE "tag" (
   "name"      VARCHAR(128) NOT NULL,
   "parent_id" INTEGER,
   UNIQUE("name", "parent_id"),
-  FOREIGN KEY("parent_id") REFERENCES "tag"("id")
+  FOREIGN KEY("parent_id") REFERENCES "tag"("id") ON DELETE RESTRICT
 );
 
 CREATE TABLE "blob" (
@@ -16,5 +16,5 @@ CREATE TABLE "blob_tag_xref" (
   "tag_id"    INTEGER      NOT NULL,
   PRIMARY KEY("blob_id", "tag_id"),
   FOREIGN KEY("blob_id") REFERENCES "blob"("id") ON DELETE CASCADE,
-  FOREIGN KEY("tag_id") REFERENCES "tag"("id") ON DELETE CASCADE
+  FOREIGN KEY("tag_id")  REFERENCES "tag"("id")  ON DELETE CASCADE
 );

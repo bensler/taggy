@@ -15,7 +15,10 @@ public class SqliteDbConnector extends DbConnector {
         Tag.class,
         Blob.class
       },
-      hbnConfig -> hbnConfig.setProperty("hibernate.dialect", SQLiteDialect.class.getName())
+      hbnConfig -> {
+        hbnConfig.setProperty("hibernate.dialect",                 SQLiteDialect.class.getName());
+        hbnConfig.setProperty("hibernate.connection.foreign_keys", Boolean.TRUE.toString());
+      }
     );
   }
 

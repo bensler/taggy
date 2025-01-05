@@ -15,6 +15,7 @@ import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -190,6 +191,13 @@ public class MainFrame {
         tag.getName(), Optional.ofNullable(tag.getParent()).map(Tag::getName).orElse("Root")
       )
     )).show(frame_)) {
+      Set<Blob> blobs = tag.getBlobs();
+      Set<Tag> children = allTags_.getChildren(tag);
+
+      app_.getDbAccess().remove(tag);
+
+      allTags_.removeNode(tag);
+      tagTree_.getModel().removeNode(tag);
       System.out.println("Delete Tag");
     }
   }
