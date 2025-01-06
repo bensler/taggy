@@ -1,5 +1,7 @@
 package com.bensler.taggy.ui;
 
+import static com.bensler.decaf.swing.action.ActionState.DISABLED;
+import static com.bensler.decaf.swing.action.ActionState.ENABLED;
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
 import static com.bensler.decaf.swing.view.SimplePropertyGetter.createComparablePropertyGetter;
 import static com.bensler.decaf.swing.view.SimplePropertyGetter.createStringPropertyGetter;
@@ -26,7 +28,6 @@ import javax.swing.JSplitPane;
 
 import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.ActionGroup;
-import com.bensler.decaf.swing.action.ActionState;
 import com.bensler.decaf.swing.action.EntityAction;
 import com.bensler.decaf.swing.action.SingleEntityActionAdapter;
 import com.bensler.decaf.swing.action.SingleEntityFilter;
@@ -113,17 +114,17 @@ public class MainFrame {
     tagTree_.setData(allTags_);
     final EntityAction<Tag> editTagAction = new EntityAction<>(
       new ActionAppearance(ICON_TAG_13, null, "Edit Tag", "Edit currently selected Tag"),
-      new SingleEntityFilter<>(ActionState.DISABLED),
+      new SingleEntityFilter<>(DISABLED),
       new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(this::editTagUi))
     );
     final EntityAction<Tag> newTagAction = new EntityAction<>(
       new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_PLUS_10, SE)), null, "Create Tag", "Creates a new Tag under the currently selected Tag"),
-      new SingleEntityFilter<>(ActionState.ENABLED),
+      new SingleEntityFilter<>(ENABLED),
       new SingleEntityActionAdapter<>((source, tag) -> createTagUi(tag))
     );
     final EntityAction<Tag> deleteTagAction = new EntityAction<>(
       new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_X_10, SE)), null, "Delete Tag", "Remove currently selected Tag"),
-      new SingleEntityFilter<>(ActionState.DISABLED),
+      new SingleEntityFilter<>(DISABLED, tag -> allTags_.isLeaf(tag) ? ENABLED : DISABLED),
       new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(this::deleteTagUi))
     );
     tagTree_.setContextActions(new ActionGroup<>(editTagAction, newTagAction, deleteTagAction));
@@ -182,7 +183,12 @@ public class MainFrame {
 
   void createTagUi(Optional<Tag> parentTag) {
     new OkCancelDialog<>(frame_, new EditTagDialog(tagTree_.getData())).show(
-      parentTag, newTag -> tagTree_.addData(app_.getDbAccess().createObject(newTag), true)
+      parentTag, newTag -> {
+        final Tag createdTag = app_.getDbAccess().createObject(newTag);
+
+        tagTree_.addData(createdTag, true);
+        allTags_.add(createdTag);
+      }
     );
   }
 
