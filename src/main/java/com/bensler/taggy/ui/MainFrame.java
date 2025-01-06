@@ -181,7 +181,7 @@ public class MainFrame {
   }
 
   void createTagUi(Optional<Tag> parentTag) {
-    new OkCancelDialog<>(slideshowFrame_, new EditTagDialog(tagTree_.getData())).show(
+    new OkCancelDialog<>(frame_, new EditTagDialog(tagTree_.getData())).show(
       parentTag, newTag -> tagTree_.addData(app_.getDbAccess().createObject(newTag), true)
     );
   }
