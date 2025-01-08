@@ -25,6 +25,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
+import javax.swing.tree.TreePath;
 
 import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.ActionGroup;
@@ -39,12 +40,14 @@ import com.bensler.decaf.swing.dialog.OkCancelDialog;
 import com.bensler.decaf.swing.dialog.WindowClosingTrigger;
 import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
 import com.bensler.decaf.swing.tree.EntityTree;
+import com.bensler.decaf.swing.tree.EntityTreeModel;
 import com.bensler.decaf.swing.view.PropertyViewImpl;
 import com.bensler.decaf.util.prefs.BulkPrefPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.tree.Hierarchy;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
+import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.persist.Tag;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -187,6 +190,7 @@ public class MainFrame {
         final Tag createdTag = app_.getDbAccess().createObject(newTag);
 
         tagTree_.addData(createdTag, true);
+        tagTree_.select(createdTag);
         allTags_.add(createdTag);
       }
     );
@@ -199,14 +203,20 @@ public class MainFrame {
         tag.getName(), Optional.ofNullable(tag.getParent()).map(Tag::getName).orElse("Root")
       )
     )).show(frame_)) {
-      Set<Blob> blobs = tag.getBlobs();
-      Set<Tag> children = allTags_.getChildren(tag);
+      final DbAccess db = app_.getDbAccess();
+      final Set<Blob> blobs = tag.getBlobs();
+      final EntityTreeModel<Tag> treeModel = tagTree_.getModel();
+      final TreePath parentPath = treeModel.getTreePath(tag).getParentPath();
 
-      app_.getDbAccess().remove(tag);
-
+      db.remove(tag);
+      blobs.forEach(db::refresh);
       allTags_.removeNode(tag);
-      tagTree_.getModel().removeNode(tag);
-      System.out.println("Delete Tag");
+      treeModel.removeNode(tag);
+      if (parentPath.getPathCount() > 1) {
+        tagTree_.select((Tag)parentPath.getLastPathComponent());
+      } else {
+        tagTree_.select(List.of());
+      }
     }
   }
 
