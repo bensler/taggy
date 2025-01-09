@@ -18,6 +18,10 @@ public class Tag extends Object implements Hierarchical<Tag>, Named, Entity {
 
     Tag() {}
 
+    public Tag(Integer id) {
+      id_ = id;
+    }
+
     public Tag(final Tag parent, final String name) {
       id_ = null;
       parent_ = parent;

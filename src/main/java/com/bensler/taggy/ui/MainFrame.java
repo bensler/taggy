@@ -44,6 +44,8 @@ import com.bensler.decaf.swing.tree.EntityTreeModel;
 import com.bensler.decaf.swing.view.PropertyViewImpl;
 import com.bensler.decaf.util.prefs.BulkPrefPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
+import com.bensler.decaf.util.prefs.PrefPersister;
+import com.bensler.decaf.util.prefs.Prefs;
 import com.bensler.decaf.util.tree.Hierarchy;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
@@ -158,6 +160,7 @@ public class MainFrame {
     final PrefKey baseKey = new PrefKey(App.PREFS_APP_ROOT, getClass());
     prefs_ = new BulkPrefPersister(app.getPrefs(), List.of(
       new WindowPrefsPersister(baseKey, frame_),
+      new SelectedTagPrefPersister(new PrefKey(baseKey, "selectedTag")),
       new SplitpanePrefPersister(new PrefKey(baseKey, "splitLeft"), leftSplitpane),
       new SplitpanePrefPersister(new PrefKey(baseKey, "splitRight"), rightSplitpane)
     ));
@@ -253,6 +256,32 @@ public class MainFrame {
       app_.getDbAccess().refresh(tag);
       thumbnails_.setData(List.copyOf(tag.getBlobs()));
     }
+  }
+
+  class SelectedTagPrefPersister implements PrefPersister {
+
+    private final PrefKey prefKey_;
+
+    public SelectedTagPrefPersister(PrefKey prefKey) {
+       prefKey_ = prefKey;
+    }
+
+    @Override
+    public void apply(Prefs prefs) {
+      prefs.get(prefKey_)
+      .flatMap(Prefs::tryParseInt)
+      .map(Tag::new)
+      .map(allTags_::resolve)
+      .ifPresent(tagTree_::select);
+    }
+
+    @Override
+    public void store(Prefs prefs) {
+      Optional.ofNullable(tagTree_.getSingleSelection())
+      .map(Tag::getId).map(String::valueOf)
+      .ifPresent(idStr -> prefs.put(prefKey_, idStr));
+    }
+
   }
 
 }
