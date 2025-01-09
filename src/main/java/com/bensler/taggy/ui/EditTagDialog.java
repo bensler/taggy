@@ -60,6 +60,7 @@ public class EditTagDialog extends BasicContentPanel<Optional<Tag>, Tag> {
       App.getApp().getPrefs(),
       new WindowPrefsPersister(new PrefKey(App.PREFS_APP_ROOT, getClass()), ctx_.getDialog())
     ));
+    ctx.setComponentToFocus(nameTextfield_);
   }
 
   @Override
