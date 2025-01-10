@@ -9,6 +9,8 @@ import java.io.FileFilter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import org.apache.commons.imaging.ImageReadException;
 
@@ -21,7 +23,17 @@ import com.bensler.taggy.persist.Blob;
 
 public class ImportController {
 
-  private static final List<String> KNOWN_FILEEXTENSIONS = List.of("JPG", "JPEG", "PNG");
+  private static final String TYPE_JPG = "JPG";
+  private static final String TYPE_PNG = "PNG";
+  private static final String TYPE_TIF = "TIF";
+
+  private static final Map<String, String> EXTENSIONS_TO_TYPE_MAP = Map.of(
+    "JPG",  TYPE_JPG,
+    "JPEG", TYPE_JPG,
+    "PNG",  TYPE_PNG,
+    "TIF",  TYPE_TIF,
+    "TIFF", TYPE_TIF
+  );
 
   private static final String IMPORT_DIR = "import";
 
@@ -54,13 +66,17 @@ public class ImportController {
   public List<FileToImport> getFilesToImport() {
     return Arrays.stream(importDir_.listFiles((FileFilter)null))
     .filter(File::isFile)
-    .filter(this::hasKnownFileExtesion)
     .map(FileToImport::new)
+    .map(file -> file.setType(getType(file.getFile())))
     .toList();
   }
 
-  boolean hasKnownFileExtesion(File file) {
-    return true; // TODO
+  Optional<String> getType(File file) {
+    final String[] fileNameParts = file.getName().split("\\.");
+
+    return (fileNameParts.length > 0)
+      ? Optional.ofNullable(EXTENSIONS_TO_TYPE_MAP.get(fileNameParts[fileNameParts.length - 1].toUpperCase()))
+      : Optional.empty();
   }
 
   public void importFile(FileToImport fileToImport) {
