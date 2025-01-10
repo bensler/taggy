@@ -141,15 +141,11 @@ public class MainFrame {
     rightSplitpane.setResizeWeight(1);
     mainPanel.add(rightSplitpane, new CellConstraints(2, 4));
 
-    final JPanel buttonPanel = new JPanel(new FormLayout("f:p:g, 3dlu, f:p:g", "f:p:g"));
-    ((FormLayout)buttonPanel.getLayout()).setColumnGroups(new int[][] {{1, 3}});
+    final JPanel buttonPanel = new JPanel(new FormLayout("f:p:g", "f:p:g"));
     mainPanel.add(buttonPanel, new CellConstraints(2, 6, RIGHT, CENTER));
     final JButton testButton = new JButton("Orphan Files");
     testButton.addActionListener(evt -> new OrphanDialog(app_).show(app_.getDbAccess()));
     buttonPanel.add(testButton, new CellConstraints(1, 1, FILL, FILL));
-    final JButton closeButton = new JButton("Close");
-    closeButton.addActionListener(evt -> frame_.dispose());
-    buttonPanel.add(closeButton, new CellConstraints(3, 1, FILL, FILL));
 
     mainPanel.setPreferredSize(new Dimension(750, 750));
     frame_.setContentPane(mainPanel);

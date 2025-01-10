@@ -3,7 +3,6 @@ package com.bensler.taggy.ui;
 import static com.bensler.decaf.util.cmp.CollatorComparator.COLLATOR_COMPARATOR;
 
 import java.awt.Dimension;
-import java.io.File;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -26,7 +25,7 @@ import com.jgoodies.forms.layout.FormLayout;
 public class ImportDialog extends JDialog {
 
   private final ImportController importController_;
-  private final EntityTable<File> files_;
+  private final EntityTable<FileToImport> files_;
 
   public ImportDialog(App app) {
     super(app.getMainFrame().getFrame(), "Import Files", true);
@@ -37,7 +36,7 @@ public class ImportDialog extends JDialog {
     ));
     files_ = new EntityTable<>(new TableView<>(
       new TablePropertyView<>("filename", "Filename", new PropertyViewImpl<>(
-        new SimplePropertyGetter<>(File::getName, COLLATOR_COMPARATOR)
+        new SimplePropertyGetter<>(FileToImport::getName, COLLATOR_COMPARATOR)
       ))
     ));
     files_.setSelectionMode(SelectionMode.MULTIPLE_INTERVAL);

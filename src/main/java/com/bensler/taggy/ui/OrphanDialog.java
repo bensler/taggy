@@ -4,7 +4,6 @@ import static com.jgoodies.forms.layout.CellConstraints.FILL;
 import static com.jgoodies.forms.layout.CellConstraints.RIGHT;
 
 import java.awt.Dimension;
-import java.awt.Window;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -25,7 +24,7 @@ public class OrphanDialog extends JDialog {
   private final BulkPrefPersister prefs_;
 
   public OrphanDialog(App app) {
-    super((Window)null, "Uncategorized Files");
+    super(app.getMainFrame().getFrame(), "Uncategorized Files");
     final JPanel mainPanel = new JPanel(new FormLayout(
       "3dlu, f:p:g, 3dlu",
       "3dlu, f:p:g, 3dlu, f:p, 3dlu"

@@ -51,10 +51,11 @@ public class ImportController {
     new ImportDialog(app_).setVisible(true);
   }
 
-  public List<File> getFilesToImport() {
+  public List<FileToImport> getFilesToImport() {
     return Arrays.stream(importDir_.listFiles((FileFilter)null))
     .filter(File::isFile)
     .filter(this::hasKnownFileExtesion)
+    .map(FileToImport::new)
     .toList();
   }
 
@@ -62,8 +63,9 @@ public class ImportController {
     return true; // TODO
   }
 
-  public void importFile(File file) {
+  public void importFile(FileToImport fileToImport) {
     try {
+      final File file = fileToImport.getFile();
       final BlobController blobCtrl = app_.getBlobCtrl();
       final File thumbnail = app_.getThumbnailer().scaleRotateImage(file);
       final String fileSha = blobCtrl.storeBlob(file, false);
