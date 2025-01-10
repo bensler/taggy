@@ -108,7 +108,6 @@ public class MainFrame {
     final JPanel toolbar = new JPanel(new FormLayout("f:p, 3dlu:g", "f:p"));
     toolbar.add(app_.getImportCtrl().getImportAction().createToolbarButton(), new CellConstraints(1, 1));
     mainPanel.add(toolbar, new CellConstraints(2, 2));
-    new ActionAppearance(null, new ImageIcon(getClass().getResource("vacuum.png")), null, "Scan for new Images to import.");
 
     thumbnails_ = new ThumbnailOverview(app_);
     thumbnails_.setSelectionListener((source, selection) -> selectionTagPanel.setData(selection));
@@ -199,6 +198,11 @@ public class MainFrame {
     );
   }
 
+  void editTagUi(Tag tag) {
+//    TODO
+    throw new UnsupportedOperationException();
+  }
+
   void deleteTagUi(Tag tag) {
     if (new ConfirmationDialog(new DialogAppearance(
       new OverlayIcon(ICON_TAG_48, new Overlay(ICON_X_30, SE)), "Confirmation: Delete Tag",
@@ -221,11 +225,6 @@ public class MainFrame {
         tagTree_.select(List.of());
       }
     }
-  }
-
-  void editTagUi(Tag tag) {
-//    TODO
-    throw new UnsupportedOperationException();
   }
 
   public void show() {
