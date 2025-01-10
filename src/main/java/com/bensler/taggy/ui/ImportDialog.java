@@ -67,13 +67,13 @@ public class ImportDialog extends JDialog {
     files_.getSelection().forEach(importController_::importFile);
   }
 
-  static final class TypeIconRenderer extends SimpleCellRenderer {
+  static final class TypeIconRenderer extends SimpleCellRenderer<FileToImport, String> {
     TypeIconRenderer() {
       super(MainFrame.ICON_IMAGE_13);
     }
 
     @Override
-    public Icon getIcon(Object viewable, Object cellValue) {
+    public Icon getIcon(FileToImport viewable, String cellValue) {
       return (cellValue != null) ? super.getIcon(viewable, cellValue) : null;
     }
   }
