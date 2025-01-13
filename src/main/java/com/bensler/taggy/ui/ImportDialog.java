@@ -43,6 +43,12 @@ public class ImportDialog extends JDialog {
       new TablePropertyView<>("type", "Type", new PropertyViewImpl<>(
         new TypeIconRenderer(),
         new SimplePropertyGetter<>(FileToImport::getType, COLLATOR_COMPARATOR)
+      )),
+      new TablePropertyView<>("shasum", "sha256-Hash", new PropertyViewImpl<>(
+        new SimplePropertyGetter<>(FileToImport::getShaSum, COLLATOR_COMPARATOR)
+      )),
+      new TablePropertyView<>("duplicate", "New/Duplicate", new PropertyViewImpl<>(
+        new SimplePropertyGetter<>(FileToImport::getShaSum, COLLATOR_COMPARATOR)
       ))
     ));
     files_.setSelectionMode(SelectionMode.MULTIPLE_INTERVAL);
