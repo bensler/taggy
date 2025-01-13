@@ -34,12 +34,13 @@ import com.bensler.taggy.ui.ThumbnailOverviewPanel.ScrollingPolicy;
 public class ThumbnailOverview implements EntityComponent<Blob> {
 
   private final App app_;
+  private final BlobController blobCtrl_;
   private final JScrollPane scrollPane_;
   private final ThumbnailOverviewPanel comp_;
   private final ActionGroup<Blob> contextActions_;
 
   public ThumbnailOverview(App app) {
-    app_ = app;
+    blobCtrl_ = (app_ = app).getBlobCtrl();
     comp_ = new ThumbnailOverviewPanel(app);
     comp_.setFocusable();
     scrollPane_ = comp_.wrapInScrollpane(ScrollingPolicy.SCROLL_VERTICALLY);
@@ -54,7 +55,7 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
     );
     final EntityAction<Blob> deleteImageAction = new EntityAction<>(
       new ActionAppearance(new OverlayIcon(ICON_IMAGE_13, new Overlay(ICON_X_10, SE)), null, "Delete Image(s)", "Remove currently selected Image(s)"),
-      EntityAction.atLeastOneFilter(DISABLED), (source, blobs) -> deleteImageUi(blobs)
+      EntityAction.atLeastOneFilter(DISABLED), (source, blobs) -> deleteImagesConfirm(blobs)
     );
     contextActions_ = new ActionGroup<>(slideshowAction, editImageTagsAction, deleteImageAction);
     comp_.addMouseListener(new ContextMenuMouseAdapter(this::triggerContextMenu));
@@ -76,10 +77,9 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
     contextActions_.createContextMenu(this).showPopupMenu(evt);
   }
 
-  void deleteImageUi(List<Blob> blobs) {
-    new OkCancelDialog<>(comp_, new DeleteImagesConfirmDialog(blobs.size())).show(blobs).ifPresent(confirmedBlobs -> {
-      System.out.println("Delete Images");
-    });
+  void deleteImagesConfirm(List<Blob> blobs) {
+    new OkCancelDialog<>(comp_, new DeleteImagesConfirmDialog(blobs.size())).show(blobs)
+    .stream().flatMap(List::stream).forEach(blobCtrl_::deleteBlob);
   }
 
   void editTags(Blob blob) {

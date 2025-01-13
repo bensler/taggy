@@ -10,8 +10,13 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import com.bensler.taggy.App;
+import com.bensler.taggy.persist.Blob;
+import com.bensler.taggy.persist.DbAccess;
 
 public class BlobController {
 
@@ -64,6 +69,26 @@ public class BlobController {
 
     storeBlob(sourceFile, sourceHash, keepSource);
     return sourceHash;
+  }
+
+  public void deleteBlob(Blob blob) {
+    final App app = App.getApp();
+    final DbAccess dbAccess = app.getDbAccess();
+
+    Optional.ofNullable(blob.getSha256sum()).ifPresent(this::deleteFile);
+    Optional.ofNullable(blob.getThumbnailSha()).ifPresent(this::deleteFile);
+    dbAccess.remove(blob);
+    blob.getTags().stream().forEach(dbAccess::refresh);
+    app.getMainFrame().blobRemoved(blob);
+  }
+
+  private void deleteFile(String shasum) {
+    try {
+      Files.deleteIfExists(getFile(shasum).toPath());
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
   }
 
   private void storeBlob(File sourceFile, String sourceFileHash, boolean keepSource) throws IOException {
