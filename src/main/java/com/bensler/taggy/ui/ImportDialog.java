@@ -73,8 +73,8 @@ public class ImportDialog extends JDialog {
     }
 
     @Override
-    public Icon getIcon(FileToImport viewable, String cellValue) {
-      return (cellValue != null) ? super.getIcon(viewable, cellValue) : null;
+    public Icon getIcon(FileToImport entity, String property) {
+      return (property != null) ? icon_ : null;
     }
   }
 
