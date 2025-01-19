@@ -7,6 +7,7 @@ public class FileToImport {
 
   private final File file_;
   private String shaSum_;
+  private Boolean duplicate_;
   private String type_;
 
   public FileToImport(File file) {
@@ -38,6 +39,14 @@ public class FileToImport {
     return type_;
   }
 
+  public Boolean isDuplicate() {
+    return duplicate_;
+  }
+
+  void setDuplicate(Boolean duplicate) {
+    duplicate_ = duplicate;
+  }
+
   @Override
   public int hashCode() {
     return file_.hashCode();
@@ -45,7 +54,7 @@ public class FileToImport {
 
   @Override
   public boolean equals(Object obj) {
-    return (obj instanceof FileToImport file) && file.file_.equals(obj);
+    return (obj instanceof FileToImport file) && file.file_.equals(file.file_);
   }
 
 }

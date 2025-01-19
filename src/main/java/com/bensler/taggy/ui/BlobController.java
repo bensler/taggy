@@ -3,7 +3,6 @@ package com.bensler.taggy.ui;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.security.MessageDigest;
@@ -65,7 +64,7 @@ public class BlobController {
 
   /** @return the sourceFiles sha256sum */
   public String storeBlob(File sourceFile, boolean keepSource) throws IOException {
-    final String sourceHash  = hashBlob(new FileInputStream(sourceFile));
+    final String sourceHash  = hashFile(sourceFile);
 
     storeBlob(sourceFile, sourceHash, keepSource);
     return sourceHash;
@@ -101,14 +100,14 @@ public class BlobController {
     }
   }
 
-  String hashBlob(InputStream is) throws IOException {
+  public String hashFile(File sourceFile) throws IOException {
     final byte[] shaSum;
 
     synchronized (digest_) {
-      try (is) {
+      try (FileInputStream fileIs = new FileInputStream(sourceFile)) {
         int bytesRead;
 
-        while ((bytesRead = is.read(buffer_)) > -1) {
+        while ((bytesRead = fileIs.read(buffer_)) > -1) {
           digest_.update(buffer_, 0, bytesRead);
         }
       }
