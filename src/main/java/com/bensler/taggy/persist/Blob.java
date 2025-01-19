@@ -10,19 +10,24 @@ import com.bensler.decaf.util.tree.Hierarchy;
  */
 public class Blob extends Object implements Entity {
 
-    private Integer id_;
-    private String filename_;
-    private String sha256sum_;
-    private String thumbnailSha_;
+    private final Integer id_;
+    private final String filename_;
+    private final String sha256sum_;
+    private final String thumbnailSha_;
+    private final String type_;
+
     private Set<Tag> tags_;
 
-    Blob() {}
+    private Blob() {
+      this(null, null, null, null);
+    }
 
-    public Blob(final String filename, String shaSum, String thumbnailSha) {
+    public Blob(final String filename, String shaSum, String thumbnailSha, String type) {
       id_ = null;
       filename_ = filename;
       sha256sum_ = shaSum;
       thumbnailSha_ = thumbnailSha;
+      type_ = type;
       tags_ = new HashSet<>();
     }
 
@@ -31,36 +36,20 @@ public class Blob extends Object implements Entity {
       return id_;
     }
 
-    void setId(Integer id) {
-      if (id_ != null) {
-        throw new IllegalStateException("id already set");
-      } else {
-        id_ = id;
-      }
-    }
-
     public String getFilename() {
       return filename_;
-    }
-
-    void setFilename(String filename) {
-      filename_ = filename;
     }
 
     public String getSha256sum() {
       return sha256sum_;
     }
 
-    void setSha256sum(String sha256sum) {
-      sha256sum_ = sha256sum;
-    }
-
     public String getThumbnailSha() {
       return thumbnailSha_;
     }
 
-    void setThumbnailSha(String thumbnailSha) {
-      thumbnailSha_ = thumbnailSha;
+    public String getType() {
+      return type_;
     }
 
     public Set<Tag> getTags() {

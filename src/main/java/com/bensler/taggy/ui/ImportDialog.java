@@ -83,7 +83,12 @@ public class ImportDialog extends JDialog {
     final BulkPrefPersister prefs = new BulkPrefPersister(
       app.getPrefs(), new WindowPrefsPersister(new PrefKey(App.PREFS_APP_ROOT, getClass()), this)
     );
-    new WindowClosingTrigger(this, evt -> prefs.store());
+    new WindowClosingTrigger(this, evt -> {
+      synchronized (filesToSha_) {
+        filesToSha_.clear();
+      }
+      prefs.store();
+    });
     new Thread(new ShaSumDuplicateCheckThread(), "Taggy.Import.ShaSumDuplicateCheck").start();
   }
 
@@ -119,14 +124,16 @@ public class ImportDialog extends JDialog {
   }
 
   Optional<FileToImport> getNextToSha(Optional<FileToImport> lastProcessedItem) {
-    lastProcessedItem.ifPresent(file -> {
-      filesToSha_.remove(file);
-      SwingUtilities.invokeLater(() -> {
-        files_.updateData(file);
-        files_.getComponent().repaint(); // TODO fire change event in model instead
+    synchronized (filesToSha_) {
+      lastProcessedItem.ifPresent(file -> {
+        filesToSha_.remove(file);
+        SwingUtilities.invokeLater(() -> {
+          files_.updateData(file);
+          files_.getComponent().repaint(); // TODO fire change event in model instead
+        });
       });
-    });
-    return (filesToSha_.size() > 0) ? Optional.of(filesToSha_.getFirst()) : Optional.empty();
+      return (filesToSha_.size() > 0) ? Optional.of(filesToSha_.getFirst()) : Optional.empty();
+    }
   }
 
   class ShaSumDuplicateCheckThread implements Runnable {
@@ -140,6 +147,7 @@ public class ImportDialog extends JDialog {
 
         try {
           final String shaSum = blobCtrl_.hashFile(file);
+
           fileToImport.setShaSum(shaSum);
           fileToImport.setDuplicate(db_.doesBlobExist(shaSum));
         } catch (IOException e) {
