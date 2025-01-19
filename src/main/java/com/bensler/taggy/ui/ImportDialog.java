@@ -40,7 +40,6 @@ public class ImportDialog extends JDialog {
   private final DbAccess db_;
   private final EntityTable<FileToImport> files_;
   private final List<FileToImport> filesToSha_;
-  private final List<FileToImport> filesToDuplicateCheck_;
 
   public ImportDialog(App app) {
     super(app.getMainFrame().getFrame(), "Import Files", true);
@@ -48,7 +47,6 @@ public class ImportDialog extends JDialog {
     blobCtrl_ = app.getBlobCtrl();
     db_ = app.getDbAccess();
     filesToSha_ = new LinkedList<>();
-    filesToDuplicateCheck_ = new LinkedList<>();
     final JPanel mainPanel = new JPanel(new FormLayout(
       "3dlu, f:p:g, 3dlu",
       "3dlu, f:p:g, 3dlu, p, 3dlu"
@@ -65,7 +63,8 @@ public class ImportDialog extends JDialog {
         new SimplePropertyGetter<>(FileToImport::getShaSum, COLLATOR_COMPARATOR)
       )),
       new TablePropertyView<>("duplicate", "New/Duplicate", new PropertyViewImpl<>(
-        new SimplePropertyGetter<>(file -> String.valueOf(file.isDuplicate()), COLLATOR_COMPARATOR)
+        new IsNewIconRenderer(),
+        SimplePropertyGetter.createComparablePropertyGetter(FileToImport::isDuplicate)
       ))
     ));
     files_.setSelectionMode(SelectionMode.MULTIPLE_INTERVAL);
@@ -80,14 +79,12 @@ public class ImportDialog extends JDialog {
     List<FileToImport> filesToImport = importController_.getFilesToImport();
     files_.setData(filesToImport);
     filesToSha_.addAll(filesToImport);
-    filesToDuplicateCheck_.addAll(filesToImport);
     pack();
     final BulkPrefPersister prefs = new BulkPrefPersister(
       app.getPrefs(), new WindowPrefsPersister(new PrefKey(App.PREFS_APP_ROOT, getClass()), this)
     );
     new WindowClosingTrigger(this, evt -> prefs.store());
-    new Thread(new ShasumThread(), "Taggy.Import.ShaSum").start();
-    new Thread(new DuplicateCheckThread(), "Taggy.Import.DuplicateCheck").start();
+    new Thread(new ShaSumDuplicateCheckThread(), "Taggy.Import.ShaSumDuplicateCheck").start();
   }
 
   private void importSelection() {
@@ -105,30 +102,34 @@ public class ImportDialog extends JDialog {
     }
   }
 
+  static final class IsNewIconRenderer extends SimpleCellRenderer<FileToImport, Boolean> {
+    IsNewIconRenderer() {
+      super(MainFrame.ICON_PLUS_10);
+    }
+
+    @Override
+    public Icon getIcon(FileToImport entity, Boolean property) {
+      return !Boolean.TRUE.equals(property) ? icon_ : null;
+    }
+
+    @Override
+    protected String getText(FileToImport entity, Boolean property) {
+      return null;
+    }
+  }
+
   Optional<FileToImport> getNextToSha(Optional<FileToImport> lastProcessedItem) {
     lastProcessedItem.ifPresent(file -> {
       filesToSha_.remove(file);
       SwingUtilities.invokeLater(() -> {
         files_.updateData(file);
-        files_.getComponent().repaint();
+        files_.getComponent().repaint(); // TODO fire change event in model instead
       });
     });
     return (filesToSha_.size() > 0) ? Optional.of(filesToSha_.getFirst()) : Optional.empty();
   }
 
-  Optional<FileToImport> getNextToDuplicateCheck(Optional<FileToImport> lastProcessedItem) {
-    lastProcessedItem.ifPresent(file -> {
-      filesToDuplicateCheck_.remove(file);
-      SwingUtilities.invokeLater(() -> {
-        files_.updateData(file);
-        files_.getComponent().repaint();
-      });
-    });
-    return (filesToDuplicateCheck_.size() > 0) ? Optional.of(filesToDuplicateCheck_.getFirst()) : Optional.empty();
-  }
-
-  class ShasumThread implements Runnable {
-
+  class ShaSumDuplicateCheckThread implements Runnable {
     @Override
     public void run() {
       Optional<FileToImport> fileInProgress = Optional.empty();
@@ -138,29 +139,15 @@ public class ImportDialog extends JDialog {
         final File file = fileToImport.getFile();
 
         try {
-          fileToImport.setShaSum(blobCtrl_.hashFile(file));
+          final String shaSum = blobCtrl_.hashFile(file);
+          fileToImport.setShaSum(shaSum);
+          fileToImport.setDuplicate(db_.doesBlobExist(shaSum));
         } catch (IOException e) {
           // TODO Auto-generated catch block
           e.printStackTrace();
         }
       }
     }
-
-  }
-
-  class DuplicateCheckThread implements Runnable {
-
-    @Override
-    public void run() {
-      Optional<FileToImport> fileInProgress = Optional.empty();
-
-      while((fileInProgress = getNextToDuplicateCheck(fileInProgress)).isPresent()) {
-        final FileToImport fileToImport = fileInProgress.get();
-
-        fileToImport.setDuplicate(db_.doesBlobExist(fileToImport.getShaSum()));
-      }
-    }
-
   }
 
 }

@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.hibernate.query.Query;
 
 public class DbAccess {
 
@@ -65,10 +64,9 @@ public class DbAccess {
   }
 
   public boolean doesBlobExist(String shaHash) {
-    final Query<Blob> query = session_.createQuery("FROM Blob AS blob WHERE blob.sha256sum_ = :sha256sum", Blob.class);
-
-    query.setParameter("sha256sum", shaHash);
-    return !query.getResultList().isEmpty();
+    return !session_.createQuery("FROM Blob AS blob WHERE blob.sha256sum_ = :sha256sum", Blob.class)
+    .setParameter("sha256sum", shaHash)
+    .getResultList().isEmpty();
   }
 
 }
