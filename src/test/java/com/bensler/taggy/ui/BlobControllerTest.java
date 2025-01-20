@@ -49,9 +49,10 @@ class BlobControllerTest {
 
   @Test
   void hashBlob() throws NoSuchAlgorithmException, IOException {
-    final String hash = new BlobController(tmpDir, new int[] {2, 2, 2}).hashBlob(
-      new ByteArrayInputStream(SAMPLE_CONTENT)
-    );
+    final File file = new File(tmpDir, "SampleContent.bin");
+    Files.copy(new ByteArrayInputStream(SAMPLE_CONTENT), file.toPath());
+
+    final String hash = new BlobController(tmpDir, new int[] {2, 2, 2}).hashFile(file);
 
     assertEquals(SAMPLE_CONNTENT_HASH, hash);
   }
