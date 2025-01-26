@@ -62,7 +62,7 @@ public class ImportDialog extends JDialog {
       new TablePropertyView<>("shasum", "sha256-Hash", new PropertyViewImpl<>(
         new SimplePropertyGetter<>(FileToImport::getShaSum, COLLATOR_COMPARATOR)
       )),
-      new TablePropertyView<>("duplicate", "New/Duplicate", new PropertyViewImpl<>(
+      new TablePropertyView<>("importable", "Importable", new PropertyViewImpl<>(
         new IsNewIconRenderer(),
         SimplePropertyGetter.createComparablePropertyGetter(FileToImport::isImportable)
       ))
@@ -72,7 +72,7 @@ public class ImportDialog extends JDialog {
     final JButton importButton = new JButton("Import");
     importButton.setEnabled(false);
     importButton.addActionListener(evt -> importSelection());
-    files_.setSelectionListener((source, files) -> importButton.setEnabled(!files.isEmpty()));
+    files_.setSelectionListener((source, files) -> importButton.setEnabled(files.stream().allMatch(FileToImport::isImportable)));
     mainPanel.add(importButton, new CellConstraints(2, 4, RIGHT, CENTER));
     mainPanel.setPreferredSize(new Dimension(400, 400));
     setContentPane(mainPanel);
