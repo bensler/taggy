@@ -17,6 +17,7 @@ import com.bensler.taggy.App;
 import com.bensler.taggy.EntityChangeListener;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.DbAccess;
+import com.bensler.taggy.persist.Entity;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
@@ -62,12 +63,12 @@ public class OrphanDialog extends JDialog implements EntityChangeListener {
   }
 
   @Override
-  public void entityRemoved(Object entity) {
+  public void entityRemoved(Entity entity) {
     thumbViewer_.contains(entity).ifPresent(thumbViewer_::removeImage);
   }
 
   @Override
-  public void entityChanged(Object entity) {
+  public void entityChanged(Entity entity) {
     thumbViewer_.contains(entity).ifPresent(blob -> {
       if (!blob.getTags().isEmpty()) {
         thumbViewer_.removeImage(blob);
@@ -76,7 +77,7 @@ public class OrphanDialog extends JDialog implements EntityChangeListener {
   }
 
   @Override
-  public void entityCreated(Object entity) {
+  public void entityCreated(Entity entity) {
     if (entity instanceof Blob blob) {
       thumbViewer_.addImage(blob);
     }

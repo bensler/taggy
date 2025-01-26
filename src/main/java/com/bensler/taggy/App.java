@@ -10,9 +10,9 @@ import javax.swing.UIManager;
 
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.Prefs;
-import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.persist.DbConnector;
+import com.bensler.taggy.persist.Entity;
 import com.bensler.taggy.persist.SqliteDbConnector;
 import com.bensler.taggy.ui.BlobController;
 import com.bensler.taggy.ui.ImportController;
@@ -106,13 +106,13 @@ public class App {
     entityChangeListeners_.put(entityChangeListener, null);
   }
 
-  public void entitiesCreated(Collection<?> entities) {
+  public void entitiesCreated(Collection<? extends Entity> entities) {
     entities.forEach(this::entityCreated);
   }
 
-  public void entityCreated(Object entity) {
+  public void entityCreated(Entity entity) {
     entityChangeListeners_.keySet().forEach(listener -> {
-      try {System.out.println("#");
+      try {
         listener.entityCreated(entity);
       } catch (RuntimeException re) {
         // TODO proper exception handling
@@ -121,11 +121,11 @@ public class App {
     });
   }
 
-  public void entitiesChanged(Collection<?> entities) {
+  public void entitiesChanged(Collection<? extends Entity> entities) {
     entities.forEach(this::entityChanged);
   }
 
-  public void entityChanged(Object entity) {
+  public void entityChanged(Entity entity) {
     entityChangeListeners_.keySet().forEach(listener -> {
       try {
         listener.entityChanged(entity);
@@ -136,11 +136,11 @@ public class App {
     });
   }
 
-  public void entitiesRemoved(Collection<?> entities) {
+  public void entitiesRemoved(Collection<? extends Entity> entities) {
     entities.forEach(this::entityRemoved);
   }
 
-  public void entityRemoved(Object entity) {
+  public void entityRemoved(Entity entity) {
     entityChangeListeners_.keySet().forEach(listener -> {
       try {
         listener.entityRemoved(entity);
@@ -151,8 +151,11 @@ public class App {
     });
   }
 
-  public void createBlob(Blob blob) {
-    entityCreated(dbAccess_.storeObject(blob));
+  public <E extends Entity> E createEntity(E entity) {
+    entity = dbAccess_.storeObject(entity);
+
+    entityCreated(entity);
+    return entity;
   }
 
 }
