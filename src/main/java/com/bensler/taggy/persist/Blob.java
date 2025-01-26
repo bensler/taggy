@@ -56,6 +56,10 @@ public class Blob extends Object implements Entity {
       return Set.copyOf(tags_);
     }
 
+    public boolean isUntagged() {
+      return tags_.isEmpty();
+    }
+
     public void setTags(Set<Tag> tags) {
       tags_ = new HashSet<  >(tags);
     }

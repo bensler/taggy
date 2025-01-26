@@ -78,7 +78,7 @@ public class BlobController {
     Optional.ofNullable(blob.getThumbnailSha()).ifPresent(this::deleteFile);
     dbAccess.remove(blob);
     blob.getTags().stream().forEach(dbAccess::refresh);
-    app.getMainFrame().blobRemoved(blob);
+    app.entityRemoved(blob);
   }
 
   private void deleteFile(String shasum) {

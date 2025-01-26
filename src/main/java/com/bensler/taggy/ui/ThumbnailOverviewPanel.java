@@ -196,6 +196,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
       // TODO display error thumb
       e.printStackTrace();
     }
+    blobs_.remove(blob);
     blobs_.add(blob);
   }
 
@@ -208,7 +209,9 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
   public void removeImage(Blob blob) {
     if (blobs_.remove(blob)) {
       images_.remove(blob);
-      selection_.remove(blob);
+      try (SelectionEvent selectionEvent = new SelectionEvent()) {
+        selection_.remove(blob);
+      }
       revalidate();
       repaint();
     }

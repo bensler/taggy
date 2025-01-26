@@ -63,14 +63,14 @@ public class OrphanDialog extends JDialog implements EntityChangeListener {
   }
 
   @Override
-  public void entityRemoved(Entity entity) {
-    thumbViewer_.contains(entity).ifPresent(thumbViewer_::removeImage);
-  }
+  public void entityRemoved(Entity entity) { /* thumbViewer_ listens for rm'ed Blobs on its own */ }
 
   @Override
   public void entityChanged(Entity entity) {
     thumbViewer_.contains(entity).ifPresent(blob -> {
-      if (!blob.getTags().isEmpty()) {
+      if (blob.isUntagged()) {
+        thumbViewer_.addImage(blob);
+      } else {
         thumbViewer_.removeImage(blob);
       }
     });
@@ -78,7 +78,7 @@ public class OrphanDialog extends JDialog implements EntityChangeListener {
 
   @Override
   public void entityCreated(Entity entity) {
-    if (entity instanceof Blob blob) {
+    if ((entity instanceof Blob blob) && (blob.isUntagged())) {
       thumbViewer_.addImage(blob);
     }
   }

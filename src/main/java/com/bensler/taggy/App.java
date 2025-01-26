@@ -151,10 +151,15 @@ public class App {
     });
   }
 
-  public <E extends Entity> E createEntity(E entity) {
-    entity = dbAccess_.storeObject(entity);
+  public <E extends Entity> E storeEntity(E entity) {
+    final boolean isNew = !entity.hasId();
 
-    entityCreated(entity);
+    entity = dbAccess_.storeObject(entity);
+    if (isNew) {
+      entityCreated(entity);
+    } else {
+      entityChanged(entity);
+    }
     return entity;
   }
 

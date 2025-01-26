@@ -279,8 +279,4 @@ public class MainFrame {
 
   }
 
-  public void blobRemoved(Blob blob) {
-    throw new UnsupportedOperationException("todo impl");
-  }
-
 }

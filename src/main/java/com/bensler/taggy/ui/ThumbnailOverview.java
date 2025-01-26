@@ -28,6 +28,8 @@ import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
 import com.bensler.decaf.swing.dialog.OkCancelDialog;
 import com.bensler.decaf.swing.selection.EntitySelectionListener;
 import com.bensler.taggy.App;
+import com.bensler.taggy.EntityChangeListener;
+import com.bensler.taggy.EntityChangeListener.EntityRemovedAdapter;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.ui.ThumbnailOverviewPanel.ScrollingPolicy;
 
@@ -38,6 +40,7 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
   private final JScrollPane scrollPane_;
   private final ThumbnailOverviewPanel comp_;
   private final ActionGroup<Blob> contextActions_;
+  private final EntityChangeListener entityRemoveListener_;
 
   public ThumbnailOverview(App app) {
     blobCtrl_ = (app_ = app).getBlobCtrl();
@@ -60,6 +63,7 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
     contextActions_ = new ActionGroup<>(slideshowAction, editImageTagsAction, deleteImageAction);
     comp_.addMouseListener(new ContextMenuMouseAdapter(this::triggerContextMenu));
     comp_.addMouseListener(new DoubleClickMouseAdapter(evt -> doubleClick()));
+    app_.addEntityChangeListener(entityRemoveListener_ = new EntityRemovedAdapter(entity -> contains(entity).ifPresent(this::removeImage)));
   }
 
   void doubleClick() {
@@ -85,7 +89,7 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
   void editTags(Blob blob) {
     new OkCancelDialog<>(comp_, new EditImageTagsDialog()).show(blob, tags -> {
       blob.setTags(tags);
-      app_.getDbAccess().storeObject(blob);
+      app_.storeEntity(blob);
       app_.getMainFrame().displayThumbnailsOfSelectedTag();
     });
   }
