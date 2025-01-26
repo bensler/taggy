@@ -1,6 +1,7 @@
 package com.bensler.taggy.ui;
 
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
+import static com.bensler.decaf.util.function.ForEachMapperAdapter.forEachMapper;
 import static com.bensler.taggy.ui.MainFrame.ICON_IMAGES_48;
 import static com.bensler.taggy.ui.MainFrame.ICON_PLUS_30;
 
@@ -67,7 +68,7 @@ public class ImportController {
     return Arrays.stream(importDir_.listFiles((FileFilter)null))
     .filter(File::isFile)
     .map(FileToImport::new)
-    .map(file -> file.setType(getType(file.getFile())))
+    .map(forEachMapper(file -> getType(file.getFile()).ifPresentOrElse(file::setType, () -> file.setImportObstacle("Unsupported Type"))))
     .toList();
   }
 

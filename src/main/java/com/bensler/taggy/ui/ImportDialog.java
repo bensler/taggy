@@ -64,7 +64,7 @@ public class ImportDialog extends JDialog {
       )),
       new TablePropertyView<>("duplicate", "New/Duplicate", new PropertyViewImpl<>(
         new IsNewIconRenderer(),
-        SimplePropertyGetter.createComparablePropertyGetter(FileToImport::isDuplicate)
+        SimplePropertyGetter.createComparablePropertyGetter(FileToImport::isImportable)
       ))
     ));
     files_.setSelectionMode(SelectionMode.MULTIPLE_INTERVAL);
@@ -108,18 +108,14 @@ public class ImportDialog extends JDialog {
   }
 
   static final class IsNewIconRenderer extends SimpleCellRenderer<FileToImport, Boolean> {
-    IsNewIconRenderer() {
-      super(MainFrame.ICON_PLUS_10);
-    }
-
     @Override
-    public Icon getIcon(FileToImport entity, Boolean property) {
-      return !Boolean.TRUE.equals(property) ? icon_ : null;
+    public Icon getIcon(FileToImport entity, Boolean importable) {
+      return Boolean.TRUE.equals(importable) ? MainFrame.ICON_PLUS_10 : MainFrame.ICON_X_10;
     }
 
     @Override
     protected String getText(FileToImport entity, Boolean property) {
-      return null;
+      return entity.getImportObstacle();
     }
   }
 
@@ -149,7 +145,9 @@ public class ImportDialog extends JDialog {
           final String shaSum = blobCtrl_.hashFile(file);
 
           fileToImport.setShaSum(shaSum);
-          fileToImport.setDuplicate(db_.doesBlobExist(shaSum));
+          if (db_.doesBlobExist(shaSum)) {
+            fileToImport.setImportObstacle("Duplicate");
+          }
         } catch (IOException e) {
           // TODO Auto-generated catch block
           e.printStackTrace();

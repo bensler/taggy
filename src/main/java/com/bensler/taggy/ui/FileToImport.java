@@ -1,13 +1,12 @@
 package com.bensler.taggy.ui;
 
 import java.io.File;
-import java.util.Optional;
 
 public class FileToImport {
 
   private final File file_;
   private String shaSum_;
-  private Boolean duplicate_;
+  private String importObstacle_;
   private String type_;
 
   public FileToImport(File file) {
@@ -30,21 +29,24 @@ public class FileToImport {
     shaSum_ = shaSum;
   }
 
-  FileToImport setType(Optional<String> type) {
-    type_ = type.orElse(null);
-    return this;
+  void setType(String type) {
+    type_ = type;
   }
 
   public String getType() {
     return type_;
   }
 
-  public Boolean isDuplicate() {
-    return duplicate_;
+  public Boolean isImportable() {
+    return (importObstacle_ == null);
   }
 
-  void setDuplicate(Boolean duplicate) {
-    duplicate_ = duplicate;
+  public String getImportObstacle() {
+    return importObstacle_;
+  }
+
+  void setImportObstacle(String importObstacle) {
+    importObstacle_ = importObstacle;
   }
 
   @Override
