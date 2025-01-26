@@ -14,11 +14,12 @@ import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
 import com.bensler.decaf.util.prefs.BulkPrefPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.taggy.App;
+import com.bensler.taggy.EntityChangeListener;
 import com.bensler.taggy.persist.DbAccess;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class OrphanDialog extends JDialog {
+public class OrphanDialog extends JDialog implements EntityChangeListener {
 
   private final ThumbnailOverview thumbViewer_;
   private final BulkPrefPersister prefs_;
@@ -45,6 +46,7 @@ public class OrphanDialog extends JDialog {
       app.getPrefs(), new WindowPrefsPersister(new PrefKey(App.PREFS_APP_ROOT, getClass()), this)
     );
     setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    app.addEntityChangeListener(this);
   }
 
   @Override
@@ -56,6 +58,18 @@ public class OrphanDialog extends JDialog {
   public void show(DbAccess dbAccess) {
     SwingUtilities.invokeLater(() -> thumbViewer_.setData(dbAccess.findOrphanBlobs()));
     setVisible(true);
+  }
+
+  @Override
+  public void entityRemoved(Object entity) {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public void entityChanged(Object entity) {
+    // TODO Auto-generated method stub
+
   }
 
 }

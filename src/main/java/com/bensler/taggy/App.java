@@ -2,6 +2,9 @@ package com.bensler.taggy;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 import javax.swing.UIManager;
 
@@ -52,11 +55,14 @@ public class App {
   private final Thumbnailer thumbnailer_;
   private final MainFrame mainFrame_;
 
+  private final Map<EntityChangeListener, Object> entityChangeListeners_;
+
   private App() throws Exception {
     Plastic3DLookAndFeel.setCurrentTheme(new DesertYellow());
     UIManager.setLookAndFeel(new Plastic3DLookAndFeel());
 
     final File dataDir = getDataDir();
+    entityChangeListeners_ = new WeakHashMap<>();
     db_ = new SqliteDbConnector(dataDir, "taggy.sqlite.db");
     db_.performFlywayMigration();
     dbAccess_ = new DbAccess(db_.getSession());
@@ -93,6 +99,40 @@ public class App {
 
   public void run() {
     mainFrame_.show();
+  }
+
+  public void addEntityChangeListener(EntityChangeListener entityChangeListener) {
+    entityChangeListeners_.put(entityChangeListener, null);
+  }
+
+  public void entitiesRemoved(Collection<?> entities) {
+    entities.forEach(this::entityRemoved);
+  }
+
+  public void entityRemoved(Object entity) {
+    entityChangeListeners_.keySet().forEach(listener -> {
+      try {
+        listener.entityRemoved(entity);
+      } catch (RuntimeException re) {
+        // TODO proper exception handling
+        re.printStackTrace();
+      }
+    });
+  }
+
+  public void entitiesChanged(Collection<?> entities) {
+    entities.forEach(this::entityChanged);
+  }
+
+  public void entityChanged(Object entity) {
+    entityChangeListeners_.keySet().forEach(listener -> {
+      try {
+        listener.entityChanged(entity);
+      } catch (RuntimeException re) {
+        // TODO proper exception handling
+        re.printStackTrace();
+      }
+    });
   }
 
 }

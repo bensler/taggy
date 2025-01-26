@@ -84,7 +84,7 @@ public class ImportController {
       final File file = fileToImport.getFile();
       final BlobController blobCtrl = app_.getBlobCtrl();
       final File thumbnail = app_.getThumbnailer().scaleRotateImage(file);
-      final String fileSha = blobCtrl.storeBlob(file, false);
+      final String fileSha = blobCtrl.storeBlob(file, true);
       final String thumbSha = blobCtrl.storeBlob(thumbnail, false);
 
       app_.getDbAccess().storeObject(new Blob(file.getName(), fileSha, thumbSha, fileToImport.getType()));

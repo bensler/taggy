@@ -360,8 +360,8 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     }
   }
 
-  public boolean contains(Blob blob) {
-    return images_.containsKey(blob);
+  public Optional<Blob> contains(Object blob) {
+    return (images_.containsKey(blob) ? Optional.of((Blob)blob) : Optional.empty());
   }
 
 }

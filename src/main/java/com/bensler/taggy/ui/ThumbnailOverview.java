@@ -131,7 +131,7 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
   }
 
   @Override
-  public boolean contains(Blob entity) {
+  public Optional<Blob> contains(Object entity) {
     return comp_.contains(entity);
   }
 
