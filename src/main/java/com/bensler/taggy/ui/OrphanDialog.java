@@ -15,6 +15,7 @@ import com.bensler.decaf.util.prefs.BulkPrefPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.taggy.App;
 import com.bensler.taggy.EntityChangeListener;
+import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.DbAccess;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -62,14 +63,23 @@ public class OrphanDialog extends JDialog implements EntityChangeListener {
 
   @Override
   public void entityRemoved(Object entity) {
-    // TODO Auto-generated method stub
-
+    thumbViewer_.contains(entity).ifPresent(thumbViewer_::removeImage);
   }
 
   @Override
   public void entityChanged(Object entity) {
-    // TODO Auto-generated method stub
+    thumbViewer_.contains(entity).ifPresent(blob -> {
+      if (!blob.getTags().isEmpty()) {
+        thumbViewer_.removeImage(blob);
+      }
+    });
+  }
 
+  @Override
+  public void entityCreated(Object entity) {
+    if (entity instanceof Blob blob) {
+      thumbViewer_.addImage(blob);
+    }
   }
 
 }

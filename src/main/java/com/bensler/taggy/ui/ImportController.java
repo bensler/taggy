@@ -87,7 +87,7 @@ public class ImportController {
       final String fileSha = blobCtrl.storeBlob(file, true);
       final String thumbSha = blobCtrl.storeBlob(thumbnail, false);
 
-      app_.getDbAccess().storeObject(new Blob(file.getName(), fileSha, thumbSha, fileToImport.getType()));
+      app_.createBlob(new Blob(file.getName(), fileSha, thumbSha, fileToImport.getType()));
     } catch (ImageReadException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();

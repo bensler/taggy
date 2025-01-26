@@ -10,6 +10,7 @@ import javax.swing.UIManager;
 
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.Prefs;
+import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.persist.DbConnector;
 import com.bensler.taggy.persist.SqliteDbConnector;
@@ -105,14 +106,14 @@ public class App {
     entityChangeListeners_.put(entityChangeListener, null);
   }
 
-  public void entitiesRemoved(Collection<?> entities) {
-    entities.forEach(this::entityRemoved);
+  public void entitiesCreated(Collection<?> entities) {
+    entities.forEach(this::entityCreated);
   }
 
-  public void entityRemoved(Object entity) {
+  public void entityCreated(Object entity) {
     entityChangeListeners_.keySet().forEach(listener -> {
-      try {
-        listener.entityRemoved(entity);
+      try {System.out.println("#");
+        listener.entityCreated(entity);
       } catch (RuntimeException re) {
         // TODO proper exception handling
         re.printStackTrace();
@@ -133,6 +134,25 @@ public class App {
         re.printStackTrace();
       }
     });
+  }
+
+  public void entitiesRemoved(Collection<?> entities) {
+    entities.forEach(this::entityRemoved);
+  }
+
+  public void entityRemoved(Object entity) {
+    entityChangeListeners_.keySet().forEach(listener -> {
+      try {
+        listener.entityRemoved(entity);
+      } catch (RuntimeException re) {
+        // TODO proper exception handling
+        re.printStackTrace();
+      }
+    });
+  }
+
+  public void createBlob(Blob blob) {
+    entityCreated(dbAccess_.storeObject(blob));
   }
 
 }

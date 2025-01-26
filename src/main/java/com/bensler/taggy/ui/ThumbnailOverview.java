@@ -148,4 +148,12 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
     comp_.clear();
   }
 
+  public void addImage(Blob blob) {
+    comp_.addImage(blob);
+  }
+
+  public void removeImage(Blob blob) {
+    comp_.removeImage(blob);
+  }
+
 }

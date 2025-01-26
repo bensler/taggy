@@ -182,19 +182,36 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
   public void setData(List<Blob> data) {
     blobs_.clear();
     images_.clear();
-    blobs_.addAll(data);
-
     clearSelection();
-    for (Blob blob : blobs_) {
-      try {
-        images_.put(blob, new ImageIcon(ImageIO.read(blobCtrl_.getFile(blob.getThumbnailSha()))));
-      } catch (IOException e) {
-        // TODO display error thumb
-        e.printStackTrace();
-      }
-    }
+
+    data.forEach(this::addImageInternally);
     revalidate();
     repaint();
+  }
+
+  private void addImageInternally(Blob blob) {
+    try {
+      images_.put(blob, new ImageIcon(ImageIO.read(blobCtrl_.getFile(blob.getThumbnailSha()))));
+    } catch (IOException e) {
+      // TODO display error thumb
+      e.printStackTrace();
+    }
+    blobs_.add(blob);
+  }
+
+  public void addImage(Blob blob) {
+    addImageInternally(blob);
+    revalidate();
+    repaint();
+  }
+
+  public void removeImage(Blob blob) {
+    if (blobs_.remove(blob)) {
+      images_.remove(blob);
+      selection_.remove(blob);
+      revalidate();
+      repaint();
+    }
   }
 
   public void clear() {
