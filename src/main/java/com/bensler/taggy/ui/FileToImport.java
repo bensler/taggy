@@ -9,8 +9,15 @@ public class FileToImport {
   private String importObstacle_;
   private String type_;
 
-  public FileToImport(File file) {
+  FileToImport(File file) {
     file_ = file;
+  }
+
+  FileToImport(File file, String shaSum, String importObstacle, String type) {
+    file_ = file;
+    shaSum_ = shaSum;
+    importObstacle_ = importObstacle;
+    type_ = type;
   }
 
   public String getName() {

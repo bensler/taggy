@@ -80,21 +80,20 @@ public class ImportController {
       : Optional.empty();
   }
 
-  public void importFile(FileToImport fileToImport) {
+  public FileToImport importFile(FileToImport fileToImport) {
+    final File file = fileToImport.getFile();
+    final BlobController blobCtrl = app_.getBlobCtrl();
+
     try {
-      final File file = fileToImport.getFile();
-      final BlobController blobCtrl = app_.getBlobCtrl();
       final File thumbnail = app_.getThumbnailer().scaleRotateImage(file);
       final String fileSha = blobCtrl.storeBlob(file, true);
       final String thumbSha = blobCtrl.storeBlob(thumbnail, false);
 
       app_.storeEntity(new Blob(file.getName(), fileSha, thumbSha, fileToImport.getType()));
-    } catch (ImageReadException e) {
-      // TODO Auto-generated catch block
+      return new FileToImport(file, fileSha, "Duplicate (just imported)", fileToImport.getType());
+    } catch (IOException | ImageReadException e) {
       e.printStackTrace();
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      return new FileToImport(file, fileToImport.getShaSum(), "Import Error (%s)".formatted(e.getMessage()), fileToImport.getType());
     }
   }
 

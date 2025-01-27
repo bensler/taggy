@@ -72,7 +72,10 @@ public class ImportDialog extends JDialog {
     final JButton importButton = new JButton("Import");
     importButton.setEnabled(false);
     importButton.addActionListener(evt -> importSelection());
-    files_.setSelectionListener((source, files) -> importButton.setEnabled(files.stream().allMatch(FileToImport::isImportable)));
+    files_.setSelectionListener((source, files) -> importButton.setEnabled(
+      (!files.isEmpty())
+      && files.stream().allMatch(FileToImport::isImportable)
+    ));
     mainPanel.add(importButton, new CellConstraints(2, 4, RIGHT, CENTER));
     mainPanel.setPreferredSize(new Dimension(400, 400));
     setContentPane(mainPanel);
@@ -93,7 +96,7 @@ public class ImportDialog extends JDialog {
   }
 
   private void importSelection() {
-    files_.getSelection().forEach(importController_::importFile);
+    files_.getSelection().stream().map(importController_::importFile).forEach(files_::updateData);
   }
 
   static final class TypeIconRenderer extends SimpleCellRenderer<FileToImport, String> {
@@ -123,12 +126,9 @@ public class ImportDialog extends JDialog {
     synchronized (filesToSha_) {
       lastProcessedItem.ifPresent(file -> {
         filesToSha_.remove(file);
-        SwingUtilities.invokeLater(() -> {
-          files_.updateData(file);
-          files_.getComponent().repaint(); // TODO fire change event in model instead
-        });
+        SwingUtilities.invokeLater(() -> files_.updateData(file));
       });
-      return (filesToSha_.size() > 0) ? Optional.of(filesToSha_.getFirst()) : Optional.empty();
+      return (!filesToSha_.isEmpty()) ? Optional.of(filesToSha_.getFirst()) : Optional.empty();
     }
   }
 
