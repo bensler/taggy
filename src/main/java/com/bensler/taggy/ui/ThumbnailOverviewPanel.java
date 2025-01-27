@@ -3,8 +3,10 @@ package com.bensler.taggy.ui;
 import static com.bensler.taggy.Thumbnailer.THUMBNAIL_SIZE;
 import static java.awt.BasicStroke.CAP_BUTT;
 import static java.awt.BasicStroke.JOIN_BEVEL;
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
+import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -42,15 +44,50 @@ import com.bensler.taggy.persist.Blob;
 public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
 
   public enum ScrollingPolicy {
-    SCROLL_HORIZONTALLY(VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER),
-    SCROLL_VERTICALLY(VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
+    SCROLL_HORIZONTALLY(VERTICAL_SCROLLBAR_NEVER, HORIZONTAL_SCROLLBAR_AS_NEEDED, false) {
+      @Override
+      Dimension getGridSize(int tilesCount, Dimension compSize) {
+        final int actualHeight = compSize.height;
+
+        if (actualHeight <= 0) {
+          return new Dimension(1, tilesCount);
+        } else {
+          final int rowCount = Math.max(1, (actualHeight - GAP) / (TILE_SIZE + GAP));
+          final int colCount = (tilesCount / rowCount) + (((tilesCount % rowCount) > 0) ? 1 : 0);
+
+          return new Dimension(colCount, ((colCount < 2) ? tilesCount : rowCount));
+        }
+      }
+    },
+    SCROLL_VERTICALLY(VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER, true) {
+      @Override
+      Dimension getGridSize(int tilesCount, Dimension compSize) {
+        final int actualWidth = compSize.width;
+
+        if (actualWidth <= 0) {
+          return new Dimension(tilesCount, 1);
+        } else {
+          final int colCount = Math.max(1, (actualWidth - GAP) / (TILE_SIZE + GAP));
+          final int rowCount = (tilesCount / colCount) + (((tilesCount % colCount) > 0) ? 1 : 0);
+
+          return new Dimension(((rowCount < 2) ? tilesCount : colCount), rowCount);
+        }
+      }
+    };
 
     final int verticalScrollbarPolicy_, horizontalScrollbarPolicy_;
+    final boolean tracksViewportWidth_;
 
-    ScrollingPolicy(int verticalScrollbarPolicy, int horizontalScrollbarPolicy) {
+    ScrollingPolicy(
+      int verticalScrollbarPolicy, int horizontalScrollbarPolicy, boolean tracksViewportWidth
+    ) {
       verticalScrollbarPolicy_ = verticalScrollbarPolicy;
       horizontalScrollbarPolicy_ = horizontalScrollbarPolicy;
+      tracksViewportWidth_ = tracksViewportWidth;
     }
+
+    abstract Dimension getGridSize(int tilesCount, Dimension compSize);
+
   }
 
   private final static int GAP = 4;
@@ -69,11 +106,13 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
   private final List<Blob> blobs_;
   private final Map<Blob, ImageIcon> images_;
   private Dimension gridOffsetPx;
+  private final JScrollPane scrollPane_;
+  private final ScrollingPolicy scrollingPolicy_;
 
   private final List<Blob> selection_;
   private EntitySelectionListener<Blob> selectionListener_;
 
-  public ThumbnailOverviewPanel(App app) {
+  public ThumbnailOverviewPanel(App app, ScrollingPolicy scrollingPolicy) {
     app_ = app;
     blobCtrl_ = app_.getBlobCtrl();
     blobs_ = new ArrayList<>();
@@ -88,15 +127,15 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     );
     setBackground(UIManager.getColor("Tree.textBackground"));
     gridOffsetPx = new Dimension();
+    scrollingPolicy_ = scrollingPolicy;
+    scrollPane_ = new JScrollPane(
+      this, scrollingPolicy_.verticalScrollbarPolicy_, scrollingPolicy_.horizontalScrollbarPolicy_
+    );
+    scrollPane_.getViewport().setBackground(getBackground());
   }
 
-  public JScrollPane wrapInScrollpane(ScrollingPolicy scrollingPolicy) {
-    final JScrollPane scrollPane = new JScrollPane(
-      this, scrollingPolicy.verticalScrollbarPolicy_, scrollingPolicy.horizontalScrollbarPolicy_
-    );
-
-    scrollPane.getViewport().setBackground(getBackground());
-    return scrollPane;
+  public JScrollPane getScrollpane() {
+    return scrollPane_;
   }
 
   public void setFocusable() {
@@ -290,17 +329,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
   }
 
   public Dimension getGridSize() {
-    final int tilesCount = blobs_.size();
-    final int actualWidth = getSize().width;
-
-    if (actualWidth <= 0) {
-      return new Dimension(tilesCount, 1);
-    } else {
-      final int colCount = Math.max(1, (actualWidth - GAP) / (TILE_SIZE + GAP));
-      final int rowCount = (tilesCount / colCount) + (((tilesCount % colCount) > 0) ? 1 : 0);
-
-      return new Dimension(((rowCount < 2) ? tilesCount : colCount), rowCount);
-    }
+    return scrollingPolicy_.getGridSize(blobs_.size(), getSize());
   }
 
   @Override
@@ -320,12 +349,12 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
 
   @Override
   public boolean getScrollableTracksViewportWidth() {
-    return true;
+    return scrollingPolicy_.tracksViewportWidth_;
   }
 
   @Override
   public boolean getScrollableTracksViewportHeight() {
-    return false;
+    return !scrollingPolicy_.tracksViewportWidth_;
   }
 
   private class SelectionEvent implements AutoCloseable {

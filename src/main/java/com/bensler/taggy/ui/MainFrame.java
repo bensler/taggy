@@ -153,12 +153,12 @@ public class MainFrame {
     new WindowClosingTrigger(frame_, evt -> frameClosing());
 
     final PrefKey baseKey = new PrefKey(App.PREFS_APP_ROOT, getClass());
-    prefs_ = new BulkPrefPersister(app.getPrefs(), List.of(
+    prefs_ = new BulkPrefPersister(app.getPrefs(),
       new WindowPrefsPersister(baseKey, frame_),
       new SelectedTagPrefPersister(new PrefKey(baseKey, "selectedTag")),
       new SplitpanePrefPersister(new PrefKey(baseKey, "splitLeft"), leftSplitpane),
       new SplitpanePrefPersister(new PrefKey(baseKey, "splitRight"), rightSplitpane)
-    ));
+    );
   }
 
   private Image createImage() {

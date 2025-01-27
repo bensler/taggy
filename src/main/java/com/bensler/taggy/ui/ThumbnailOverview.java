@@ -37,16 +37,15 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
 
   private final App app_;
   private final BlobController blobCtrl_;
-  private final JScrollPane scrollPane_;
   private final ThumbnailOverviewPanel comp_;
   private final ActionGroup<Blob> contextActions_;
+  @SuppressWarnings("unused") // keep it referenced as App holds it weakly
   private final EntityChangeListener entityRemoveListener_;
 
   public ThumbnailOverview(App app) {
     blobCtrl_ = (app_ = app).getBlobCtrl();
-    comp_ = new ThumbnailOverviewPanel(app);
+    comp_ = new ThumbnailOverviewPanel(app, ScrollingPolicy.SCROLL_VERTICALLY);
     comp_.setFocusable();
-    scrollPane_ = comp_.wrapInScrollpane(ScrollingPolicy.SCROLL_VERTICALLY);
     final EntityAction<Blob> slideshowAction = new EntityAction<>(
       new ActionAppearance(ICON_SLIDESHOW_13, null, "Slide Show", "ViewImages in full detail"),
       null, (source, blobs) -> app_.getMainFrame().getSlideshowFrame().show(blobs)
@@ -131,7 +130,7 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
 
   @Override
   public JScrollPane getScrollPane() {
-    return scrollPane_;
+    return comp_.getScrollpane();
   }
 
   @Override
