@@ -1,4 +1,4 @@
-package com.bensler.taggy.ui;
+package com.bensler.taggy.imprt;
 
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
 import static com.bensler.decaf.util.function.ForEachMapperAdapter.forEachMapper;
@@ -21,6 +21,7 @@ import com.bensler.decaf.swing.awt.OverlayIcon;
 import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
+import com.bensler.taggy.ui.BlobController;
 
 public class ImportController {
 

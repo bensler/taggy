@@ -1,4 +1,4 @@
-package com.bensler.taggy.ui;
+package com.bensler.taggy.imprt;
 
 import static com.bensler.decaf.util.cmp.CollatorComparator.COLLATOR_COMPARATOR;
 import static com.jgoodies.forms.layout.CellConstraints.CENTER;
@@ -30,6 +30,8 @@ import com.bensler.decaf.util.prefs.BulkPrefPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.DbAccess;
+import com.bensler.taggy.ui.BlobController;
+import com.bensler.taggy.ui.MainFrame;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
