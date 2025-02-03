@@ -35,7 +35,7 @@ import com.bensler.taggy.ui.MainFrame;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class ImportDialog extends JDialog {
+class ImportDialog extends JDialog {
 
   private final ImportController importController_;
   private final BlobController blobCtrl_;
@@ -43,7 +43,7 @@ public class ImportDialog extends JDialog {
   private final EntityTable<FileToImport> files_;
   private final List<FileToImport> filesToSha_;
 
-  public ImportDialog(App app) {
+  ImportDialog(App app) {
     super(app.getMainFrame().getFrame(), "Import Files", true);
     importController_ = app.getImportCtrl();
     blobCtrl_ = app.getBlobCtrl();

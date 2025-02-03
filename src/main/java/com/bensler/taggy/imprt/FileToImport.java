@@ -2,7 +2,7 @@ package com.bensler.taggy.imprt;
 
 import java.io.File;
 
-public class FileToImport {
+class FileToImport {
 
   private final File file_;
   private String shaSum_;
@@ -20,15 +20,15 @@ public class FileToImport {
     type_ = type;
   }
 
-  public String getName() {
+  String getName() {
     return file_.getName();
   }
 
-  public File getFile() {
+  File getFile() {
     return file_;
   }
 
-  public String getShaSum() {
+  String getShaSum() {
     return shaSum_;
   }
 
@@ -40,15 +40,15 @@ public class FileToImport {
     type_ = type;
   }
 
-  public String getType() {
+  String getType() {
     return type_;
   }
 
-  public Boolean isImportable() {
+  Boolean isImportable() {
     return (importObstacle_ == null);
   }
 
-  public String getImportObstacle() {
+  String getImportObstacle() {
     return importObstacle_;
   }
 

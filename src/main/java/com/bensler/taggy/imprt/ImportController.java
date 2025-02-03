@@ -65,7 +65,7 @@ public class ImportController {
     new ImportDialog(app_).setVisible(true);
   }
 
-  public List<FileToImport> getFilesToImport() {
+  List<FileToImport> getFilesToImport() {
     return Arrays.stream(importDir_.listFiles((FileFilter)null))
     .filter(File::isFile)
     .map(FileToImport::new)
@@ -81,7 +81,7 @@ public class ImportController {
       : Optional.empty();
   }
 
-  public FileToImport importFile(FileToImport fileToImport) {
+  FileToImport importFile(FileToImport fileToImport) {
     final File file = fileToImport.getFile();
     final BlobController blobCtrl = app_.getBlobCtrl();
 
