@@ -138,11 +138,6 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
     return comp_.contains(entity);
   }
 
-  @Override
-  public boolean isEnabled() {
-    return true;
-  }
-
   public void setData(List<Blob> blobs) {
     comp_.setData(blobs);
   }

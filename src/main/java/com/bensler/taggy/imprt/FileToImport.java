@@ -63,7 +63,7 @@ class FileToImport {
 
   @Override
   public boolean equals(Object obj) {
-    return (obj instanceof FileToImport file) && file.file_.equals(file.file_);
+    return (obj instanceof FileToImport file) && file_.equals(file.file_);
   }
 
 }
