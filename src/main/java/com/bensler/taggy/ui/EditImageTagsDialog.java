@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import javax.swing.JSplitPane;
 
+import com.bensler.decaf.swing.SplitpanePrefPersister;
 import com.bensler.decaf.swing.awt.OverlayIcon;
 import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
 import com.bensler.decaf.swing.dialog.BasicContentPanel;

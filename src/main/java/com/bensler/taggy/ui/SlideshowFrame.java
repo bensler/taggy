@@ -10,6 +10,7 @@ import javax.swing.JSplitPane;
 
 import org.apache.commons.imaging.ImageReadException;
 
+import com.bensler.decaf.swing.SplitpanePrefPersister;
 import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
 import com.bensler.decaf.util.prefs.BulkPrefPersister;
 import com.bensler.decaf.util.prefs.PrefKey;

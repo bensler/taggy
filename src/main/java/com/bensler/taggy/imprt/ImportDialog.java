@@ -85,8 +85,10 @@ class ImportDialog extends JDialog {
     files_.addOrUpdateData(filesToImport);
     filesToSha_.addAll(filesToImport);
     pack();
+    final PrefKey baseKey = new PrefKey(App.PREFS_APP_ROOT, getClass());
     final BulkPrefPersister prefs = new BulkPrefPersister(
-      app.getPrefs(), new WindowPrefsPersister(new PrefKey(App.PREFS_APP_ROOT, getClass()), this)
+      app.getPrefs(), new WindowPrefsPersister(baseKey, this),
+      files_.createPrefs(new PrefKey(baseKey, "files"))
     );
     new WindowClosingTrigger(this, evt -> {
       synchronized (filesToSha_) {
