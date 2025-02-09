@@ -81,8 +81,8 @@ class ImportDialog extends JDialog {
     mainPanel.add(importButton, new CellConstraints(2, 4, RIGHT, CENTER));
     mainPanel.setPreferredSize(new Dimension(400, 400));
     setContentPane(mainPanel);
-    List<FileToImport> filesToImport = importController_.getFilesToImport();
-    files_.setData(filesToImport);
+    final List<FileToImport> filesToImport = importController_.getFilesToImport();
+    files_.addOrUpdateData(filesToImport);
     filesToSha_.addAll(filesToImport);
     pack();
     final BulkPrefPersister prefs = new BulkPrefPersister(
@@ -98,7 +98,9 @@ class ImportDialog extends JDialog {
   }
 
   private void importSelection() {
-    files_.getSelection().stream().map(importController_::importFile).forEach(files_::updateData);
+    files_.getSelection().stream()
+      .map(importController_::importFile)
+      .forEach(file -> files_.addOrUpdateData(List.of(file)));
   }
 
   static final class TypeIconRenderer extends SimpleCellRenderer<FileToImport, String> {
@@ -128,7 +130,7 @@ class ImportDialog extends JDialog {
     synchronized (filesToSha_) {
       lastProcessedItem.ifPresent(file -> {
         filesToSha_.remove(file);
-        SwingUtilities.invokeLater(() -> files_.updateData(file));
+        SwingUtilities.invokeLater(() -> files_.addOrUpdateData(List.of(file)));
       });
       return (!filesToSha_.isEmpty()) ? Optional.of(filesToSha_.getFirst()) : Optional.empty();
     }
