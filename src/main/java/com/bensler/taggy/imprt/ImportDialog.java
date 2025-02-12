@@ -21,6 +21,7 @@ import com.bensler.decaf.swing.dialog.WindowClosingTrigger;
 import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
 import com.bensler.decaf.swing.selection.SelectionMode;
 import com.bensler.decaf.swing.table.EntityTable;
+import com.bensler.decaf.swing.table.TablePrefPersister;
 import com.bensler.decaf.swing.table.TablePropertyView;
 import com.bensler.decaf.swing.table.TableView;
 import com.bensler.decaf.swing.view.PropertyViewImpl;
@@ -88,7 +89,7 @@ class ImportDialog extends JDialog {
     final PrefKey baseKey = new PrefKey(App.PREFS_APP_ROOT, getClass());
     final BulkPrefPersister prefs = new BulkPrefPersister(
       app.getPrefs(), new WindowPrefsPersister(baseKey, this),
-      files_.createPrefs(new PrefKey(baseKey, "files"))
+      new TablePrefPersister(new PrefKey(baseKey, "files"), files_.getComponent())
     );
     new WindowClosingTrigger(this, evt -> {
       synchronized (filesToSha_) {
