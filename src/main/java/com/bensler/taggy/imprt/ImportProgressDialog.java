@@ -15,6 +15,10 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 
+import com.bensler.decaf.swing.dialog.WindowClosingTrigger;
+import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
+import com.bensler.decaf.util.prefs.BulkPrefPersister;
+import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.ui.ThumbnailOverviewPanel;
@@ -30,6 +34,8 @@ class ImportProgressDialog extends JDialog {
   private final int fileToProcessCount_;
   private final ImportController importController_;
   private final List<FileToImport> filesToImport_;
+  private final BulkPrefPersister prefs_;
+  private boolean canceled_;
 
   ImportProgressDialog(ImportDialog parent, List<FileToImport> filesToImport) {
     super(parent, "Importing Files", true);
@@ -38,6 +44,7 @@ class ImportProgressDialog extends JDialog {
 
     importController_ = app.getImportCtrl();
     filesToImport_ = new LinkedList<>(filesToImport);
+    canceled_ = false;
 
     final JPanel mainPanel = new JPanel(new FormLayout(
       "3dlu, f:p:g, 3dlu",
@@ -47,7 +54,12 @@ class ImportProgressDialog extends JDialog {
     thumbs_.setPreferredScrollableViewportSize(1, 3);
     mainPanel.add(thumbs_.getScrollpane(), new CellConstraints(2, 2));
     fileToProcessCount_ = filesToImport_.size();
-    progress_ = new JProgressBar(0, fileToProcessCount_);
+    progress_ = new JProgressBar(0, fileToProcessCount_) {
+      @Override
+      public String getString() {
+        return getProgressString(super.getString());
+      }
+    };
     progress_.setValue(0);
     progress_.setStringPainted(true);
     mainPanel.add(progress_, new CellConstraints(2, 4));
@@ -63,15 +75,37 @@ class ImportProgressDialog extends JDialog {
       (parentBounds.y + (parentBounds.height / 2)) - (getHeight() / 2)
     );
 
+    prefs_ = new BulkPrefPersister(
+      app.getPrefs(), new WindowPrefsPersister(new PrefKey(App.PREFS_APP_ROOT, getClass()), this)
+    );
+    new WindowClosingTrigger(this, evt -> {
+      synchronized (filesToImport_) {filesToImport_.clear();}
+    });
+    setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     new Thread(new ImportThread(), "Taggy.Import.Import").start();
+  }
+
+  String getProgressString(String percentStr) {
+    synchronized (filesToImport_) {
+      final int doneFilesCount = (fileToProcessCount_ - filesToImport_.size());
+
+      return "%s/%s (%s) %s".formatted(doneFilesCount, fileToProcessCount_, percentStr, (canceled_ ? "canceled" : ""));
+    }
+  }
+
+  @Override
+  public void dispose() {
+    prefs_.store();
+    super.dispose();
   }
 
   private void cancelButtonPressed() {
     synchronized (filesToImport_) {
-      if (filesToImport_.isEmpty()) {
+      if (filesToImport_.isEmpty() || canceled_) {
         setVisible(false);
+        dispose();
       } else {
-        filesToImport_.clear();
+        canceled_ = true;
         adjustButtonText();
       }
     }
@@ -79,7 +113,7 @@ class ImportProgressDialog extends JDialog {
 
   private void adjustButtonText() {
     synchronized (filesToImport_) {
-      if (filesToImport_.isEmpty()) {
+      if (filesToImport_.isEmpty() || canceled_) {
         SwingUtilities.invokeLater(() -> cancelButton_.setText("Close"));
       }
     }
@@ -101,7 +135,7 @@ class ImportProgressDialog extends JDialog {
           });
       });
       adjustButtonText();
-      return (filesToImport_.isEmpty()) ? Optional.empty() : Optional.of(filesToImport_.getFirst());
+      return (filesToImport_.isEmpty() || canceled_) ? Optional.empty() : Optional.of(filesToImport_.getFirst());
     }
   }
 
