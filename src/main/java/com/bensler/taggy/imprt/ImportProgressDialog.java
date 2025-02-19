@@ -44,10 +44,12 @@ class ImportProgressDialog extends JDialog {
       "3dlu, f:p:g, 3dlu, p, 3dlu, p, 3dlu"
     ));
     thumbs_ = new ThumbnailOverviewPanel(app, SCROLL_HORIZONTALLY);
+    thumbs_.setPreferredScrollableViewportSize(1, 3);
     mainPanel.add(thumbs_.getScrollpane(), new CellConstraints(2, 2));
     fileToProcessCount_ = filesToImport_.size();
     progress_ = new JProgressBar(0, fileToProcessCount_);
     progress_.setValue(0);
+    progress_.setStringPainted(true);
     mainPanel.add(progress_, new CellConstraints(2, 4));
     cancelButton_ = new JButton("Cancel");
     cancelButton_.addActionListener(evt -> cancelButtonPressed());
@@ -94,6 +96,7 @@ class ImportProgressDialog extends JDialog {
             progress_.setValue(fileToProcessCount_ - filesToImport_.size());
             if (blob != null) {
               thumbs_.addImage(blob);
+              thumbs_.scrollToEnd();
             }
           });
       });

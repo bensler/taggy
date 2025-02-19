@@ -128,7 +128,10 @@ class ImportDialog extends JDialog {
   }
 
   void fileToUpdateChanged(FileToImport file) {
-    SwingUtilities.invokeLater(() -> files_.addOrUpdateData(List.of(file)));
+    SwingUtilities.invokeLater(() -> {
+      files_.addOrUpdateData(List.of(file));
+      files_.fireSelectionChanged();
+    });
   }
 
   Optional<FileToImport> getNextToSha(Optional<FileToImport> lastProcessedItem) {

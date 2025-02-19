@@ -58,6 +58,10 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
           return new Dimension(colCount, ((colCount < 2) ? tilesCount : rowCount));
         }
       }
+      @Override
+      Rectangle getScrollToEndTarget(ThumbnailOverviewPanel view) {
+        return new Rectangle(view.getPreferredSize().width - 10, 0, 10, 10);
+      }
     },
     SCROLL_VERTICALLY(VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER, true) {
       @Override
@@ -73,6 +77,10 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
           return new Dimension(((rowCount < 2) ? tilesCount : colCount), rowCount);
         }
       }
+      @Override
+      Rectangle getScrollToEndTarget(ThumbnailOverviewPanel view) {
+        return new Rectangle(0, view.getPreferredSize().height - 10, 10, 10);
+      }
     };
 
     final int verticalScrollbarPolicy_, horizontalScrollbarPolicy_;
@@ -87,6 +95,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     }
 
     abstract Dimension getGridSize(int tilesCount, Dimension compSize);
+    abstract Rectangle getScrollToEndTarget(ThumbnailOverviewPanel thumbnailOverviewPanel);
 
   }
 
@@ -111,6 +120,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
 
   private final List<Blob> selection_;
   private EntitySelectionListener<Blob> selectionListener_;
+  private Dimension prefViewPortSize_;
 
   public ThumbnailOverviewPanel(App app, ScrollingPolicy scrollingPolicy) {
     app_ = app;
@@ -132,8 +142,12 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
       this, scrollingPolicy_.verticalScrollbarPolicy_, scrollingPolicy_.horizontalScrollbarPolicy_
     );
     scrollPane_.getViewport().setBackground(getBackground());
+    setPreferredScrollableViewportSize(1, 3);
   }
 
+  public void scrollToEnd() {
+    scrollRectToVisible(scrollingPolicy_.getScrollToEndTarget(this));
+  }
   public JScrollPane getScrollpane() {
     return scrollPane_;
   }
@@ -325,19 +339,26 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     if ((gridSize.width == 0) && (gridSize.height == 0)) {
       gridSize = new Dimension(1, 1);
     }
-    return new Dimension(
-      (gridSize.width  * TILE_SIZE) + ((gridSize.width  + 1) * GAP),
-      (gridSize.height * TILE_SIZE) + ((gridSize.height + 1) * GAP)
-    );
+    return gridSizeToPixel(gridSize.height, gridSize.width);
   }
 
+  private static Dimension gridSizeToPixel(int rows, int cols) {
+    return new Dimension(
+      (cols * TILE_SIZE) + ((cols + 1) * GAP),
+      (rows * TILE_SIZE) + ((rows + 1) * GAP)
+    );
+  }
   public Dimension getGridSize() {
     return scrollingPolicy_.getGridSize(blobs_.size(), getSize());
   }
 
   @Override
   public Dimension getPreferredScrollableViewportSize() {
-    return new Dimension(100, 100);
+    return prefViewPortSize_;
+  }
+
+  public Dimension setPreferredScrollableViewportSize(int rows, int cols) {
+    return prefViewPortSize_ = gridSizeToPixel(rows, cols);
   }
 
   @Override
