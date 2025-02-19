@@ -101,9 +101,7 @@ class ImportDialog extends JDialog {
   }
 
   private void importSelection() {
-    files_.getSelection().stream()
-      .map(importController_::importFile)
-      .forEach(file -> files_.addOrUpdateData(List.of(file)));
+    new ImportProgressDialog(this, files_.getSelection()).setVisible(true);
   }
 
   static final class TypeIconRenderer extends SimpleCellRenderer<FileToImport, String> {
@@ -129,11 +127,15 @@ class ImportDialog extends JDialog {
     }
   }
 
+  void fileToUpdateChanged(FileToImport file) {
+    SwingUtilities.invokeLater(() -> files_.addOrUpdateData(List.of(file)));
+  }
+
   Optional<FileToImport> getNextToSha(Optional<FileToImport> lastProcessedItem) {
     synchronized (filesToSha_) {
       lastProcessedItem.ifPresent(file -> {
         filesToSha_.remove(file);
-        SwingUtilities.invokeLater(() -> files_.addOrUpdateData(List.of(file)));
+        fileToUpdateChanged(file);
       });
       return (!filesToSha_.isEmpty()) ? Optional.of(filesToSha_.getFirst()) : Optional.empty();
     }

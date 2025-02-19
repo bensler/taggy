@@ -90,11 +90,13 @@ public class ImportController {
       final String fileSha = blobCtrl.storeBlob(file, true);
       final String thumbSha = blobCtrl.storeBlob(thumbnail, false);
 
-      app_.storeEntity(new Blob(file.getName(), fileSha, thumbSha, fileToImport.getType()));
-      return new FileToImport(file, fileSha, "Duplicate (just imported)", fileToImport.getType());
+      return new FileToImport(
+        file, fileSha, "Duplicate (just imported)", fileToImport.getType(),
+        app_.storeEntity(new Blob(file.getName(), fileSha, thumbSha, fileToImport.getType()))
+      );
     } catch (IOException | ImageReadException e) {
       e.printStackTrace();
-      return new FileToImport(file, fileToImport.getShaSum(), "Import Error (%s)".formatted(e.getMessage()), fileToImport.getType());
+      return new FileToImport(file, fileToImport.getShaSum(), "Import Error (%s)".formatted(e.getMessage()), fileToImport.getType(), null);
     }
   }
 

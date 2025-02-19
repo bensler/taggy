@@ -320,8 +320,11 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
 
   @Override
   public Dimension getPreferredSize() {
-    final Dimension gridSize = getGridSize();
+    Dimension gridSize = getGridSize();
 
+    if ((gridSize.width == 0) && (gridSize.height == 0)) {
+      gridSize = new Dimension(1, 1);
+    }
     return new Dimension(
       (gridSize.width  * TILE_SIZE) + ((gridSize.width  + 1) * GAP),
       (gridSize.height * TILE_SIZE) + ((gridSize.height + 1) * GAP)
