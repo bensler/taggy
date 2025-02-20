@@ -18,6 +18,7 @@ public class Blob extends Object implements Entity {
 
     private Set<Tag> tags_;
 
+    /** Hibernate needs this empty constructor */
     private Blob() {
       this(null, null, null, null);
     }

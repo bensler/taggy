@@ -15,7 +15,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
@@ -25,6 +27,8 @@ import org.apache.commons.imaging.Imaging;
 import org.apache.commons.imaging.formats.jpeg.JpegImageMetadata;
 import org.apache.commons.imaging.formats.tiff.TiffField;
 import org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants;
+
+import com.bensler.decaf.util.TimerTrap;
 
 public class Thumbnailer {
 
@@ -97,10 +101,14 @@ public class Thumbnailer {
     return NOOP_AFFINE_TRANSFORM;
   }
 
+  private final static List<Long> statistics = new ArrayList<>(); // TODO rm
+
   private TiffField findTiffRotationValue(File srcFile) throws ImageReadException, IOException {
-    return (Imaging.getMetadata(srcFile) instanceof JpegImageMetadata jpgMeta)
-      ? jpgMeta.findEXIFValue(TiffTagConstants.TIFF_TAG_ORIENTATION)
-      : null;
+    try (var timer = new TimerTrap(statistics::add)) {
+      return (Imaging.getMetadata(srcFile) instanceof JpegImageMetadata jpgMeta)
+        ? jpgMeta.findEXIFValue(TiffTagConstants.TIFF_TAG_ORIENTATION)
+        : null;
+    }
   }
 
   public BufferedImage loadRotated(File srcFile) throws IOException, ImageReadException {
