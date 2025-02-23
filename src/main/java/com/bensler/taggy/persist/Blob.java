@@ -1,6 +1,8 @@
 package com.bensler.taggy.persist;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import com.bensler.decaf.util.tree.Hierarchy;
@@ -17,6 +19,7 @@ public class Blob extends Object implements Entity {
     private final String type_;
 
     private Set<Tag> tags_;
+    private Map<String, String> properties_;
 
     /** Hibernate needs this empty constructor */
     private Blob() {
@@ -30,6 +33,7 @@ public class Blob extends Object implements Entity {
       thumbnailSha_ = thumbnailSha;
       type_ = type;
       tags_ = new HashSet<>();
+      properties_ = new HashMap<>();
     }
 
     @Override
@@ -62,7 +66,7 @@ public class Blob extends Object implements Entity {
     }
 
     public void setTags(Set<Tag> tags) {
-      tags_ = new HashSet<  >(tags);
+      tags_ = new HashSet<>(tags);
     }
 
     public Hierarchy<Tag> getTagHierarchy() {
@@ -75,6 +79,14 @@ public class Blob extends Object implements Entity {
         } while ((aTag = aTag.getParent()) != null);
       });
       return tagHierarchy;
+    }
+
+    public void removeProperty(String name) {
+      properties_.remove(name);
+    }
+
+    public void addProperty(String name, String value) {
+      properties_.put(name, value);
     }
 
     @Override
