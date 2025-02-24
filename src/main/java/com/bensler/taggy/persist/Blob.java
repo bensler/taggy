@@ -23,17 +23,17 @@ public class Blob extends Object implements Entity {
 
     /** Hibernate needs this empty constructor */
     private Blob() {
-      this(null, null, null, null);
+      this(null, null, null, null, Map.of());
     }
 
-    public Blob(final String filename, String shaSum, String thumbnailSha, String type) {
+    public Blob(final String filename, String shaSum, String thumbnailSha, String type, Map<String, String> metaData) {
       id_ = null;
       filename_ = filename;
       sha256sum_ = shaSum;
       thumbnailSha_ = thumbnailSha;
       type_ = type;
       tags_ = new HashSet<>();
-      properties_ = new HashMap<>();
+      properties_ = new HashMap<>(metaData);
     }
 
     @Override

@@ -11,6 +11,7 @@ import javax.swing.UIManager;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.Prefs;
 import com.bensler.taggy.imprt.ImportController;
+import com.bensler.taggy.imprt.Thumbnailer;
 import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.persist.DbConnector;
 import com.bensler.taggy.persist.Entity;

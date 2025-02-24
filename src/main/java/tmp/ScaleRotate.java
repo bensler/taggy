@@ -5,12 +5,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.HashMap;
 
 import javax.imageio.ImageIO;
 
 import org.apache.commons.imaging.ImageReadException;
 
-import com.bensler.taggy.Thumbnailer;
+import com.bensler.taggy.imprt.Thumbnailer;
 
 public class ScaleRotate {
 
@@ -26,7 +27,7 @@ public class ScaleRotate {
 
     ImageIO.write(ImageIO.read(srcFile), "jpg", new File(srcFolder, ++number + "-src.jpg"));
     mv(
-      thumbnailer_.scaleRotateImage(srcFile),
+      thumbnailer_.scaleRotateImage(srcFile, new HashMap<>()),
       srcFolder, number + "-scaleRotated.jpg"
     );
   }

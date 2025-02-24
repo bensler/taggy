@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -29,6 +30,9 @@ public class ImportController {
   private static final String TYPE_JPG = TYPE_PREFIX + "JPG";
   private static final String TYPE_PNG = TYPE_PREFIX + "PNG";
   private static final String TYPE_TIF = TYPE_PREFIX + "TIF";
+  private static final String SIZE_PREFIX = TYPE_PREFIX + "size.";
+  public  static final String PROPERTY_SIZE_WIDTH  = SIZE_PREFIX + "width";
+  public  static final String PROPERTY_SIZE_HEIGHT = SIZE_PREFIX + "height";
 
   private static final Map<String, String> EXTENSIONS_TO_TYPE_MAP = Map.of(
     "JPG",  TYPE_JPG,
@@ -85,15 +89,16 @@ public class ImportController {
   FileToImport importFile(FileToImport fileToImport) {
     final File file = fileToImport.getFile();
     final BlobController blobCtrl = app_.getBlobCtrl();
+    final Map<String, String> metaData = new HashMap<>();
 
     try {
-      final File thumbnail = app_.getThumbnailer().scaleRotateImage(file);
+      final File thumbnail = app_.getThumbnailer().scaleRotateImage(file, metaData);
       final String fileSha = blobCtrl.storeBlob(file, true);
       final String thumbSha = blobCtrl.storeBlob(thumbnail, false);
 
       return new FileToImport(
         file, fileSha, "Duplicate (just imported)", fileToImport.getType(),
-        app_.storeEntity(new Blob(file.getName(), fileSha, thumbSha, fileToImport.getType()))
+        app_.storeEntity(new Blob(file.getName(), fileSha, thumbSha, fileToImport.getType(), metaData))
       );
     } catch (IOException | ImageReadException e) {
       e.printStackTrace();

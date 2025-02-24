@@ -8,6 +8,8 @@ import java.util.Optional;
 
 import javax.swing.JComponent;
 
+import com.bensler.decaf.util.TimerTrap;
+
 public class ImageComponent extends JComponent {
 
   private BufferedImage img_;
@@ -42,12 +44,14 @@ public class ImageComponent extends JComponent {
       final double heightRatio = (img_.getHeight() / size.getHeight());
       final double ratio;
 
-      if (widthRatio > heightRatio) {
-        drawImg_ = img_.getScaledInstance(size.width, -1, 0);
-        ratio = widthRatio;
-      } else {
-        drawImg_ = img_.getScaledInstance(-1, size.height, 0);
-        ratio = heightRatio;
+      try (var timer = new TimerTrap("ImageComponent.resizeDrawImg")) {
+        if (widthRatio > heightRatio) {
+          drawImg_ = img_.getScaledInstance(size.width, -1, 0);
+          ratio = widthRatio;
+        } else {
+          drawImg_ = img_.getScaledInstance(-1, size.height, 0);
+          ratio = heightRatio;
+        }
       }
       Optional<Integer> newPercentage = Optional.of(Math.round(100 / (float)ratio));
       drawImgCompSize_ = size;
@@ -55,7 +59,7 @@ public class ImageComponent extends JComponent {
 
     g.drawImage(
       drawImg_,
-      (size.width - drawImg_.getWidth(null)) / 2,
+      (size.width  - drawImg_.getWidth(null) ) / 2,
       (size.height - drawImg_.getHeight(null)) / 2,
       this
     );

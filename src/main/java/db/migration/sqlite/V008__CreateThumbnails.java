@@ -8,6 +8,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashMap;
 import java.util.concurrent.Semaphore;
 import java.util.stream.IntStream;
 
@@ -16,7 +17,7 @@ import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
 
 import com.bensler.taggy.App;
-import com.bensler.taggy.Thumbnailer;
+import com.bensler.taggy.imprt.Thumbnailer;
 import com.bensler.taggy.ui.BlobController;
 
 public class V008__CreateThumbnails extends BaseJavaMigration {
@@ -115,7 +116,7 @@ public class V008__CreateThumbnails extends BaseJavaMigration {
     private void doWork(WorkPackage workPackage) throws SQLException, IOException, ImageReadException {
       final File thunbnail;
 
-      thunbnail = thumbnailer_.scaleRotateImage(blobCtrl_.getFile(workPackage.shaHash));
+      thunbnail = thumbnailer_.scaleRotateImage(blobCtrl_.getFile(workPackage.shaHash), new HashMap<>());
       source.workDone(workPackage.id, blobCtrl_.storeBlob(thunbnail, false));
       System.out.println("%s processed %d".formatted(workerName, workPackage.id));
     }

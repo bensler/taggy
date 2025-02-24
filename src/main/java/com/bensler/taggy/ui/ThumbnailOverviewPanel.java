@@ -1,6 +1,6 @@
 package com.bensler.taggy.ui;
 
-import static com.bensler.taggy.Thumbnailer.THUMBNAIL_SIZE;
+import static com.bensler.taggy.imprt.Thumbnailer.THUMBNAIL_SIZE;
 import static java.awt.BasicStroke.CAP_BUTT;
 import static java.awt.BasicStroke.JOIN_BEVEL;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;

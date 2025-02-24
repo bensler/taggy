@@ -1,4 +1,4 @@
-package com.bensler.taggy;
+package com.bensler.taggy.imprt;
 
 import static org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants.ORIENTATION_VALUE_ROTATE_270_CW;
 import static org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants.ORIENTATION_VALUE_ROTATE_90_CW;
@@ -52,17 +52,13 @@ public class Thumbnailer {
     Arrays.stream(tmpDir_.listFiles()).forEach(File::delete);
   }
 
-  public File scaleImage(File sourceFile) throws IOException {
-    try (FileInputStream fis = new FileInputStream(sourceFile)) {
-      return writeImgToFile(scaleImageFromStream(fis));
-    }
-  }
-
-  public BufferedImage scaleImageFromStream(InputStream fis) throws IOException {
+  public BufferedImage scaleImageFromStream(InputStream fis, Map<String, String> metaDataSink) throws IOException {
     final BufferedImage srcImg = ImageIO.read(fis);
     int width = srcImg.getWidth();
     int height = srcImg.getHeight();
 
+    metaDataSink.put(ImportController.PROPERTY_SIZE_WIDTH,  String.valueOf(width));
+    metaDataSink.put(ImportController.PROPERTY_SIZE_HEIGHT, String.valueOf(height));
     if ((width > THUMBNAIL_SIZE) || (height > THUMBNAIL_SIZE)) {
       if (width > height) {
         width = THUMBNAIL_SIZE;
@@ -127,8 +123,8 @@ public class Thumbnailer {
     );
   }
 
-  public File scaleRotateImage(File srcFile) throws IOException, ImageReadException {
-    final BufferedImage scaledImg = scaleImageFromStream(new FileInputStream(srcFile));
+  public File scaleRotateImage(File srcFile, Map<String, String> metaDataSink) throws IOException, ImageReadException {
+    final BufferedImage scaledImg = scaleImageFromStream(new FileInputStream(srcFile), metaDataSink);
     final AffineTransform transRotate = chooseRotationTransform(srcFile);
     final AffineTransform transTranslate = compensateForRotation(scaledImg, transRotate);
     final AffineTransformOp rotateTranslateOp;
