@@ -25,9 +25,10 @@ import com.bensler.taggy.ui.BlobController;
 
 public class ImportController {
 
-  private static final String TYPE_JPG = "JPG";
-  private static final String TYPE_PNG = "PNG";
-  private static final String TYPE_TIF = "TIF";
+  private static final String TYPE_PREFIX = "bin.img.";
+  private static final String TYPE_JPG = TYPE_PREFIX + "JPG";
+  private static final String TYPE_PNG = TYPE_PREFIX + "PNG";
+  private static final String TYPE_TIF = TYPE_PREFIX + "TIF";
 
   private static final Map<String, String> EXTENSIONS_TO_TYPE_MAP = Map.of(
     "JPG",  TYPE_JPG,
