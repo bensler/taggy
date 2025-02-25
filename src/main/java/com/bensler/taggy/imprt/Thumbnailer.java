@@ -15,12 +15,15 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoField;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TimeZone;
 
 import javax.imageio.ImageIO;
 
@@ -28,9 +31,9 @@ import org.apache.commons.imaging.ImageReadException;
 import org.apache.commons.imaging.Imaging;
 import org.apache.commons.imaging.formats.jpeg.JpegImageMetadata;
 import org.apache.commons.imaging.formats.tiff.TiffField;
+import org.apache.commons.imaging.formats.tiff.constants.ExifTagConstants;
 import org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants;
-
-import com.bensler.decaf.util.TimerTrap;
+import org.apache.commons.imaging.formats.tiff.taginfos.TagInfoAscii;
 
 public class Thumbnailer {
 
@@ -108,23 +111,48 @@ public class Thumbnailer {
   }
 
   public AffineTransform chooseRotationTransform(File srcFile, Map<String, String> metaDataSink) throws ImageReadException, IOException {
-    final TiffField tiffRotationValue = findTiffRotationValue(srcFile);
-    Orientation orientation = Orientation.ROTATE_000_CW;
+    final Optional<JpegImageMetadata> optMetaData = getMetaData(srcFile);
+    final Optional<Orientation> optOrientation = optMetaData.map(metaData -> metaData.findEXIFValue(TiffTagConstants.TIFF_TAG_ORIENTATION))
+        .map(tiffField -> ROTATION_TRANSFORMATIONS.get(getTiffIntValue(tiffField)));
 
-    if (tiffRotationValue != null) {
-      orientation = ROTATION_TRANSFORMATIONS.getOrDefault(tiffRotationValue.getIntValue(), Orientation.ROTATE_000_CW);
-      orientation.putMetaData(metaDataSink);
-    }
-    return orientation.transform_;
+    optOrientation.ifPresent(orientation -> orientation.putMetaData(metaDataSink));
+    return optOrientation.orElse(Orientation.ROTATE_000_CW).transform_;
   }
 
-  private final static List<Long> statistics = new ArrayList<>(); // TODO rm
+  private int getTiffIntValue(TiffField tiffField) {
+    try {
+      return tiffField.getIntValue();
+    } catch (ImageReadException ire) {
+      throw new RuntimeException(ire);
+    }
+  }
 
-  private TiffField findTiffRotationValue(File srcFile) throws ImageReadException, IOException {
-    try (var timer = new TimerTrap(statistics::add)) {
-      return (Imaging.getMetadata(srcFile) instanceof JpegImageMetadata jpgMeta)
-        ? jpgMeta.findEXIFValue(TiffTagConstants.TIFF_TAG_ORIENTATION)
-        : null;
+  private Optional<JpegImageMetadata> getMetaData(File srcFile) throws ImageReadException, IOException {
+    return (Imaging.getMetadata(srcFile) instanceof JpegImageMetadata jpgMeta)
+      ? Optional.of(jpgMeta) : Optional.empty();
+  }
+
+  public static final List<TagInfoAscii> DATE_TAGS = List.of(
+    TiffTagConstants.TIFF_TAG_DATE_TIME,
+    ExifTagConstants.EXIF_TAG_DATE_TIME_ORIGINAL,
+    ExifTagConstants.EXIF_TAG_DATE_TIME_DIGITIZED
+  );
+  public final static DateTimeFormatter dateParser = DateTimeFormatter
+    .ofPattern("yyyy:MM:dd HH:mm:ss")
+    .withZone(TimeZone.getDefault().toZoneId());
+
+  private void findDate(JpegImageMetadata jpgMeta, Map<String, String> metaDataSink) throws ImageReadException {
+    final Optional<TiffField> dateField = DATE_TAGS.stream()
+    .map(tag -> Optional.ofNullable(jpgMeta.findEXIFValue(tag)))
+    .flatMap(fieldValue -> fieldValue.stream())
+    .findFirst();
+
+    if (dateField.isPresent()) {
+      final Instant instant = Instant.from(dateParser.parse(dateField.get().getStringValue()));
+
+      metaDataSink.put(ImportController.PROPERTY_DATE_YEAR, String.valueOf(instant.get(ChronoField.YEAR)));
+      metaDataSink.put(ImportController.PROPERTY_DATE_YEAR, String.valueOf(instant.get(ChronoField.MONTH_OF_YEAR)));
+      metaDataSink.put(ImportController.PROPERTY_DATE_YEAR, String.valueOf(instant.get(ChronoField.DAY_OF_MONTH)));
     }
   }
 
