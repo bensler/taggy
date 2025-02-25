@@ -26,13 +26,21 @@ import com.bensler.taggy.ui.BlobController;
 
 public class ImportController {
 
-  private static final String TYPE_PREFIX = "bin.img.";
-  private static final String TYPE_JPG = TYPE_PREFIX + "JPG";
-  private static final String TYPE_PNG = TYPE_PREFIX + "PNG";
-  private static final String TYPE_TIF = TYPE_PREFIX + "TIF";
-  private static final String SIZE_PREFIX = TYPE_PREFIX + "size.";
+  private static final String TYPE_BIN_PREFIX = "bin.";
+  private static final String TYPE_IMG_PREFIX = TYPE_BIN_PREFIX + "img.";
+  private static final String TYPE_JPG = TYPE_IMG_PREFIX + "JPG";
+  private static final String TYPE_PNG = TYPE_IMG_PREFIX + "PNG";
+  private static final String TYPE_TIF = TYPE_IMG_PREFIX + "TIF";
+  private static final String SIZE_PREFIX = TYPE_IMG_PREFIX + "size.";
   public  static final String PROPERTY_SIZE_WIDTH  = SIZE_PREFIX + "width";
   public  static final String PROPERTY_SIZE_HEIGHT = SIZE_PREFIX + "height";
+  public  static final String PROPERTY_ORIENTATION = TYPE_IMG_PREFIX + "orientation";
+  public  static final String PROPERTY_ORIENTATION_VALUE_90_CW  = "rotate90cw";
+  public  static final String PROPERTY_ORIENTATION_VALUE_270_CW = "rotate270cw";
+  public  static final String DATE_PREFIX = TYPE_BIN_PREFIX + "date.";
+  public  static final String PROPERTY_DATE_YEAR  = DATE_PREFIX + "year";
+  public  static final String PROPERTY_DATE_MONTH = DATE_PREFIX + "month";
+  public  static final String PROPERTY_DATE_DAY   = DATE_PREFIX + "day";
 
   private static final Map<String, String> EXTENSIONS_TO_TYPE_MAP = Map.of(
     "JPG",  TYPE_JPG,

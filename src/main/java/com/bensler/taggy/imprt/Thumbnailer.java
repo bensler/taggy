@@ -17,8 +17,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.imageio.ImageIO;
 
@@ -34,11 +36,28 @@ public class Thumbnailer {
 
   public static final String WORKING_SUBDIR = "thumbnailer";
 
-  public static final AffineTransform NOOP_AFFINE_TRANSFORM = AffineTransform.getScaleInstance(1.0, 1.0);
+  private enum Orientation {
+    ROTATE_000_CW(AffineTransform.getQuadrantRotateInstance(0), null),
+    ROTATE_090_CW(AffineTransform.getQuadrantRotateInstance(1), ImportController.PROPERTY_ORIENTATION_VALUE_90_CW),
+    ROTATE_270_CW(AffineTransform.getQuadrantRotateInstance(3), ImportController.PROPERTY_ORIENTATION_VALUE_270_CW);
 
-  private final static Map<Integer, AffineTransform> ROTATION_TRANSFORMATIONS = Map.of(
-    ORIENTATION_VALUE_ROTATE_90_CW,  AffineTransform.getQuadrantRotateInstance(1),
-    ORIENTATION_VALUE_ROTATE_270_CW, AffineTransform.getQuadrantRotateInstance(3)
+    final AffineTransform transform_;
+    final Optional<String> metaDataValue_;
+
+    Orientation(AffineTransform transform, String metaDataValue) {
+      transform_ = transform;
+      metaDataValue_ = Optional.ofNullable(metaDataValue);
+    }
+
+    void putMetaData(Map<String, String> metaDataSink) {
+      metaDataValue_.ifPresent(value -> metaDataSink.put(ImportController.PROPERTY_ORIENTATION, value));
+    }
+
+  }
+
+  private final static Map<Integer, Orientation> ROTATION_TRANSFORMATIONS = Map.of(
+    ORIENTATION_VALUE_ROTATE_90_CW,  Orientation.ROTATE_090_CW,
+    ORIENTATION_VALUE_ROTATE_270_CW, Orientation.ROTATE_270_CW
   );
 
   private final File tmpDir_;
@@ -88,13 +107,15 @@ public class Thumbnailer {
     return outputFile;
   }
 
-  public AffineTransform chooseRotationTransform(File srcFile) throws ImageReadException, IOException {
+  public AffineTransform chooseRotationTransform(File srcFile, Map<String, String> metaDataSink) throws ImageReadException, IOException {
     final TiffField tiffRotationValue = findTiffRotationValue(srcFile);
+    Orientation orientation = Orientation.ROTATE_000_CW;
 
     if (tiffRotationValue != null) {
-      return ROTATION_TRANSFORMATIONS.getOrDefault(tiffRotationValue.getIntValue(), NOOP_AFFINE_TRANSFORM);
+      orientation = ROTATION_TRANSFORMATIONS.getOrDefault(tiffRotationValue.getIntValue(), Orientation.ROTATE_000_CW);
+      orientation.putMetaData(metaDataSink);
     }
-    return NOOP_AFFINE_TRANSFORM;
+    return orientation.transform_;
   }
 
   private final static List<Long> statistics = new ArrayList<>(); // TODO rm
@@ -109,7 +130,7 @@ public class Thumbnailer {
 
   public BufferedImage loadRotated(File srcFile) throws IOException, ImageReadException {
     final BufferedImage srcImg = ImageIO.read(srcFile);
-    final AffineTransform transRotate = chooseRotationTransform(srcFile);
+    final AffineTransform transRotate = chooseRotationTransform(srcFile, new HashMap<>());
     final AffineTransform transTranslate = compensateForRotation(srcImg, transRotate);
     final AffineTransformOp rotateTranslateOp;
 
@@ -125,7 +146,7 @@ public class Thumbnailer {
 
   public File scaleRotateImage(File srcFile, Map<String, String> metaDataSink) throws IOException, ImageReadException {
     final BufferedImage scaledImg = scaleImageFromStream(new FileInputStream(srcFile), metaDataSink);
-    final AffineTransform transRotate = chooseRotationTransform(srcFile);
+    final AffineTransform transRotate = chooseRotationTransform(srcFile, metaDataSink);
     final AffineTransform transTranslate = compensateForRotation(scaledImg, transRotate);
     final AffineTransformOp rotateTranslateOp;
 
