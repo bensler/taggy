@@ -215,7 +215,8 @@ public class BlobController {
 
   public BufferedImage loadRotated(Blob blob) throws IOException {
     return rotate(
-      ImageIO.read( getFile(blob.getSha256sum())), findOrientation(blob),
+      ImageIO.read( getFile(blob.getSha256sum())),
+      Optional.ofNullable(blob.getProperty(PROPERTY_ORIENTATION)),
       (transform, srcImg) -> transform.createCompatibleDestImage(srcImg, null)
     );
   }
@@ -224,10 +225,6 @@ public class BlobController {
     PROPERTY_ORIENTATION_VALUE_90_CW, Orientation.ROTATE_090_CW,
     PROPERTY_ORIENTATION_VALUE_270_CW, Orientation.ROTATE_270_CW
   ));
-
-  private Optional<Orientation> findOrientation(Blob blob) {
-    return Optional.ofNullable(ORIENTATIONS_BY_STR.get(blob.getProperty(PROPERTY_ORIENTATION)));
-  }
 
   private AffineTransform compensateForRotation(BufferedImage scaledImg, AffineTransform transRotate) {
     final AffineTransformOp rotateOp = new AffineTransformOp(transRotate, null);
@@ -243,13 +240,13 @@ public class BlobController {
   }
 
   public Blob importFile(File file, String type) throws IOException, ImageReadException {
-      final App app = App.getApp();
-      final Map<String, String> metaData = new HashMap<>();
-      final File thumbnail = importFile(file, metaData);
-      final String fileSha = storeBlob(file, true);
-      final String thumbSha = storeBlob(thumbnail, false);
+    final App app = App.getApp();
+    final Map<String, String> metaData = new HashMap<>();
+    final File thumbnail = importFile(file, metaData);
+    final String fileSha = storeBlob(file, true);
+    final String thumbSha = storeBlob(thumbnail, false);
 
-      return app.storeEntity(new Blob(file.getName(), fileSha, thumbSha, type, metaData));
+    return app.storeEntity(new Blob(file.getName(), fileSha, thumbSha, type, metaData));
   }
 
   private Optional<JpegImageMetadata> getMetaData(File srcFile) throws ImageReadException, IOException {
@@ -257,19 +254,25 @@ public class BlobController {
       ? Optional.of(jpgMeta) : Optional.empty();
   }
 
-  private File importFile(File srcFile, Map<String, String> metaDataSink) throws IOException, ImageReadException {
-    final Thumbnailer thumbnailer = App.getApp().getThumbnailer();
+  public BufferedImage readImageMetadata(File srcFile, Map<String, String> metaDataSink) throws ImageReadException, IOException {
     final Optional<JpegImageMetadata> srcMetaData = getMetaData(srcFile);
     final BufferedImage srcImg = ImageIO.read(new FileInputStream(srcFile));
-    final Optional<Orientation> orientation = findOrientation(srcMetaData);
 
     metaDataSink.put(PROPERTY_SIZE_WIDTH,  String.valueOf(srcImg.getWidth()));
     metaDataSink.put(PROPERTY_SIZE_HEIGHT, String.valueOf(srcImg.getHeight()));
     srcMetaData.ifPresent(metaData -> findDate(metaData, metaDataSink));
-    orientation.ifPresent(value -> value.putMetaData(metaDataSink));
+    findOrientation(srcMetaData).ifPresent(value -> value.putMetaData(metaDataSink));
+    return srcImg;
+  }
+
+  private File importFile(File srcFile, Map<String, String> metaDataSink) throws IOException, ImageReadException {
+    final Thumbnailer thumbnailer = App.getApp().getThumbnailer();
+    final BufferedImage srcImg = readImageMetadata(srcFile, metaDataSink);
+    final BufferedImage thumbnail = thumbnailer.scaleImage(srcImg);
 
     return thumbnailer.writeImgToFile(rotate(
-      thumbnailer.scaleImage(srcImg), orientation,
+      thumbnail,
+      Optional.ofNullable(metaDataSink.get(PROPERTY_ORIENTATION)),
       (transform, img) -> {
         final Rectangle2D rotatedBounds = transform.getBounds2D(img);
         // no alpha as jpg does not support it ------------------------------------------------------------------------vvv
@@ -279,10 +282,10 @@ public class BlobController {
   }
 
   private BufferedImage rotate(
-    BufferedImage srcImg, Optional<Orientation> orientation,
+    BufferedImage srcImg, Optional<String> orientationStr,
     BiFunction<AffineTransformOp, BufferedImage, BufferedImage> targetImgSource
   ) {
-    final AffineTransform transRotate = orientation.orElse(Orientation.ROTATE_000_CW).transform_;
+    final AffineTransform transRotate = orientationStr.map(ORIENTATIONS_BY_STR::get).orElse(Orientation.ROTATE_000_CW).transform_;
     final AffineTransform transTranslate = compensateForRotation(srcImg, transRotate);
     final AffineTransformOp rotateTranslateOp;
 
@@ -295,10 +298,15 @@ public class BlobController {
   }
 
   private Optional<Orientation> findOrientation(Optional<JpegImageMetadata> optMeta) {
-    return optMeta.flatMap(jpgMeta -> Optional.ofNullable(jpgMeta.findEXIFValue(TiffTagConstants.TIFF_TAG_ORIENTATION)))
-      .map(this::getTiffIntValue)
-      .filter(ROTATION_TRANSFORMATIONS::containsKey)
-      .map(ROTATION_TRANSFORMATIONS::get);
+    try {
+      return optMeta.flatMap(jpgMeta -> Optional.ofNullable(jpgMeta.findEXIFValue(TiffTagConstants.TIFF_TAG_ORIENTATION)))
+        .map(this::getTiffIntValue)
+        .filter(ROTATION_TRANSFORMATIONS::containsKey)
+        .map(ROTATION_TRANSFORMATIONS::get);
+    } catch (RuntimeException rte) { // never trust untrusted date strings
+      rte.printStackTrace();
+      return Optional.empty();
+    }
   }
 
   private int getTiffIntValue(TiffField tiffField) {
@@ -318,14 +326,18 @@ public class BlobController {
   }
 
   private void findDate(JpegImageMetadata jpgMeta, Map<String, String> metaDataSink) {
-    DATE_TAGS.stream()
-      .flatMap(tag -> Optional.ofNullable(jpgMeta.findEXIFValue(tag)).stream())
-      .findFirst()
-      .map(this::getTiffStringValue).map(dateParser::parse).map(LocalDate::from).ifPresent(instant -> {
-        metaDataSink.put(PROPERTY_DATE_YEAR,  String.valueOf(instant.get(ChronoField.YEAR)));
-        metaDataSink.put(PROPERTY_DATE_MONTH, String.valueOf(instant.get(ChronoField.MONTH_OF_YEAR)));
-        metaDataSink.put(PROPERTY_DATE_DAY,   String.valueOf(instant.get(ChronoField.DAY_OF_MONTH)));
-      });
+    try {
+      DATE_TAGS.stream()
+        .flatMap(tag -> Optional.ofNullable(jpgMeta.findEXIFValue(tag)).stream())
+        .findFirst()
+        .map(this::getTiffStringValue).map(dateParser::parse).map(LocalDate::from).ifPresent(instant -> {
+          metaDataSink.put(PROPERTY_DATE_YEAR,  String.valueOf(instant.get(ChronoField.YEAR)));
+          metaDataSink.put(PROPERTY_DATE_MONTH, String.valueOf(instant.get(ChronoField.MONTH_OF_YEAR)));
+          metaDataSink.put(PROPERTY_DATE_DAY,   String.valueOf(instant.get(ChronoField.DAY_OF_MONTH)));
+        });
+    } catch (RuntimeException rte) { // never trust untrusted date strings
+      rte.printStackTrace();
+    }
   }
 
   public static final List<TagInfoAscii> DATE_TAGS = List.of(
