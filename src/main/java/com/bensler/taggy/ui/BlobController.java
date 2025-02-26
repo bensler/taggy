@@ -9,7 +9,6 @@ import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -43,7 +42,6 @@ import org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants;
 import org.apache.commons.imaging.formats.tiff.taginfos.TagInfoAscii;
 
 import com.bensler.taggy.App;
-import com.bensler.taggy.imprt.Thumbnailer;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.DbAccess;
 
@@ -78,9 +76,23 @@ public class BlobController {
     }
   }
 
-  public final static Map<Integer, Orientation> ROTATION_TRANSFORMATIONS = Map.of(
+  private final static Map<Integer, Orientation> ROTATION_TRANSFORMATIONS = new HashMap<>(Map.of(
     ORIENTATION_VALUE_ROTATE_90_CW,  Orientation.ROTATE_090_CW,
     ORIENTATION_VALUE_ROTATE_270_CW, Orientation.ROTATE_270_CW
+  ));
+
+  private static final Map<String, Orientation> ORIENTATIONS_BY_STR = Map.of(
+    PROPERTY_ORIENTATION_VALUE_90_CW, Orientation.ROTATE_090_CW,
+    PROPERTY_ORIENTATION_VALUE_270_CW, Orientation.ROTATE_270_CW
+  );
+
+  public final static DateTimeFormatter dateParser = DateTimeFormatter.ofPattern("yyyy:MM:dd HH:mm:ss")
+    .withZone(TimeZone.getDefault().toZoneId());
+
+  public static final List<TagInfoAscii> DATE_TAGS = List.of(
+    TiffTagConstants.TIFF_TAG_DATE_TIME,
+    ExifTagConstants.EXIF_TAG_DATE_TIME_ORIGINAL,
+    ExifTagConstants.EXIF_TAG_DATE_TIME_DIGITIZED
   );
 
   public static final String BLOB_FOLDER_BASE_NAME = "blobs";
@@ -216,15 +228,10 @@ public class BlobController {
   public BufferedImage loadRotated(Blob blob) throws IOException {
     return rotate(
       ImageIO.read( getFile(blob.getSha256sum())),
-      Optional.ofNullable(blob.getProperty(PROPERTY_ORIENTATION)),
+      findOrientation(blob.getProperty(PROPERTY_ORIENTATION)),
       (transform, srcImg) -> transform.createCompatibleDestImage(srcImg, null)
     );
   }
-
-  private static final Map<String, Orientation> ORIENTATIONS_BY_STR = new HashMap<>(Map.of(
-    PROPERTY_ORIENTATION_VALUE_90_CW, Orientation.ROTATE_090_CW,
-    PROPERTY_ORIENTATION_VALUE_270_CW, Orientation.ROTATE_270_CW
-  ));
 
   private AffineTransform compensateForRotation(BufferedImage scaledImg, AffineTransform transRotate) {
     final AffineTransformOp rotateOp = new AffineTransformOp(transRotate, null);
@@ -266,26 +273,16 @@ public class BlobController {
   }
 
   private File importFile(File srcFile, Map<String, String> metaDataSink) throws IOException, ImageReadException {
-    final Thumbnailer thumbnailer = App.getApp().getThumbnailer();
-    final BufferedImage srcImg = readImageMetadata(srcFile, metaDataSink);
-    final BufferedImage thumbnail = thumbnailer.scaleImage(srcImg);
-
-    return thumbnailer.writeImgToFile(rotate(
-      thumbnail,
-      Optional.ofNullable(metaDataSink.get(PROPERTY_ORIENTATION)),
-      (transform, img) -> {
-        final Rectangle2D rotatedBounds = transform.getBounds2D(img);
-        // no alpha as jpg does not support it ------------------------------------------------------------------------vvv
-        return new BufferedImage((int)rotatedBounds.getWidth(), (int)rotatedBounds.getHeight(), BufferedImage.TYPE_INT_RGB);
-      }
-    ));
+    return App.getApp().getThumbnailer().createThumbnail(
+      readImageMetadata(srcFile, metaDataSink), findOrientation(metaDataSink.get(PROPERTY_ORIENTATION))
+    );
   }
 
-  private BufferedImage rotate(
-    BufferedImage srcImg, Optional<String> orientationStr,
+  public BufferedImage rotate(
+    BufferedImage srcImg, Orientation orientation,
     BiFunction<AffineTransformOp, BufferedImage, BufferedImage> targetImgSource
   ) {
-    final AffineTransform transRotate = orientationStr.map(ORIENTATIONS_BY_STR::get).orElse(Orientation.ROTATE_000_CW).transform_;
+    final AffineTransform transRotate = orientation.transform_;
     final AffineTransform transTranslate = compensateForRotation(srcImg, transRotate);
     final AffineTransformOp rotateTranslateOp;
 
@@ -295,6 +292,10 @@ public class BlobController {
     ));
 
     return rotateTranslateOp.filter(srcImg, targetImgSource.apply(rotateTranslateOp, srcImg));
+  }
+
+  private Orientation findOrientation(String orientationStr) {
+    return ORIENTATIONS_BY_STR.getOrDefault(Optional.ofNullable(orientationStr).orElse(""), Orientation.ROTATE_000_CW);
   }
 
   private Optional<Orientation> findOrientation(Optional<JpegImageMetadata> optMeta) {
@@ -339,15 +340,5 @@ public class BlobController {
       rte.printStackTrace();
     }
   }
-
-  public static final List<TagInfoAscii> DATE_TAGS = List.of(
-    TiffTagConstants.TIFF_TAG_DATE_TIME,
-    ExifTagConstants.EXIF_TAG_DATE_TIME_ORIGINAL,
-    ExifTagConstants.EXIF_TAG_DATE_TIME_DIGITIZED
-  );
-
-  public final static DateTimeFormatter dateParser = DateTimeFormatter
-    .ofPattern("yyyy:MM:dd HH:mm:ss")
-    .withZone(TimeZone.getDefault().toZoneId());
 
 }
