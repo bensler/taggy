@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -22,7 +21,6 @@ import com.bensler.decaf.swing.awt.OverlayIcon;
 import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
-import com.bensler.taggy.ui.BlobController;
 
 public class ImportController {
 
@@ -96,18 +94,12 @@ public class ImportController {
 
   FileToImport importFile(FileToImport fileToImport) {
     final File file = fileToImport.getFile();
-    final BlobController blobCtrl = app_.getBlobCtrl();
-    final Map<String, String> metaData = new HashMap<>();
+    final String type = fileToImport.getType();
 
     try {
-      final File thumbnail = app_.getThumbnailer().scaleRotateImage(file, metaData);
-      final String fileSha = blobCtrl.storeBlob(file, true);
-      final String thumbSha = blobCtrl.storeBlob(thumbnail, false);
+      final Blob blob = app_.getBlobCtrl().importFile(file, type);
 
-      return new FileToImport(
-        file, fileSha, "Duplicate (just imported)", fileToImport.getType(),
-        app_.storeEntity(new Blob(file.getName(), fileSha, thumbSha, fileToImport.getType(), metaData))
-      );
+      return new FileToImport(file, blob.getSha256sum(), "Duplicate (just imported)", type, blob);
     } catch (IOException | ImageReadException e) {
       e.printStackTrace();
       return new FileToImport(file, fileToImport.getShaSum(), "Import Error (%s)".formatted(e.getMessage()), fileToImport.getType(), null);

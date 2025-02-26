@@ -81,6 +81,10 @@ public class Blob extends Object implements Entity {
       return tagHierarchy;
     }
 
+    public String getProperty(String name) {
+      return properties_.get(name);
+    }
+
     public void removeProperty(String name) {
       properties_.remove(name);
     }

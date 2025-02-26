@@ -91,9 +91,7 @@ public class EditImageTagsDialog extends BasicContentPanel<Blob, Set<Tag>> {
     try {
       final Set<Tag> tags = blob.getTags();
 
-      imgComp_.setImage(app_.getThumbnailer().loadRotated(
-        app_.getBlobCtrl().getFile(blob.getSha256sum())
-      ));
+      imgComp_.setImage(app_.getBlobCtrl().loadRotated(blob));
       allTags_.expandCollapseAll(false);
       allTags_.setCheckedNodes(tags);
       tags.forEach(tag -> allTags_.expandCollapse(tag, true));

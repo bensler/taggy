@@ -1,5 +1,12 @@
 package com.bensler.taggy.ui;
 
+import java.awt.Point;
+import java.awt.RenderingHints;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.AffineTransformOp;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -7,13 +14,32 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoField;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import javax.imageio.ImageIO;
+
+import org.apache.commons.imaging.ImageReadException;
+import org.apache.commons.imaging.Imaging;
+import org.apache.commons.imaging.formats.jpeg.JpegImageMetadata;
+import org.apache.commons.imaging.formats.tiff.TiffField;
+import org.apache.commons.imaging.formats.tiff.constants.ExifTagConstants;
+import org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants;
+import org.apache.commons.imaging.formats.tiff.taginfos.TagInfoAscii;
+
 import com.bensler.taggy.App;
+import com.bensler.taggy.imprt.ImportController;
+import com.bensler.taggy.imprt.Thumbnailer;
+import com.bensler.taggy.imprt.Thumbnailer.Orientation;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.DbAccess;
 
@@ -148,5 +174,134 @@ public class BlobController {
     }
 
   }
+
+  public BufferedImage loadRotated(Blob blob) throws IOException {
+    final BufferedImage srcImg = ImageIO.read( getFile(blob.getSha256sum()));
+    final AffineTransform transRotate = chooseRotationTransform(blob);
+    final AffineTransform transTranslate = compensateForRotation(srcImg, transRotate);
+    final AffineTransformOp rotateTranslateOp;
+
+    transTranslate.concatenate(transRotate);
+    rotateTranslateOp = new AffineTransformOp(transTranslate, new RenderingHints(
+      RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC
+    ));
+
+    return rotateTranslateOp.filter(
+      srcImg, rotateTranslateOp.createCompatibleDestImage(srcImg, null)
+    );
+  }
+
+  private static final Map<String, Orientation> ORIENTATIONS_BY_STR = new HashMap<>(Map.of(
+    ImportController.PROPERTY_ORIENTATION_VALUE_90_CW, Orientation.ROTATE_090_CW,
+    ImportController.PROPERTY_ORIENTATION_VALUE_270_CW, Orientation.ROTATE_270_CW
+  ));
+
+  private AffineTransform chooseRotationTransform(Blob blob) {
+    return ORIENTATIONS_BY_STR.getOrDefault(
+      blob.getProperty(ImportController.PROPERTY_ORIENTATION), Orientation.ROTATE_000_CW
+    ).transform_;
+  }
+
+  private AffineTransform compensateForRotation(BufferedImage scaledImg, AffineTransform transRotate) {
+    final AffineTransformOp rotateOp = new AffineTransformOp(transRotate, null);
+    final Point2D cornerTopLeft     = rotateOp.getPoint2D(new Point(0, 0), null);
+    final Point2D cornerBottomRight = rotateOp.getPoint2D(
+      new Point(scaledImg.getWidth(), scaledImg.getHeight()), null
+    );
+
+    return AffineTransform.getTranslateInstance(
+      -1 * Math.min(cornerTopLeft.getX(), cornerBottomRight.getX()),
+      -1 * Math.min(cornerTopLeft.getY(), cornerBottomRight.getY())
+    );
+  }
+
+  public Blob importFile(File file, String type) throws IOException, ImageReadException {
+      final App app = App.getApp();
+      final Map<String, String> metaData = new HashMap<>();
+      final File thumbnail = importFile(file, metaData);
+      final String fileSha = storeBlob(file, true);
+      final String thumbSha = storeBlob(thumbnail, false);
+
+      return app.storeEntity(new Blob(file.getName(), fileSha, thumbSha, type, metaData));
+  }
+
+  private Optional<JpegImageMetadata> getMetaData(File srcFile) throws ImageReadException, IOException {
+    return (Imaging.getMetadata(srcFile) instanceof JpegImageMetadata jpgMeta)
+      ? Optional.of(jpgMeta) : Optional.empty();
+  }
+
+  private File importFile(File srcFile, Map<String, String> metaDataSink) throws IOException, ImageReadException {
+    final Thumbnailer thumbnailer = App.getApp().getThumbnailer();
+    final Optional<JpegImageMetadata> srcMetaData = getMetaData(srcFile);
+    final BufferedImage srcImg = ImageIO.read(new FileInputStream(srcFile));
+
+    metaDataSink.put(ImportController.PROPERTY_SIZE_WIDTH,  String.valueOf(srcImg.getWidth()));
+    metaDataSink.put(ImportController.PROPERTY_SIZE_HEIGHT, String.valueOf(srcImg.getHeight()));
+    srcMetaData.ifPresent(metaData -> findDate(metaData, metaDataSink));
+
+    final AffineTransform transRotate = chooseRotationTransform(srcMetaData, metaDataSink);
+    final BufferedImage scaledImg = thumbnailer.scaleImage(srcImg);
+    final AffineTransform transTranslate = compensateForRotation(scaledImg, transRotate);
+    final AffineTransformOp rotateTranslateOp;
+
+    transTranslate.concatenate(transRotate);
+    rotateTranslateOp = new AffineTransformOp(transTranslate, new RenderingHints(
+      RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC
+    ));
+
+    final Rectangle2D rotatedBounds = rotateTranslateOp.getBounds2D(scaledImg);
+
+    return thumbnailer.writeImgToFile(rotateTranslateOp.filter( // no alpha as jpg does not support it ------------------------------vvv
+      scaledImg, new BufferedImage((int)rotatedBounds.getWidth(), (int)rotatedBounds.getHeight(), BufferedImage.TYPE_INT_RGB)
+    ));
+  }
+
+  private AffineTransform chooseRotationTransform(Optional<JpegImageMetadata> optMeta, Map<String, String> metaDataSink) {
+    final Orientation orientation = optMeta.flatMap(jpgMeta -> Optional.ofNullable(jpgMeta.findEXIFValue(TiffTagConstants.TIFF_TAG_ORIENTATION)))
+      .map(this::getTiffIntValue)
+      .filter(Thumbnailer.ROTATION_TRANSFORMATIONS::containsKey)
+      .map(Thumbnailer.ROTATION_TRANSFORMATIONS::get)
+      .orElse(Orientation.ROTATE_000_CW);
+
+    orientation.putMetaData(metaDataSink);
+    return orientation.transform_;
+  }
+
+  private int getTiffIntValue(TiffField tiffField) {
+    try {
+      return tiffField.getIntValue();
+    } catch (ImageReadException ire) {
+      throw new RuntimeException(ire);
+    }
+  }
+
+  private String getTiffStringValue(TiffField tiffField) {
+    try {
+      return tiffField.getStringValue();
+    } catch (ImageReadException ire) {
+      throw new RuntimeException(ire);
+    }
+  }
+
+  private void findDate(JpegImageMetadata jpgMeta, Map<String, String> metaDataSink) {
+    DATE_TAGS.stream()
+      .flatMap(tag -> Optional.ofNullable(jpgMeta.findEXIFValue(tag)).stream())
+      .findFirst()
+      .map(this::getTiffStringValue).map(dateParser::parse).map(LocalDate::from).ifPresent(instant -> {
+        metaDataSink.put(ImportController.PROPERTY_DATE_YEAR,  String.valueOf(instant.get(ChronoField.YEAR)));
+        metaDataSink.put(ImportController.PROPERTY_DATE_MONTH, String.valueOf(instant.get(ChronoField.MONTH_OF_YEAR)));
+        metaDataSink.put(ImportController.PROPERTY_DATE_DAY,   String.valueOf(instant.get(ChronoField.DAY_OF_MONTH)));
+      });
+  }
+
+  public static final List<TagInfoAscii> DATE_TAGS = List.of(
+    TiffTagConstants.TIFF_TAG_DATE_TIME,
+    ExifTagConstants.EXIF_TAG_DATE_TIME_ORIGINAL,
+    ExifTagConstants.EXIF_TAG_DATE_TIME_DIGITIZED
+  );
+
+  public final static DateTimeFormatter dateParser = DateTimeFormatter
+    .ofPattern("yyyy:MM:dd HH:mm:ss")
+    .withZone(TimeZone.getDefault().toZoneId());
 
 }

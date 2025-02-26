@@ -4,61 +4,40 @@ import static org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants
 import static org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants.ORIENTATION_VALUE_ROTATE_90_CW;
 
 import java.awt.Image;
-import java.awt.Point;
-import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
-import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.time.Instant;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoField;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.TimeZone;
 
 import javax.imageio.ImageIO;
-
-import org.apache.commons.imaging.ImageReadException;
-import org.apache.commons.imaging.Imaging;
-import org.apache.commons.imaging.formats.jpeg.JpegImageMetadata;
-import org.apache.commons.imaging.formats.tiff.TiffField;
-import org.apache.commons.imaging.formats.tiff.constants.ExifTagConstants;
-import org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants;
-import org.apache.commons.imaging.formats.tiff.taginfos.TagInfoAscii;
 
 public class Thumbnailer {
 
   public static final String WORKING_SUBDIR = "thumbnailer";
 
-  private enum Orientation {
+  public enum Orientation {
     ROTATE_000_CW(AffineTransform.getQuadrantRotateInstance(0), null),
     ROTATE_090_CW(AffineTransform.getQuadrantRotateInstance(1), ImportController.PROPERTY_ORIENTATION_VALUE_90_CW),
     ROTATE_270_CW(AffineTransform.getQuadrantRotateInstance(3), ImportController.PROPERTY_ORIENTATION_VALUE_270_CW);
 
-    final AffineTransform transform_;
-    final Optional<String> metaDataValue_;
+    public final AffineTransform transform_;
+    public final Optional<String> metaDataValue_;
 
     Orientation(AffineTransform transform, String metaDataValue) {
       transform_ = transform;
       metaDataValue_ = Optional.ofNullable(metaDataValue);
     }
 
-    void putMetaData(Map<String, String> metaDataSink) {
+    public void putMetaData(Map<String, String> metaDataSink) {
       metaDataValue_.ifPresent(value -> metaDataSink.put(ImportController.PROPERTY_ORIENTATION, value));
     }
 
   }
 
-  private final static Map<Integer, Orientation> ROTATION_TRANSFORMATIONS = Map.of(
+  public final static Map<Integer, Orientation> ROTATION_TRANSFORMATIONS = Map.of(
     ORIENTATION_VALUE_ROTATE_90_CW,  Orientation.ROTATE_090_CW,
     ORIENTATION_VALUE_ROTATE_270_CW, Orientation.ROTATE_270_CW
   );
@@ -74,13 +53,10 @@ public class Thumbnailer {
     Arrays.stream(tmpDir_.listFiles()).forEach(File::delete);
   }
 
-  public BufferedImage scaleImageFromStream(InputStream fis, Map<String, String> metaDataSink) throws IOException {
-    final BufferedImage srcImg = ImageIO.read(fis);
+  public BufferedImage scaleImage(final BufferedImage srcImg) {
     int width = srcImg.getWidth();
     int height = srcImg.getHeight();
 
-    metaDataSink.put(ImportController.PROPERTY_SIZE_WIDTH,  String.valueOf(width));
-    metaDataSink.put(ImportController.PROPERTY_SIZE_HEIGHT, String.valueOf(height));
     if ((width > THUMBNAIL_SIZE) || (height > THUMBNAIL_SIZE)) {
       if (width > height) {
         width = THUMBNAIL_SIZE;
@@ -100,7 +76,7 @@ public class Thumbnailer {
     }
   }
 
-  private File writeImgToFile(BufferedImage img) throws IOException {
+  public File writeImgToFile(BufferedImage img) throws IOException {
     final File outputFile = new File(tmpDir_, "%s-%s".formatted(
       ProcessHandle.current().pid(), Thread.currentThread().getName()
     ));
@@ -108,99 +84,6 @@ public class Thumbnailer {
     outputFile.delete(); // just in case it already exists
     ImageIO.write(img, "jpg", outputFile);
     return outputFile;
-  }
-
-  public AffineTransform chooseRotationTransform(File srcFile, Map<String, String> metaDataSink) throws ImageReadException, IOException {
-    final Optional<JpegImageMetadata> optMetaData = getMetaData(srcFile);
-    final Optional<Orientation> optOrientation = optMetaData.map(metaData -> metaData.findEXIFValue(TiffTagConstants.TIFF_TAG_ORIENTATION))
-        .map(tiffField -> ROTATION_TRANSFORMATIONS.get(getTiffIntValue(tiffField)));
-
-    optOrientation.ifPresent(orientation -> orientation.putMetaData(metaDataSink));
-    return optOrientation.orElse(Orientation.ROTATE_000_CW).transform_;
-  }
-
-  private int getTiffIntValue(TiffField tiffField) {
-    try {
-      return tiffField.getIntValue();
-    } catch (ImageReadException ire) {
-      throw new RuntimeException(ire);
-    }
-  }
-
-  private Optional<JpegImageMetadata> getMetaData(File srcFile) throws ImageReadException, IOException {
-    return (Imaging.getMetadata(srcFile) instanceof JpegImageMetadata jpgMeta)
-      ? Optional.of(jpgMeta) : Optional.empty();
-  }
-
-  public static final List<TagInfoAscii> DATE_TAGS = List.of(
-    TiffTagConstants.TIFF_TAG_DATE_TIME,
-    ExifTagConstants.EXIF_TAG_DATE_TIME_ORIGINAL,
-    ExifTagConstants.EXIF_TAG_DATE_TIME_DIGITIZED
-  );
-  public final static DateTimeFormatter dateParser = DateTimeFormatter
-    .ofPattern("yyyy:MM:dd HH:mm:ss")
-    .withZone(TimeZone.getDefault().toZoneId());
-
-  private void findDate(JpegImageMetadata jpgMeta, Map<String, String> metaDataSink) throws ImageReadException {
-    final Optional<TiffField> dateField = DATE_TAGS.stream()
-    .map(tag -> Optional.ofNullable(jpgMeta.findEXIFValue(tag)))
-    .flatMap(fieldValue -> fieldValue.stream())
-    .findFirst();
-
-    if (dateField.isPresent()) {
-      final Instant instant = Instant.from(dateParser.parse(dateField.get().getStringValue()));
-
-      metaDataSink.put(ImportController.PROPERTY_DATE_YEAR, String.valueOf(instant.get(ChronoField.YEAR)));
-      metaDataSink.put(ImportController.PROPERTY_DATE_YEAR, String.valueOf(instant.get(ChronoField.MONTH_OF_YEAR)));
-      metaDataSink.put(ImportController.PROPERTY_DATE_YEAR, String.valueOf(instant.get(ChronoField.DAY_OF_MONTH)));
-    }
-  }
-
-  public BufferedImage loadRotated(File srcFile) throws IOException, ImageReadException {
-    final BufferedImage srcImg = ImageIO.read(srcFile);
-    final AffineTransform transRotate = chooseRotationTransform(srcFile, new HashMap<>());
-    final AffineTransform transTranslate = compensateForRotation(srcImg, transRotate);
-    final AffineTransformOp rotateTranslateOp;
-
-    transTranslate.concatenate(transRotate);
-    rotateTranslateOp = new AffineTransformOp(transTranslate, new RenderingHints(
-      RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC
-    ));
-
-    return rotateTranslateOp.filter(
-      srcImg, rotateTranslateOp.createCompatibleDestImage(srcImg, null)
-    );
-  }
-
-  public File scaleRotateImage(File srcFile, Map<String, String> metaDataSink) throws IOException, ImageReadException {
-    final BufferedImage scaledImg = scaleImageFromStream(new FileInputStream(srcFile), metaDataSink);
-    final AffineTransform transRotate = chooseRotationTransform(srcFile, metaDataSink);
-    final AffineTransform transTranslate = compensateForRotation(scaledImg, transRotate);
-    final AffineTransformOp rotateTranslateOp;
-
-    transTranslate.concatenate(transRotate);
-    rotateTranslateOp = new AffineTransformOp(transTranslate, new RenderingHints(
-      RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC
-    ));
-
-    final Rectangle2D rotatedBounds = rotateTranslateOp.getBounds2D(scaledImg);
-
-    return writeImgToFile(rotateTranslateOp.filter( // no alpha as jpg does not support it ------------------------------vvv
-      scaledImg, new BufferedImage((int)rotatedBounds.getWidth(), (int)rotatedBounds.getHeight(), BufferedImage.TYPE_INT_RGB)
-    ));
-  }
-
-  private AffineTransform compensateForRotation(BufferedImage scaledImg, AffineTransform transRotate) {
-    final AffineTransformOp rotateOp = new AffineTransformOp(transRotate, null);
-    final Point2D cornerTopLeft     = rotateOp.getPoint2D(new Point(0, 0), null);
-    final Point2D cornerBottomRight = rotateOp.getPoint2D(
-      new Point(scaledImg.getWidth(), scaledImg.getHeight()), null
-    );
-
-    return AffineTransform.getTranslateInstance(
-      -1 * Math.min(cornerTopLeft.getX(), cornerBottomRight.getX()),
-      -1 * Math.min(cornerTopLeft.getY(), cornerBottomRight.getY())
-    );
   }
 
 }

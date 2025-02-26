@@ -1,7 +1,6 @@
 package com.bensler.taggy.ui;
 
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -9,8 +8,6 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
-
-import org.apache.commons.imaging.ImageReadException;
 
 import com.bensler.decaf.swing.SplitpanePrefPersister;
 import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
@@ -59,11 +56,8 @@ public class SlideshowFrame extends JFrame {
     if (blob != null) {
       new Thread(() -> {
         try {
-          final App app = App.getApp();
-          final File imgFile = app.getBlobCtrl().getFile(blob.getSha256sum());
-
-          displayImage(app.getThumbnailer().loadRotated(imgFile));
-        } catch (IOException | ImageReadException e) {
+          displayImage(App.getApp().getBlobCtrl().loadRotated(blob));
+        } catch (IOException e) {
           // TODO Auto-generated catch block
           e.printStackTrace();
         }
