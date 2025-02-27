@@ -1,6 +1,7 @@
 package com.bensler.taggy.ui;
 
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
+import static com.bensler.taggy.ui.MainFrame.ICON_EDIT_30;
 import static com.bensler.taggy.ui.MainFrame.ICON_PLUS_30;
 import static com.bensler.taggy.ui.MainFrame.ICON_TAGS_48;
 
@@ -24,22 +25,24 @@ import com.bensler.taggy.persist.Tag;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class EditTagDialog extends BasicContentPanel<Optional<Tag>, Tag> {
+public abstract class TagDialog<IN> extends BasicContentPanel<IN, Tag> {
 
   public static final DialogAppearance APPEARANCE = new DialogAppearance(
     new OverlayIcon(ICON_TAGS_48, new Overlay(ICON_PLUS_30, SE)), "Create Tag", "Create a New Tag"
   );
 
-  private final EntityTree<Tag> parentTag_;
-  private final JTextField nameTextfield_;
-  private final Hierarchy<Tag> allTags_;
+  protected final EntityTree<Tag> parentTag_;
+  protected final JTextField nameTextfield_;
+  protected final Hierarchy<Tag> allTags_;
+  protected final DialogAppearance appearance_;
 
-  public EditTagDialog(Hierarchy<Tag> pAllTags) {
+  protected TagDialog(Hierarchy<Tag> allTags, DialogAppearance appearance) {
     super(new FormLayout(
       "r:p, 3dlu, f:p:g",
       "f:p:g, 3dlu, c:p"
     ));
-    allTags_ = pAllTags;
+    allTags_ = allTags;
+    appearance_ = appearance;
 
     final CellConstraints cc = new CellConstraints();
 
@@ -58,27 +61,14 @@ public class EditTagDialog extends BasicContentPanel<Optional<Tag>, Tag> {
   protected void contextSet(Context ctx) {
     ctx.setPrefs(new BulkPrefPersister(
       App.getApp().getPrefs(),
-      new WindowPrefsPersister(new PrefKey(App.PREFS_APP_ROOT, getClass()), ctx_.getDialog())
+      new WindowPrefsPersister(new PrefKey(App.PREFS_APP_ROOT, TagDialog.class), ctx_.getDialog())
     ));
     ctx.setComponentToFocus(nameTextfield_);
   }
 
   @Override
   public DialogAppearance getAppearance() {
-    return APPEARANCE;
-  }
-
-  @Override
-  public void setData(Optional<Tag> inData) {
-    final Hierarchy<Tag> parents = new Hierarchy<>();
-    Tag parent = inData.orElse(null);
-
-    while (parent != null) {
-      parents.add(parent);
-      parent = parent.getParent();
-    }
-    parentTag_.setData(parents);
-    inData.ifPresent(parentTag_::select);
+    return appearance_;
   }
 
   @Override
@@ -102,6 +92,52 @@ public class EditTagDialog extends BasicContentPanel<Optional<Tag>, Tag> {
   @Override
   public Tag getData() {
     return new Tag(parentTag_.getSingleSelection(), getNewName());
+  }
+
+  public static class Create extends TagDialog<Optional<Tag>> {
+
+    public Create(Hierarchy<Tag> allTags) {
+      super(allTags, new DialogAppearance(
+        new OverlayIcon(ICON_TAGS_48, new Overlay(ICON_PLUS_30, SE)), "Create Tag", "Create a New Tag"
+      ));
+    }
+
+    @Override
+    public void setData(Optional<Tag> inData) {
+      final Hierarchy<Tag> parents = new Hierarchy<>();
+      Tag parent = inData.orElse(null);
+
+      while (parent != null) {
+        parents.add(parent);
+        parent = parent.getParent();
+      }
+      parentTag_.setData(parents);
+      inData.ifPresent(parentTag_::select);
+    }
+
+  }
+
+  public static class Edit extends TagDialog<Tag> {
+
+    public Edit(Hierarchy<Tag> allTags) {
+      super(allTags, new DialogAppearance(
+        new OverlayIcon(ICON_TAGS_48, new Overlay(ICON_EDIT_30, SE)), "Edit Tag", "Edit an existing Tag"
+      ));
+    }
+
+    @Override
+    public void setData(Tag inData) {
+//      final Hierarchy<Tag> parents = new Hierarchy<>();
+//      Tag parent = inData.orElse(null);
+//
+//      while (parent != null) {
+//        parents.add(parent);
+//        parent = parent.getParent();
+//      }
+//      parentTag_.setData(parents);
+//      inData.ifPresent(parentTag_::select);
+    }
+
   }
 
 }

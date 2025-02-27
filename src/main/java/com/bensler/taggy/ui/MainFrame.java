@@ -72,6 +72,7 @@ public class MainFrame {
   public static final ImageIcon ICON_TAGS_48 = new ImageIcon(MainFrame.class.getResource("tags_48x48.png"));
 
   public static final ImageIcon ICON_EDIT_13 = new ImageIcon(MainFrame.class.getResource("edit_13x13.png"));
+  public static final ImageIcon ICON_EDIT_30 = new ImageIcon(MainFrame.class.getResource("edit_30x30.png"));
 
   public static final ImageIcon ICON_PLUS_10 = new ImageIcon(MainFrame.class.getResource("plus_10x10.png"));
   public static final ImageIcon ICON_PLUS_30 = new ImageIcon(MainFrame.class.getResource("plus_30x30.png"));
@@ -186,7 +187,7 @@ public class MainFrame {
   }
 
   void createTagUi(Optional<Tag> parentTag) {
-    new OkCancelDialog<>(frame_, new EditTagDialog(tagTree_.getData())).show(
+    new OkCancelDialog<Optional<Tag>, Tag>(frame_, new TagDialog.Create(tagTree_.getData())).show(
       parentTag, newTag -> {
         final Tag createdTag = app_.getDbAccess().createObject(newTag);
 
@@ -198,8 +199,15 @@ public class MainFrame {
   }
 
   void editTagUi(Tag tag) {
-//    TODO
-    throw new UnsupportedOperationException();
+    new OkCancelDialog<Tag, Tag>(frame_, new TagDialog.Edit(tagTree_.getData())).show(
+      tag, newTag -> {
+        final Tag createdTag = app_.getDbAccess().createObject(newTag);
+
+        tagTree_.addData(createdTag, true);
+        tagTree_.select(createdTag);
+        allTags_.add(createdTag);
+      }
+    );
   }
 
   void deleteTagUi(Tag tag) {
