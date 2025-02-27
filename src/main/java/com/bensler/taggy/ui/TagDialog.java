@@ -85,13 +85,8 @@ public abstract class TagDialog<IN> extends BasicContentPanel<IN, Tag> {
       .isEmpty();
   }
 
-  private String getNewName() {
+  protected String getNewName() {
     return nameTextfield_.getText().trim();
-  }
-
-  @Override
-  public Tag getData() {
-    return new Tag(parentTag_.getSingleSelection(), getNewName());
   }
 
   public static class Create extends TagDialog<Optional<Tag>> {
@@ -103,16 +98,14 @@ public abstract class TagDialog<IN> extends BasicContentPanel<IN, Tag> {
     }
 
     @Override
-    public void setData(Optional<Tag> inData) {
-      final Hierarchy<Tag> parents = new Hierarchy<>();
-      Tag parent = inData.orElse(null);
+    public void setData(Optional<Tag> optParent) {
+      parentTag_.setData(allTags_);
+      optParent.ifPresent(parentTag_::select);
+    }
 
-      while (parent != null) {
-        parents.add(parent);
-        parent = parent.getParent();
-      }
-      parentTag_.setData(parents);
-      inData.ifPresent(parentTag_::select);
+    @Override
+    public Tag getData() {
+      return new Tag(parentTag_.getSingleSelection(), getNewName());
     }
 
   }
@@ -126,16 +119,19 @@ public abstract class TagDialog<IN> extends BasicContentPanel<IN, Tag> {
     }
 
     @Override
-    public void setData(Tag inData) {
-//      final Hierarchy<Tag> parents = new Hierarchy<>();
-//      Tag parent = inData.orElse(null);
-//
-//      while (parent != null) {
-//        parents.add(parent);
-//        parent = parent.getParent();
-//      }
-//      parentTag_.setData(parents);
-//      inData.ifPresent(parentTag_::select);
+    public void setData(Tag node) {
+      allTags_.removeTree(node);
+      parentTag_.setData(allTags_);
+      parentTag_.select(node.getParent());
+      nameTextfield_.setText(node.getName());
+    }
+
+    @Override
+    public Tag getData() {
+      final Tag changedTag = new Tag(inData_.getId());
+
+      changedTag.setProperties(parentTag_.getSingleSelection(), getNewName(), inData_.getBlobs());
+      return changedTag;
     }
 
   }

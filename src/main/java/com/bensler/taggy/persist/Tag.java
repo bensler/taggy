@@ -34,17 +34,9 @@ public class Tag extends Object implements Hierarchical<Tag>, Named, Entity {
       return id_;
     }
 
-    void setId(Integer id) {
-      id_ = id;
-    }
-
     @Override
     public Tag getParent() {
       return parent_;
-    }
-
-    void setParent(Tag parent) {
-      parent_ = parent;
     }
 
     @Override
@@ -52,16 +44,14 @@ public class Tag extends Object implements Hierarchical<Tag>, Named, Entity {
       return name_;
     }
 
-    void setName(String name) {
+    public void setProperties(Tag parent, String name, Set<Blob> blobs) {
+      parent_ = parent;
       name_ = name;
+      blobs_ = new HashSet<>(blobs);
     }
 
     public Set<Blob> getBlobs() {
       return Set.copyOf(blobs_);
-    }
-
-    void setBlobs(Set<Blob> blobs) {
-      blobs_ = new HashSet<>(blobs);
     }
 
     @Override

@@ -187,25 +187,26 @@ public class MainFrame {
   }
 
   void createTagUi(Optional<Tag> parentTag) {
-    new OkCancelDialog<Optional<Tag>, Tag>(frame_, new TagDialog.Create(tagTree_.getData())).show(
+    new OkCancelDialog<>(frame_, new TagDialog.Create(tagTree_.getData())).show(
       parentTag, newTag -> {
-        final Tag createdTag = app_.getDbAccess().createObject(newTag);
+        final Tag createdTag = app_.getDbAccess().storeObject(newTag);
 
         tagTree_.addData(createdTag, true);
-        tagTree_.select(createdTag);
         allTags_.add(createdTag);
       }
     );
   }
 
   void editTagUi(Tag tag) {
-    new OkCancelDialog<Tag, Tag>(frame_, new TagDialog.Edit(tagTree_.getData())).show(
+    new OkCancelDialog<>(frame_, new TagDialog.Edit(tagTree_.getData())).show(
       tag, newTag -> {
-        final Tag createdTag = app_.getDbAccess().createObject(newTag);
+        allTags_.removeNode(tag);
+        tagTree_.addData(newTag, true);
 
-        tagTree_.addData(createdTag, true);
-        tagTree_.select(createdTag);
-        allTags_.add(createdTag);
+        final Tag editedTag = app_.getDbAccess().storeObject(newTag);
+
+        tagTree_.addData(editedTag, true);
+        allTags_.add(editedTag);
       }
     );
   }

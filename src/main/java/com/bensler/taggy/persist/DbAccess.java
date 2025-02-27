@@ -31,14 +31,6 @@ public class DbAccess {
     session_.refresh(obj);
   }
 
-  public <E> E createObject(E newObj) {
-    final Transaction txn = session_.beginTransaction();
-
-    session_.persist(newObj);
-    txn.commit(); // TODO rollback in case of exc
-    return newObj;
-  }
-
   public <E extends Entity> E storeObject(E obj) {
     final Transaction txn = session_.beginTransaction();
 
