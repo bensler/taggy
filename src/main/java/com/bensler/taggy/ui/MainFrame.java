@@ -71,6 +71,8 @@ public class MainFrame {
   public static final ImageIcon ICON_TAGS_36 = new ImageIcon(MainFrame.class.getResource("tags_36x36.png"));
   public static final ImageIcon ICON_TAGS_48 = new ImageIcon(MainFrame.class.getResource("tags_48x48.png"));
 
+  public static final ImageIcon ICON_EDIT_13 = new ImageIcon(MainFrame.class.getResource("edit_13x13.png"));
+
   public static final ImageIcon ICON_PLUS_10 = new ImageIcon(MainFrame.class.getResource("plus_10x10.png"));
   public static final ImageIcon ICON_PLUS_30 = new ImageIcon(MainFrame.class.getResource("plus_30x30.png"));
 
@@ -118,7 +120,7 @@ public class MainFrame {
     frame_.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     tagTree_.setData(allTags_);
     final EntityAction<Tag> editTagAction = new EntityAction<>(
-      new ActionAppearance(ICON_TAG_13, null, "Edit Tag", "Edit currently selected Tag"),
+      new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_EDIT_13, SE)), null, "Edit Tag", "Edit currently selected Tag"),
       new SingleEntityFilter<>(DISABLED),
       new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(this::editTagUi))
     );
