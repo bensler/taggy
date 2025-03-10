@@ -201,7 +201,7 @@ public class MainFrame {
     new OkCancelDialog<>(frame_, new TagDialog.Edit(tagTree_.getData())).show(
       tag, newTag -> {
         allTags_.removeNode(tag);
-        tagTree_.addData(newTag, true);
+        tagTree_.removeData(tag);
 
         final Tag editedTag = app_.getDbAccess().storeObject(newTag);
 
