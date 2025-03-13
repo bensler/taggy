@@ -26,10 +26,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import javax.imageio.ImageIO;
 
@@ -44,6 +46,7 @@ import org.apache.commons.imaging.formats.tiff.taginfos.TagInfoAscii;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.DbAccess;
+import com.bensler.taggy.persist.Tag;
 
 public class BlobController {
 
@@ -339,6 +342,18 @@ public class BlobController {
     } catch (RuntimeException rte) { // never trust untrusted date strings
       rte.printStackTrace();
     }
+  }
+
+  public void setTags(Blob blob, Set<Tag> tags) {
+    final App app = App.getApp();
+
+    blob.setTags(tags);
+    app.storeEntity(blob);
+    app.getMainFrame().displayThumbnailsOfSelectedTag();
+  }
+
+  public void addTags(List<Blob> blobs, Set<Tag> tags) {
+    blobs.forEach(blob -> setTags(blob, Stream.concat(tags.stream(), blob.getTags().stream()).collect(Collectors.toSet())));
   }
 
 }

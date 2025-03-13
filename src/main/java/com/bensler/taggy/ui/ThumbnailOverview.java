@@ -91,20 +91,11 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
   }
 
   void addTags(List<Blob> blobs) {
-    new OkCancelDialog<>(comp_, new AddImagesTagsDialog()).show(blobs, tags -> {
-      throw new UnsupportedOperationException(); // TODO
-//      blob.setTags(tags);
-//      app_.storeEntity(blob);
-//      app_.getMainFrame().displayThumbnailsOfSelectedTag();
-    });
+    new OkCancelDialog<>(comp_, new AddImagesTagsDialog()).show(blobs, tags -> blobCtrl_.addTags(blobs, tags));
   }
 
   void editTags(Blob blob) {
-    new OkCancelDialog<>(comp_, new EditImageTagsDialog()).show(blob, tags -> {
-      blob.setTags(tags);
-      app_.storeEntity(blob);
-      app_.getMainFrame().displayThumbnailsOfSelectedTag();
-    });
+    new OkCancelDialog<>(comp_, new EditImageTagsDialog()).show(blob, tags -> blobCtrl_.setTags(blob, tags));
   }
 
   @Override

@@ -35,11 +35,6 @@ import com.jgoodies.forms.layout.FormLayout;
 
 public class AddImagesTagsDialog extends BasicContentPanel<List<Blob>, Set<Tag>> {
 
-  public static final DialogAppearance APPEARANCE = new DialogAppearance(
-    new OverlayIcon(ICON_IMAGE_48, new Overlay(ICON_TAGS_36, SE), new Overlay(ICON_PLUS_20, SE)),
-    "Add Images Tags", "Add Tags to multiple Images"
-  );
-
   private final CheckboxTree<Tag> allTags_;
   private final CheckboxTree<Tag> assignedTags_;
   private final ThumbnailOverviewPanel images_;
@@ -48,7 +43,10 @@ public class AddImagesTagsDialog extends BasicContentPanel<List<Blob>, Set<Tag>>
   private final App app_;
 
   public AddImagesTagsDialog() {
-    super(new FormLayout("f:p:g", "f:p:g"));
+    super(new DialogAppearance(
+      new OverlayIcon(ICON_IMAGE_48, new Overlay(ICON_TAGS_36, SE), new Overlay(ICON_PLUS_20, SE)),
+      "Add Images Tags", "Add Tags to multiple Images"
+    ), new FormLayout("f:p:g", "f:p:g"));
     app_ = App.getApp();
     allTags_ = new CheckboxTree<>(TAG_NAME_VIEW);
     allTags_.setVisibleRowCount(20, 1);
@@ -80,11 +78,6 @@ public class AddImagesTagsDialog extends BasicContentPanel<List<Blob>, Set<Tag>>
   }
 
   @Override
-  public DialogAppearance getAppearance() {
-    return APPEARANCE;
-  }
-
-  @Override
   public Set<Tag> getData() {
     return allTags_.getCheckedNodes();
   }
@@ -103,11 +96,6 @@ public class AddImagesTagsDialog extends BasicContentPanel<List<Blob>, Set<Tag>>
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
-  }
-
-  @Override
-  protected boolean validateContent(Object eventSource) {
-    return true;
   }
 
   private void setAssignedTags(Set<Tag> checkedTags) {

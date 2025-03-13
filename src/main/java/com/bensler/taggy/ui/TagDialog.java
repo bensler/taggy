@@ -27,17 +27,15 @@ import com.jgoodies.forms.layout.FormLayout;
 
 public abstract class TagDialog<IN> extends BasicContentPanel<IN, Tag> {
 
-  public static final DialogAppearance APPEARANCE = new DialogAppearance(
-    new OverlayIcon(ICON_TAGS_48, new Overlay(ICON_PLUS_30, SE)), "Create Tag", "Create a New Tag"
-  );
-
   protected final EntityTree<Tag> parentTag_;
   protected final JTextField nameTextfield_;
   protected final Hierarchy<Tag> allTags_;
   protected final DialogAppearance appearance_;
 
   protected TagDialog(Hierarchy<Tag> allTags, DialogAppearance appearance) {
-    super(new FormLayout(
+    super(new DialogAppearance(
+      new OverlayIcon(ICON_TAGS_48, new Overlay(ICON_PLUS_30, SE)), "Create Tag", "Create a New Tag"
+    ), new FormLayout(
       "r:p, 3dlu, f:p:g",
       "f:p:g, 3dlu, c:p"
     ));
@@ -64,11 +62,6 @@ public abstract class TagDialog<IN> extends BasicContentPanel<IN, Tag> {
       new WindowPrefsPersister(new PrefKey(App.PREFS_APP_ROOT, TagDialog.class), ctx_.getDialog())
     ));
     ctx.setComponentToFocus(nameTextfield_);
-  }
-
-  @Override
-  public DialogAppearance getAppearance() {
-    return appearance_;
   }
 
   @Override

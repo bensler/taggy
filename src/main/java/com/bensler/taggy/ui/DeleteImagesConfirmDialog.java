@@ -30,13 +30,11 @@ public class DeleteImagesConfirmDialog extends BasicContentPanel<List<Blob>, Lis
     new OverlayIcon(ICON_IMAGES_48, new Overlay(ICON_X_30, SE)), "Confirmation: Delete Images", "Do you really want to delete these images?"
   );
 
-  private final DialogAppearance appearance_;
   private final ThumbnailOverviewPanel thumbs_;
   private final App app_;
 
   public DeleteImagesConfirmDialog(int imageCount) {
-    super(new FormLayout("f:p:g", "f:p:g"));
-    appearance_ = (imageCount > 1) ? APPEARANCE_MULTI : APPEARANCE_SINGLE;
+    super((imageCount > 1) ? APPEARANCE_MULTI : APPEARANCE_SINGLE, new FormLayout("f:p:g", "f:p:g"));
     thumbs_ = new ThumbnailOverviewPanel(app_ = App.getApp(), ScrollingPolicy.SCROLL_VERTICALLY);
     add(thumbs_.getScrollpane(), new CellConstraints(1, 1));
   }
@@ -51,11 +49,6 @@ public class DeleteImagesConfirmDialog extends BasicContentPanel<List<Blob>, Lis
   }
 
   @Override
-  public DialogAppearance getAppearance() {
-    return appearance_;
-  }
-
-  @Override
   public List<Blob> getData() {
     return inData_;
   }
@@ -63,11 +56,6 @@ public class DeleteImagesConfirmDialog extends BasicContentPanel<List<Blob>, Lis
   @Override
   protected void setData(List<Blob> blobs) {
     thumbs_.setData(blobs);
-  }
-
-  @Override
-  protected boolean validateContent(Object eventSource) {
-    return true;
   }
 
 }
