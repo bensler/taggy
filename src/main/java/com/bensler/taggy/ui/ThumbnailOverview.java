@@ -57,7 +57,7 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
       new SingleEntityActionAdapter<>((source, blob) -> blob.ifPresent(this::editTags))
     );
     final EntityAction<Blob> addImageTagsAction = new EntityAction<>(
-      new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_PLUS_10, SE)), null, "Add Image Tags", "Add Tags to these Images"),
+      new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_PLUS_10, SE)), null, "Add Image Tags", "Add Tags to several Images at once"),
       null, (source, blobs) -> addTags(blobs)
     );
     final EntityAction<Blob> deleteImageAction = new EntityAction<>(
@@ -91,7 +91,12 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
   }
 
   void addTags(List<Blob> blobs) {
-    System.out.println();
+    new OkCancelDialog<>(comp_, new AddImagesTagsDialog()).show(blobs, tags -> {
+      throw new UnsupportedOperationException(); // TODO
+//      blob.setTags(tags);
+//      app_.storeEntity(blob);
+//      app_.getMainFrame().displayThumbnailsOfSelectedTag();
+    });
   }
 
   void editTags(Blob blob) {

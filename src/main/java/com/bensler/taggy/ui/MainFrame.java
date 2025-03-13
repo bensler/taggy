@@ -75,6 +75,7 @@ public class MainFrame {
   public static final ImageIcon ICON_EDIT_30 = new ImageIcon(MainFrame.class.getResource("edit_30x30.png"));
 
   public static final ImageIcon ICON_PLUS_10 = new ImageIcon(MainFrame.class.getResource("plus_10x10.png"));
+  public static final ImageIcon ICON_PLUS_20 = new ImageIcon(MainFrame.class.getResource("plus_20x20.png"));
   public static final ImageIcon ICON_PLUS_30 = new ImageIcon(MainFrame.class.getResource("plus_30x30.png"));
 
   public static final ImageIcon ICON_X_10 = new ImageIcon(MainFrame.class.getResource("x_10x10.png"));
@@ -201,7 +202,7 @@ public class MainFrame {
     new OkCancelDialog<>(frame_, new TagDialog.Edit(tagTree_.getData())).show(
       tag, newTag -> {
         allTags_.removeNode(tag);
-        tagTree_.removeData(tag);
+        tagTree_.removeTree(tag);
 
         final Tag editedTag = app_.getDbAccess().storeObject(newTag);
 
