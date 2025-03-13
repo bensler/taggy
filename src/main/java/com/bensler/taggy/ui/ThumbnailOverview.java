@@ -3,6 +3,7 @@ package com.bensler.taggy.ui;
 import static com.bensler.decaf.swing.action.ActionState.DISABLED;
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
 import static com.bensler.taggy.ui.MainFrame.ICON_IMAGE_13;
+import static com.bensler.taggy.ui.MainFrame.ICON_PLUS_10;
 import static com.bensler.taggy.ui.MainFrame.ICON_SLIDESHOW_13;
 import static com.bensler.taggy.ui.MainFrame.ICON_TAG_13;
 import static com.bensler.taggy.ui.MainFrame.ICON_X_10;
@@ -55,11 +56,15 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
       new SingleEntityFilter<>(DISABLED),
       new SingleEntityActionAdapter<>((source, blob) -> blob.ifPresent(this::editTags))
     );
+    final EntityAction<Blob> addImageTagsAction = new EntityAction<>(
+      new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_PLUS_10, SE)), null, "Add Image Tags", "Add Tags to these Images"),
+      null, (source, blobs) -> addTags(blobs)
+    );
     final EntityAction<Blob> deleteImageAction = new EntityAction<>(
       new ActionAppearance(new OverlayIcon(ICON_IMAGE_13, new Overlay(ICON_X_10, SE)), null, "Delete Image(s)", "Remove currently selected Image(s)"),
       EntityAction.atLeastOneFilter(DISABLED), (source, blobs) -> deleteImagesConfirm(blobs)
     );
-    contextActions_ = new ActionGroup<>(slideshowAction, editImageTagsAction, deleteImageAction);
+    contextActions_ = new ActionGroup<>(slideshowAction, editImageTagsAction, addImageTagsAction, deleteImageAction);
     comp_.addMouseListener(new ContextMenuMouseAdapter(this::triggerContextMenu));
     comp_.addMouseListener(new DoubleClickMouseAdapter(evt -> doubleClick()));
     app_.addEntityChangeListener(entityRemoveListener_ = new EntityRemovedAdapter(entity -> contains(entity).ifPresent(this::removeImage)));
@@ -83,6 +88,10 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
   void deleteImagesConfirm(List<Blob> blobs) {
     new OkCancelDialog<>(comp_, new DeleteImagesConfirmDialog(blobs.size())).show(blobs)
     .stream().flatMap(List::stream).forEach(blobCtrl_::deleteBlob);
+  }
+
+  void addTags(List<Blob> blobs) {
+    System.out.println();
   }
 
   void editTags(Blob blob) {
