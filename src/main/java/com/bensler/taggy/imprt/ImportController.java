@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.apache.commons.imaging.ImageReadException;
 
@@ -46,15 +47,14 @@ public class ImportController {
 
   private final App app_;
   private final File importDir_;
-  private final EntityAction<Object> actionImport_;
+  private final EntityAction<Void> actionImport_;
 
   public ImportController(App app, File dataDir) {
     app_ = app;
     importDir_ = new File(dataDir, IMPORT_DIR);
     importDir_.mkdirs();
     actionImport_ = new EntityAction<>(
-      IMPORT_ACTION_APPEARANCE, null,
-      (source, entities) -> doImport()
+      IMPORT_ACTION_APPEARANCE, null, (source, entities) -> showImportDialog()
     );
   }
 
@@ -62,16 +62,20 @@ public class ImportController {
     return actionImport_;
   }
 
-  private void doImport() {
+  private void showImportDialog() {
     new ImportDialog(app_).setVisible(true);
   }
 
   List<FileToImport> getFilesToImport() {
-    return Arrays.stream(importDir_.listFiles((FileFilter)null))
-    .filter(File::isFile)
-    .map(FileToImport::new)
-    .map(forEachMapper(file -> getType(file.getFile()).ifPresentOrElse(file::setType, () -> file.setImportObstacle("Unsupported Type"))))
-    .toList();
+    return getFilesToImport(importDir_)
+      .map(FileToImport::new)
+      .map(forEachMapper(file -> getType(file.getFile()).ifPresentOrElse(file::setType, () -> file.setImportObstacle("Unsupported Type"))))
+      .toList();
+  }
+
+  Stream<File> getFilesToImport(File dir) {
+    return Arrays.stream(dir.listFiles((FileFilter)null))
+        .flatMap(file -> file.isFile() ? Stream.of(file) : getFilesToImport(file));
   }
 
   Optional<String> getType(File file) {
