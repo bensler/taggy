@@ -30,6 +30,7 @@ import com.bensler.decaf.swing.view.SimplePropertyGetter;
 import com.bensler.decaf.util.prefs.BulkPrefPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.taggy.App;
+import com.bensler.taggy.imprt.FileToImport.ImportObstacle;
 import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.ui.BlobController;
 import com.bensler.taggy.ui.MainFrame;
@@ -76,8 +77,7 @@ class ImportDialog extends JDialog {
     importButton.setEnabled(false);
     importButton.addActionListener(evt -> importSelection());
     files_.setSelectionListener((source, files) -> importButton.setEnabled(
-      (!files.isEmpty())
-      && files.stream().allMatch(FileToImport::isImportable)
+      (!files.isEmpty()) && files.stream().allMatch(FileToImport::isImportable)
     ));
     mainPanel.add(importButton, new CellConstraints(2, 4, RIGHT, CENTER));
     mainPanel.setPreferredSize(new Dimension(400, 400));
@@ -123,7 +123,7 @@ class ImportDialog extends JDialog {
 
     @Override
     protected String getText(FileToImport entity, Boolean property) {
-      return entity.getImportObstacle();
+      return entity.getImportObstacleAsString();
     }
   }
 
@@ -158,7 +158,9 @@ class ImportDialog extends JDialog {
 
           fileToImport.setShaSum(shaSum);
           if (db_.doesBlobExist(shaSum)) {
-            fileToImport.setImportObstacle("Duplicate");
+            fileToImport.setImportObstacle(ImportObstacle.DUPLICATE, null);
+          } else {
+            fileToImport.setImportObstacle(null, null);
           }
         } catch (IOException e) {
           // TODO Auto-generated catch block

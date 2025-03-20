@@ -21,6 +21,7 @@ import com.bensler.decaf.swing.action.EntityAction;
 import com.bensler.decaf.swing.awt.OverlayIcon;
 import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
 import com.bensler.taggy.App;
+import com.bensler.taggy.imprt.FileToImport.ImportObstacle;
 import com.bensler.taggy.persist.Blob;
 
 public class ImportController {
@@ -69,8 +70,9 @@ public class ImportController {
   List<FileToImport> getFilesToImport() {
     return getFilesToImport(importDir_)
       .map(FileToImport::new)
-      .map(forEachMapper(file -> getType(file.getFile()).ifPresentOrElse(file::setType, () -> file.setImportObstacle("Unsupported Type"))))
-      .toList();
+      .map(forEachMapper(file -> getType(file.getFile()).ifPresentOrElse(
+        file::setType, () -> file.setImportObstacle(ImportObstacle.UNSUPPORTED_TYPE, null)
+      ))).toList();
   }
 
   Stream<File> getFilesToImport(File dir) {
@@ -93,10 +95,10 @@ public class ImportController {
     try {
       final Blob blob = app_.getBlobCtrl().importFile(file, type);
 
-      return new FileToImport(file, blob.getSha256sum(), "Duplicate (just imported)", type, blob);
+      return new FileToImport(file, blob.getSha256sum(), ImportObstacle.DUPLICATE, "just imported", type, blob);
     } catch (IOException | ImageReadException e) {
       e.printStackTrace();
-      return new FileToImport(file, fileToImport.getShaSum(), "Import Error (%s)".formatted(e.getMessage()), fileToImport.getType(), null);
+      return new FileToImport(file, fileToImport.getShaSum(), ImportObstacle.IMPORT_ERROR, e.getMessage(), fileToImport.getType(), null);
     }
   }
 
