@@ -27,18 +27,19 @@ class FileToImport {
   }
 
   private final File file_;
+  private final long fileSize_;
   private String shaSum_;
   private Optional<Pair<ImportObstacle, Optional<String>>> importObstacle_;
   private String type_;
   private Blob blob_;
 
   FileToImport(File file) {
-    file_ = file;
+    fileSize_ = (file_ = file).length();
     setImportObstacle(ImportObstacle.SHA_MISSING, null);
   }
 
   FileToImport(File file, String shaSum, ImportObstacle obstacle, String obstacleMsg, String type, Blob blob) {
-    file_ = file;
+    fileSize_ = (file_ = file).length();
     shaSum_ = shaSum;
     setImportObstacle(obstacle, obstacleMsg);
     type_ = type;
@@ -51,6 +52,10 @@ class FileToImport {
 
   File getFile() {
     return file_;
+  }
+
+  long getFileSize() {
+    return fileSize_;
   }
 
   String getShaSum() {

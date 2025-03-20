@@ -15,6 +15,7 @@ import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
 import com.bensler.decaf.swing.dialog.WindowClosingTrigger;
@@ -63,6 +64,10 @@ class ImportDialog extends JDialog {
         new TypeIconRenderer(),
         new SimplePropertyGetter<>(FileToImport::getType, COLLATOR_COMPARATOR)
       )),
+      new TablePropertyView<>("fileSize", "Size", new PropertyViewImpl<>(
+        new FileSizeRenderer(),
+        SimplePropertyGetter.createComparablePropertyGetter(FileToImport::getFileSize)
+      )),
       new TablePropertyView<>("shasum", "sha256-Hash", new PropertyViewImpl<>(
         new SimplePropertyGetter<>(FileToImport::getShaSum, COLLATOR_COMPARATOR)
       )),
@@ -102,6 +107,16 @@ class ImportDialog extends JDialog {
 
   private void importSelection() {
     new ImportProgressDialog(this, files_.getSelection()).setVisible(true);
+  }
+
+  static final class FileSizeRenderer extends SimpleCellRenderer<FileToImport, Long> {
+    FileSizeRenderer() {
+      super(null, SwingConstants.RIGHT);
+    }
+    @Override
+    public String getText(FileToImport entity, Long fileSize) {
+      return String.valueOf(fileSize);
+    }
   }
 
   static final class TypeIconRenderer extends SimpleCellRenderer<FileToImport, String> {
