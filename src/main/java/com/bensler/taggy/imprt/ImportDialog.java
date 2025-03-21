@@ -1,8 +1,6 @@
 package com.bensler.taggy.imprt;
 
 import static com.bensler.decaf.util.cmp.CollatorComparator.COLLATOR_COMPARATOR;
-import static com.jgoodies.forms.layout.CellConstraints.CENTER;
-import static com.jgoodies.forms.layout.CellConstraints.RIGHT;
 
 import java.awt.Dimension;
 import java.io.File;
@@ -14,6 +12,7 @@ import java.util.Optional;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -44,18 +43,21 @@ class ImportDialog extends JDialog {
   private final BlobController blobCtrl_;
   private final DbAccess db_;
   private final EntityTable<FileToImport> files_;
+  private final JLabel fileSizeLabel_;
+  private final JButton importButton_;
   private final List<FileToImport> filesToSha_;
+  private final FileSizeRenderer fileSizeRenderer_;
 
   ImportDialog(App app) {
     super(app.getMainFrame().getFrame(), "Import Files", true);
     importController_ = app.getImportCtrl();
     blobCtrl_ = app.getBlobCtrl();
     db_ = app.getDbAccess();
-    filesToSha_ = new LinkedList<>();
     final JPanel mainPanel = new JPanel(new FormLayout(
       "3dlu, f:p:g, 3dlu",
-      "3dlu, f:p:g, 3dlu, p, 3dlu"
+      "3dlu, f:p:g, 3dlu, f:p, 3dlu"
     ));
+    fileSizeRenderer_ = new FileSizeRenderer();
     files_ = new EntityTable<>(new TableView<>(
       new TablePropertyView<>("filename", "Filename", new PropertyViewImpl<>(
         new SimplePropertyGetter<>(FileToImport::getName, COLLATOR_COMPARATOR)
@@ -65,7 +67,7 @@ class ImportDialog extends JDialog {
         new SimplePropertyGetter<>(FileToImport::getType, COLLATOR_COMPARATOR)
       )),
       new TablePropertyView<>("fileSize", "Size", new PropertyViewImpl<>(
-        new FileSizeRenderer(),
+        fileSizeRenderer_,
         SimplePropertyGetter.createComparablePropertyGetter(FileToImport::getFileSize)
       )),
       new TablePropertyView<>("shasum", "sha256-Hash", new PropertyViewImpl<>(
@@ -78,18 +80,22 @@ class ImportDialog extends JDialog {
     ));
     files_.setSelectionMode(SelectionMode.MULTIPLE_INTERVAL);
     mainPanel.add(files_.getScrollPane(), new CellConstraints(2, 2));
-    final JButton importButton = new JButton("Import");
-    importButton.setEnabled(false);
-    importButton.addActionListener(evt -> importSelection());
-    files_.setSelectionListener((source, files) -> importButton.setEnabled(
-      (!files.isEmpty()) && files.stream().allMatch(FileToImport::isImportable)
+    final JPanel buttonPanel = new JPanel(new FormLayout(
+      "r:p:g, 3dlu, p ", "c:p"
     ));
-    mainPanel.add(importButton, new CellConstraints(2, 4, RIGHT, CENTER));
+    fileSizeLabel_ = new JLabel();
+    importButton_ = new JButton("Import");
+    importButton_.setEnabled(false);
+    importButton_.addActionListener(evt -> importSelection());
+    files_.setSelectionListener((source, files) -> filesSelectionChanged(files));
+    buttonPanel.add(fileSizeLabel_, new CellConstraints(1, 1));
+    buttonPanel.add(importButton_, new CellConstraints(3, 1));
+    mainPanel.add(buttonPanel, new CellConstraints(2, 4));
     mainPanel.setPreferredSize(new Dimension(400, 400));
     setContentPane(mainPanel);
     final List<FileToImport> filesToImport = importController_.getFilesToImport();
     files_.addOrUpdateData(filesToImport);
-    filesToSha_.addAll(filesToImport);
+    filesToSha_ = new LinkedList<>(filesToImport.stream().filter(file -> file.hasObstacle(ImportObstacle.SHA_MISSING)).toList());
     pack();
     final PrefKey baseKey = new PrefKey(App.PREFS_APP_ROOT, getClass());
     final BulkPrefPersister prefs = new BulkPrefPersister(
@@ -105,17 +111,41 @@ class ImportDialog extends JDialog {
     new Thread(new ShaSumDuplicateCheckThread(), "Taggy.Import.ShaSumDuplicateCheck").start();
   }
 
+  private void filesSelectionChanged(List<FileToImport> files) {
+    final long fileSizesSum = files.stream().mapToLong(FileToImport::getFileSize).sum();
+    final int filesCount = files.size();
+    final boolean selectionNotEmpty = filesCount > 0;
+
+    importButton_.setEnabled(selectionNotEmpty && files.stream().allMatch(FileToImport::isImportable));
+    fileSizeLabel_.setText(selectionNotEmpty ? "%s file%s (%s)".formatted(
+      filesCount, ((filesCount < 2) ? "" : "s"), fileSizeRenderer_.formatFileSize(fileSizesSum)
+    ) : "");
+  }
   private void importSelection() {
     new ImportProgressDialog(this, files_.getSelection()).setVisible(true);
   }
 
   static final class FileSizeRenderer extends SimpleCellRenderer<FileToImport, Long> {
+
+    private final static String[] UNITS = new String[] {"B", "kB", "MB", "GB", "TB"};
+
     FileSizeRenderer() {
       super(null, SwingConstants.RIGHT);
     }
+
+    String formatFileSize(Long fileSize) {
+      int unitIndex = 0;
+
+      while ((fileSize > 2048) && ((unitIndex + 1) < UNITS.length )) {
+        fileSize = fileSize >> 10;
+      unitIndex++;
+      }
+      return String.valueOf(fileSize) + " " + UNITS[unitIndex];
+    }
+
     @Override
     public String getText(FileToImport entity, Long fileSize) {
-      return String.valueOf(fileSize);
+      return formatFileSize(fileSize);
     }
   }
 

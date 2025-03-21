@@ -87,6 +87,10 @@ class FileToImport {
     return importObstacle_.isEmpty();
   }
 
+  boolean hasObstacle(ImportObstacle obstacle) {
+    return importObstacle_.map(Pair::getLeft).equals(Optional.ofNullable(obstacle));
+  }
+
   String getImportObstacleAsString() {
     return importObstacle_.map(pair -> pair.map((obstacle, optionalMsg) ->
       obstacle.getHumanReadableName() + optionalMsg.map(msg -> " (%s)".formatted(msg)).orElse("")
