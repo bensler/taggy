@@ -119,7 +119,7 @@ class ImportProgressDialog extends JDialog {
     }
   }
 
-  Optional<FileToImport> getNextToSha(Optional<FileToImport> lastProcessedItem) {
+  Optional<FileToImport> getNextToImport(Optional<FileToImport> lastProcessedItem) {
     synchronized (filesToImport_) {
       lastProcessedItem.ifPresent(file -> {
         final Blob blob = file.getBlob();
@@ -144,7 +144,7 @@ class ImportProgressDialog extends JDialog {
     public void run() {
       Optional<FileToImport> fileInProgress = Optional.empty();
 
-      while ((fileInProgress = getNextToSha(fileInProgress)).isPresent()) {
+      while ((fileInProgress = getNextToImport(fileInProgress)).isPresent()) {
         fileInProgress = Optional.of(importController_.importFile(fileInProgress.get()));
       }
     }

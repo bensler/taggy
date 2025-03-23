@@ -121,6 +121,7 @@ class ImportDialog extends JDialog {
       filesCount, ((filesCount < 2) ? "" : "s"), fileSizeRenderer_.formatFileSize(fileSizesSum)
     ) : "");
   }
+
   private void importSelection() {
     new ImportProgressDialog(this, files_.getSelection()).setVisible(true);
   }
@@ -138,7 +139,7 @@ class ImportDialog extends JDialog {
 
       while ((fileSize > 2048) && ((unitIndex + 1) < UNITS.length )) {
         fileSize = fileSize >> 10;
-      unitIndex++;
+        unitIndex++;
       }
       return String.valueOf(fileSize) + " " + UNITS[unitIndex];
     }
