@@ -24,6 +24,8 @@ import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +40,7 @@ import javax.swing.UIManager;
 
 import com.bensler.decaf.swing.awt.ColorHelper;
 import com.bensler.decaf.swing.selection.EntitySelectionListener;
+import com.bensler.decaf.swing.view.SimplePropertyGetter;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
 
@@ -106,6 +109,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
   private final static BasicStroke STROKE_DASH = new BasicStroke(
     1.0f, CAP_BUTT, JOIN_BEVEL, 0.0f, new float[] {4.0f, 4.0f}, 0
   );
+  private static final Comparator<Blob> BLOB_COMPARATOR = SimplePropertyGetter.createComparablePropertyGetter(Blob::getCreationTime).getEntityComparator();
 
   private final Color backgroundSelectionColor_;
   private final Color backgroundSelectionColorUnfocused_;
@@ -238,6 +242,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     clearSelection();
 
     data.forEach(this::addImageInternally);
+    Collections.sort(blobs_, BLOB_COMPARATOR);
     revalidate();
     repaint();
   }
@@ -255,6 +260,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
 
   public void addImage(Blob blob) {
     addImageInternally(blob);
+    Collections.sort(blobs_, BLOB_COMPARATOR);
     revalidate();
     repaint();
   }

@@ -3,9 +3,11 @@ package com.bensler.taggy.persist;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import com.bensler.decaf.util.tree.Hierarchy;
+import com.bensler.taggy.ui.BlobController;
 
 /**
  * Sample of an entity or business class having hierarchical nature.
@@ -79,6 +81,15 @@ public class Blob extends Object implements Entity {
         } while ((aTag = aTag.getParent()) != null);
       });
       return tagHierarchy;
+    }
+
+    public Long getCreationTime() {
+      try {
+        return Optional.ofNullable(getProperty(BlobController.PROPERTY_DATE_EPOCH_SECONDS))
+        .map(Long::valueOf).orElse(null);
+      } catch (NumberFormatException nfe) {
+        return null;
+      }
     }
 
     public String getProperty(String name) {
