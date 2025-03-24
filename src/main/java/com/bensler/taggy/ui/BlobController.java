@@ -18,7 +18,8 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
 import java.util.ArrayList;
@@ -27,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TimeZone;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -57,6 +57,7 @@ public class BlobController {
   public static final String PROPERTY_ORIENTATION_VALUE_90_CW  = "rotate90cw";
   public static final String PROPERTY_ORIENTATION_VALUE_270_CW = "rotate270cw";
   public static final String DATE_PREFIX = TYPE_BIN_PREFIX + "date.";
+  public static final String PROPERTY_DATE_EPOCH_SECONDS = DATE_PREFIX + "epochSeconds";
   public static final String PROPERTY_DATE_YEAR  = DATE_PREFIX + "year";
   public static final String PROPERTY_DATE_MONTH = DATE_PREFIX + "month";
   public static final String PROPERTY_DATE_DAY   = DATE_PREFIX + "day";
@@ -90,7 +91,7 @@ public class BlobController {
   );
 
   public final static DateTimeFormatter dateParser = DateTimeFormatter.ofPattern("yyyy:MM:dd HH:mm:ss")
-    .withZone(TimeZone.getDefault().toZoneId());
+    .withZone(ZoneOffset.UTC);
 
   public static final List<TagInfoAscii> DATE_TAGS = List.of(
     TiffTagConstants.TIFF_TAG_DATE_TIME,
@@ -334,7 +335,8 @@ public class BlobController {
       DATE_TAGS.stream()
         .flatMap(tag -> Optional.ofNullable(jpgMeta.findEXIFValue(tag)).stream())
         .findFirst()
-        .map(this::getTiffStringValue).map(dateParser::parse).map(LocalDate::from).ifPresent(instant -> {
+        .map(this::getTiffStringValue).map(dateParser::parse).map(LocalDateTime::from).ifPresent(instant -> {
+          metaDataSink.put(PROPERTY_DATE_EPOCH_SECONDS, String.valueOf(instant.toEpochSecond(ZoneOffset.UTC)));
           metaDataSink.put(PROPERTY_DATE_YEAR,  String.valueOf(instant.get(ChronoField.YEAR)));
           metaDataSink.put(PROPERTY_DATE_MONTH, String.valueOf(instant.get(ChronoField.MONTH_OF_YEAR)));
           metaDataSink.put(PROPERTY_DATE_DAY,   String.valueOf(instant.get(ChronoField.DAY_OF_MONTH)));
