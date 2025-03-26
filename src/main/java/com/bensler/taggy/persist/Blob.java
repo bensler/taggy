@@ -24,7 +24,7 @@ public class Blob extends Object implements Entity {
     private Map<String, String> properties_;
 
     /** Hibernate needs this empty constructor */
-    private Blob() {
+    Blob() {
       this(null, null, null, null, Map.of());
     }
 

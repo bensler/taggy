@@ -17,7 +17,11 @@
         <column name="blob_id" />
       </many-to-many>
     </set>
-
+    <map access="field" name="properties_" table="tag_property" lazy="false" fetch="join">
+      <key><column name="tag_id" not-null="true" /></key>
+      <map-key type="string" column="name" />
+      <element type="string" column="value" />
+    </map>
   </class>
 </hibernate-mapping>
 

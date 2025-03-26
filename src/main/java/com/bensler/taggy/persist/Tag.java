@@ -1,6 +1,8 @@
 package com.bensler.taggy.persist;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import com.bensler.decaf.util.Named;
@@ -15,6 +17,7 @@ public class Tag extends Object implements Hierarchical<Tag>, Named, Entity {
     private Tag parent_;
     private String name_;
     private Set<Blob> blobs_;
+    private Map<String, String> properties_;
 
     Tag() {}
 
@@ -27,6 +30,7 @@ public class Tag extends Object implements Hierarchical<Tag>, Named, Entity {
       parent_ = parent;
       name_ = name;
       blobs_ = new HashSet<>();
+      properties_ = new HashMap<>();
     }
 
     @Override
