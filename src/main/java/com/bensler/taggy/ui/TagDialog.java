@@ -5,6 +5,7 @@ import static com.bensler.taggy.ui.MainFrame.ICON_EDIT_30;
 import static com.bensler.taggy.ui.MainFrame.ICON_PLUS_30;
 import static com.bensler.taggy.ui.MainFrame.ICON_TAGS_48;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -98,7 +99,7 @@ public abstract class TagDialog<IN> extends BasicContentPanel<IN, Tag> {
 
     @Override
     public Tag getData() {
-      return new Tag(parentTag_.getSingleSelection(), getNewName());
+      return new Tag(parentTag_.getSingleSelection(), getNewName(), Map.of());
     }
 
   }

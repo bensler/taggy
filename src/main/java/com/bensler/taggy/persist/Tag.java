@@ -25,12 +25,12 @@ public class Tag extends Object implements Hierarchical<Tag>, Named, Entity {
       id_ = id;
     }
 
-    public Tag(final Tag parent, final String name) {
+    public Tag(final Tag parent, final String name, Map<String, String> properties) {
       id_ = null;
       parent_ = parent;
       name_ = name;
       blobs_ = new HashSet<>();
-      properties_ = new HashMap<>();
+      properties_ = new HashMap<>(properties);
     }
 
     @Override
@@ -56,6 +56,10 @@ public class Tag extends Object implements Hierarchical<Tag>, Named, Entity {
 
     public Set<Blob> getBlobs() {
       return Set.copyOf(blobs_);
+    }
+
+    public String getProperty(String name) {
+      return properties_.get(name);
     }
 
     @Override
