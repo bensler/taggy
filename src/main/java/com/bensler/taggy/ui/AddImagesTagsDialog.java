@@ -50,7 +50,7 @@ public class AddImagesTagsDialog extends BasicContentPanel<List<Blob>, Set<Tag>>
     app_ = App.getApp();
     allTags_ = new CheckboxTree<>(TAG_NAME_VIEW);
     allTags_.setVisibleRowCount(20, 1);
-    allTags_.setData(app_.getMainFrame().getAllTags());
+    app_.getTagCtrl().setAllTags(allTags_);
     allTags_.addCheckedListener(this::setAssignedTags);
     images_ = new ThumbnailOverviewPanel(app_, SCROLL_HORIZONTALLY);
     assignedTags_ = new CheckboxTree<>(TAG_NAME_VIEW);

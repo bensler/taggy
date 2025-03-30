@@ -47,7 +47,7 @@ public class EditImageTagsDialog extends BasicContentPanel<Blob, Set<Tag>> {
     app_ = App.getApp();
     allTags_ = new CheckboxTree<>(TAG_NAME_VIEW);
     allTags_.setVisibleRowCount(20, 1);
-    allTags_.setData(app_.getMainFrame().getAllTags());
+    app_.getTagCtrl().setAllTags(allTags_);
     allTags_.addCheckedListener(this::setAssignedTags);
     imgComp_ = new ImageComponent();
     assignedTags_ = new CheckboxTree<>(TAG_NAME_VIEW);

@@ -21,7 +21,6 @@ import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -58,9 +57,7 @@ public class BlobController {
   public static final String PROPERTY_ORIENTATION_VALUE_270_CW = "rotate270cw";
   public static final String DATE_PREFIX = TYPE_BIN_PREFIX + "date.";
   public static final String PROPERTY_DATE_EPOCH_SECONDS = DATE_PREFIX + "epochSeconds";
-  public static final String PROPERTY_DATE_YEAR  = DATE_PREFIX + "year";
-  public static final String PROPERTY_DATE_MONTH = DATE_PREFIX + "month";
-  public static final String PROPERTY_DATE_DAY   = DATE_PREFIX + "day";
+  public static final String PROPERTY_DATE_YMD   = DATE_PREFIX + "ymd";
 
   public enum Orientation {
     ROTATE_000_CW(AffineTransform.getQuadrantRotateInstance(0), null),
@@ -92,6 +89,7 @@ public class BlobController {
 
   public final static DateTimeFormatter dateParser = DateTimeFormatter.ofPattern("yyyy:MM:dd HH:mm:ss")
     .withZone(ZoneOffset.UTC);
+  public final static DateTimeFormatter dateFormatter  = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
   public static final List<TagInfoAscii> DATE_TAGS = List.of(
     TiffTagConstants.TIFF_TAG_DATE_TIME,
@@ -337,9 +335,7 @@ public class BlobController {
         .findFirst()
         .map(this::getTiffStringValue).map(dateParser::parse).map(LocalDateTime::from).ifPresent(instant -> {
           metaDataSink.put(PROPERTY_DATE_EPOCH_SECONDS, String.valueOf(instant.toEpochSecond(ZoneOffset.UTC)));
-          metaDataSink.put(PROPERTY_DATE_YEAR,  String.valueOf(instant.get(ChronoField.YEAR)));
-          metaDataSink.put(PROPERTY_DATE_MONTH, String.valueOf(instant.get(ChronoField.MONTH_OF_YEAR)));
-          metaDataSink.put(PROPERTY_DATE_DAY,   String.valueOf(instant.get(ChronoField.DAY_OF_MONTH)));
+          metaDataSink.put(PROPERTY_DATE_YMD, dateFormatter.format(instant));
         });
     } catch (RuntimeException rte) { // never trust untrusted date strings
       rte.printStackTrace();

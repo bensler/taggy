@@ -47,7 +47,6 @@ import com.bensler.decaf.util.prefs.BulkPrefPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefPersister;
 import com.bensler.decaf.util.prefs.Prefs;
-import com.bensler.decaf.util.tree.Hierarchy;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.DbAccess;
@@ -93,17 +92,15 @@ public class MainFrame {
   private final BulkPrefPersister prefs_;
   private final EntityTree<Tag> tagTree_;
   private final ThumbnailOverview thumbnails_;
-  private final Hierarchy<Tag> allTags_;
+  private final TagController tagCtrl_;
 
   private SlideshowFrame slideshowFrame_;
 
   public MainFrame(App app) {
     app_ = app;
-
-    allTags_ = new Hierarchy<>();
+    tagCtrl_ = app_.getTagCtrl();
     frame_ = new JFrame("Taggy");
     frame_.setIconImages(List.of(createImage()));
-    allTags_.addAll(app_.getDbAccess().loadAllTags());
     final JPanel mainPanel = new JPanel(new FormLayout(
       "3dlu, f:p:g, 3dlu",
       "3dlu, f:p, 3dlu, f:p:g, 3dlu, f:p, 3dlu"
@@ -120,7 +117,7 @@ public class MainFrame {
     tagTree_.setVisibleRowCount(20, .5f);
     tagTree_.setSelectionListener((source, selection) -> displayThumbnailsOfSelectedTag());
     frame_.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-    tagTree_.setData(allTags_);
+    tagCtrl_.setAllTags(tagTree_);
     final EntityAction<Tag> editTagAction = new EntityAction<>(
       new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_EDIT_13, SE)), null, "Edit Tag", "Edit currently selected Tag"),
       new SingleEntityFilter<>(DISABLED),
@@ -133,7 +130,7 @@ public class MainFrame {
     );
     final EntityAction<Tag> deleteTagAction = new EntityAction<>(
       new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_X_10, SE)), null, "Delete Tag", "Remove currently selected Tag"),
-      new SingleEntityFilter<>(DISABLED, tag -> allTags_.isLeaf(tag) ? ENABLED : DISABLED),
+      new SingleEntityFilter<>(DISABLED, tag -> tagCtrl_.isLeaf(tag) ? ENABLED : DISABLED),
       new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(this::deleteTagUi))
     );
     tagTree_.setContextActions(new ActionGroup<>(editTagAction, newTagAction, deleteTagAction));
@@ -189,25 +186,15 @@ public class MainFrame {
 
   void createTagUi(Optional<Tag> parentTag) {
     new OkCancelDialog<>(frame_, new TagDialog.Create(tagTree_.getData())).show(
-      parentTag, newTag -> {
-        final Tag createdTag = app_.getDbAccess().storeObject(newTag);
-
-        tagTree_.addData(createdTag, true);
-        allTags_.add(createdTag);
-      }
+      parentTag, newTag -> tagTree_.addData(tagCtrl_.persistTag(newTag), true)
     );
   }
 
   void editTagUi(Tag tag) {
     new OkCancelDialog<>(frame_, new TagDialog.Edit(tagTree_.getData())).show(
       tag, newTag -> {
-        allTags_.removeNode(tag);
         tagTree_.removeTree(tag);
-
-        final Tag editedTag = app_.getDbAccess().storeObject(newTag);
-
-        tagTree_.addData(editedTag, true);
-        allTags_.add(editedTag);
+        tagTree_.addData(tagCtrl_.updateTag(tag, newTag), true);
       }
     );
   }
@@ -226,7 +213,7 @@ public class MainFrame {
 
       db.remove(tag);
       blobs.forEach(db::refresh);
-      allTags_.removeNode(tag);
+      tagCtrl_.removeTag(tag);
       treeModel.removeNode(tag);
       if (parentPath.getPathCount() > 1) {
         tagTree_.select((Tag)parentPath.getLastPathComponent());
@@ -249,10 +236,6 @@ public class MainFrame {
       slideshowFrame_ = new SlideshowFrame(app_);
     }
     return slideshowFrame_;
-  }
-
-  public Hierarchy<Tag> getAllTags() {
-    return allTags_;
   }
 
   public void displayThumbnailsOfSelectedTag() {
@@ -279,7 +262,7 @@ public class MainFrame {
       prefs.get(prefKey_)
       .flatMap(Prefs::tryParseInt)
       .map(Tag::new)
-      .map(allTags_::resolve)
+      .map(tagCtrl_::resolveTag)
       .ifPresent(tagTree_::select);
     }
 
