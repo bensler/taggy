@@ -17,11 +17,10 @@ import com.bensler.taggy.App;
 import com.bensler.taggy.EntityChangeListener;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.DbAccess;
-import com.bensler.taggy.persist.Entity;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class OrphanDialog extends JDialog implements EntityChangeListener {
+public class OrphanDialog extends JDialog implements EntityChangeListener<Blob> {
 
   private final ThumbnailOverview thumbViewer_;
   private final BulkPrefPersister prefs_;
@@ -48,7 +47,7 @@ public class OrphanDialog extends JDialog implements EntityChangeListener {
       app.getPrefs(), new WindowPrefsPersister(new PrefKey(App.PREFS_APP_ROOT, getClass()), this)
     );
     setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-    app.addEntityChangeListener(this);
+    app.addEntityChangeListener(this, Blob.class);
   }
 
   @Override
@@ -63,11 +62,11 @@ public class OrphanDialog extends JDialog implements EntityChangeListener {
   }
 
   @Override
-  public void entityRemoved(Entity entity) { /* thumbViewer_ listens for rm'ed Blobs on its own */ }
+  public void entityRemoved(Blob blob) { /* thumbViewer_ listens for rm'ed Blobs on its own */ }
 
   @Override
-  public void entityChanged(Entity entity) {
-    thumbViewer_.contains(entity).ifPresent(blob -> {
+  public void entityChanged(Blob changedBlob) {
+    thumbViewer_.contains(changedBlob).ifPresent(blob -> {
       if (blob.isUntagged()) {
         thumbViewer_.addImage(blob);
       } else {
@@ -77,8 +76,8 @@ public class OrphanDialog extends JDialog implements EntityChangeListener {
   }
 
   @Override
-  public void entityCreated(Entity entity) {
-    if ((entity instanceof Blob blob) && (blob.isUntagged())) {
+  public void entityCreated(Blob blob) {
+    if (blob.isUntagged()) {
       thumbViewer_.addImage(blob);
     }
   }

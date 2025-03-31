@@ -4,6 +4,7 @@ import static com.bensler.decaf.util.function.ForEachMapperAdapter.forEachMapper
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -12,6 +13,8 @@ import com.bensler.decaf.util.Pair;
 import com.bensler.decaf.util.stream.Collectors;
 import com.bensler.decaf.util.tree.Hierarchy;
 import com.bensler.taggy.App;
+import com.bensler.taggy.persist.Blob;
+import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.persist.Tag;
 
 public class TagController {
@@ -54,7 +57,7 @@ public class TagController {
     final String ym = ymd[0] + "-" + ymd[1];
     final Tag parentMonthTag = computeIfAbsent(ym, this::createMonthTag);
 
-    return persistTag(new Tag(parentMonthTag, day, Map.of(PROPERTY_DATE, dateStr)));
+    return persistNewTag(new Tag(parentMonthTag, day, Map.of(PROPERTY_DATE, dateStr)));
   }
 
   private Tag createMonthTag(String monthStr) {
@@ -63,31 +66,38 @@ public class TagController {
     final String year = ym[0];
     final Tag parentYearTag = computeIfAbsent(year, this::createYearTag);
 
-    return persistTag(new Tag(parentYearTag, month, Map.of(PROPERTY_DATE, monthStr)));
+    return persistNewTag(new Tag(parentYearTag, month, Map.of(PROPERTY_DATE, monthStr)));
   }
 
   private Tag createYearTag(String yearStr) {
-    final Tag datesRootTag = computeIfAbsent(VALUE_DATE_ROOT, dateRootStr -> persistTag(new Tag(null, "Timeline", Map.of(PROPERTY_DATE, dateRootStr))));
+    final Tag datesRootTag = computeIfAbsent(VALUE_DATE_ROOT, dateRootStr -> persistNewTag(new Tag(null, "Timeline", Map.of(PROPERTY_DATE, dateRootStr))));
 
-    return persistTag(new Tag(datesRootTag, yearStr, Map.of(PROPERTY_DATE, yearStr)));
+    return persistNewTag(new Tag(datesRootTag, yearStr, Map.of(PROPERTY_DATE, yearStr)));
   }
 
   void setAllTags(EntityTree<Tag> tree) {
     tree.setData(allTags_);
   }
 
-  void removeTag(Tag tag) {
+  void deleteTag(Tag tag) {
+    final Set<Blob> blobs = tag.getBlobs();
+    final DbAccess db = app_.getDbAccess();
+
+    app_.deleteEntity(tag);
     allTags_.removeNode(tag);
+    Optional.ofNullable(tag.getProperty(PROPERTY_DATE)).ifPresent(dateTags_::remove);
+    blobs.forEach(db::refresh);
   }
 
   Tag resolveTag(Tag tag) {
     return allTags_.resolve(tag);
   }
 
-  Tag persistTag(Tag newTag) {
-    final Tag createdTag = app_.getDbAccess().storeObject(newTag);
-    app_.entitiesCreated(Set.of(createdTag));
+  Tag persistNewTag(Tag newTag) {
+    final Tag createdTag = app_.storeEntity(newTag);
+
     allTags_.add(createdTag);
+    Optional.ofNullable(createdTag.getProperty(PROPERTY_DATE)).ifPresent(dateStr -> dateTags_.put(dateStr, createdTag));
     return createdTag;
   }
 
@@ -95,7 +105,7 @@ public class TagController {
     final Tag editedTag;
 
     allTags_.removeNode(tag);
-    editedTag = app_.getDbAccess().storeObject(updatedTag);
+    editedTag = app_.storeEntity(updatedTag);
     allTags_.add(editedTag);
     return editedTag;
   }

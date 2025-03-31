@@ -41,7 +41,7 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
   private final ThumbnailOverviewPanel comp_;
   private final ActionGroup<Blob> contextActions_;
   @SuppressWarnings("unused") // keep it referenced as App holds it weakly
-  private final EntityChangeListener entityRemoveListener_;
+  private final EntityChangeListener<Blob> entityRemoveListener_;
 
   public ThumbnailOverview(App app) {
     blobCtrl_ = (app_ = app).getBlobCtrl();
@@ -67,7 +67,7 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
     contextActions_ = new ActionGroup<>(slideshowAction, editImageTagsAction, addImageTagsAction, deleteImageAction);
     comp_.addMouseListener(new ContextMenuMouseAdapter(this::triggerContextMenu));
     comp_.addMouseListener(new DoubleClickMouseAdapter(evt -> doubleClick()));
-    app_.addEntityChangeListener(entityRemoveListener_ = new EntityRemovedAdapter(entity -> contains(entity).ifPresent(this::removeImage)));
+    app_.addEntityChangeListener(entityRemoveListener_ = new EntityRemovedAdapter<>(entity -> contains(entity).ifPresent(this::removeImage)), Blob.class);
   }
 
   void doubleClick() {

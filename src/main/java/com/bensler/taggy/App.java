@@ -3,8 +3,11 @@ package com.bensler.taggy;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.WeakHashMap;
+import java.util.function.Consumer;
 
 import javax.swing.UIManager;
 
@@ -59,14 +62,14 @@ public class App {
   private final Thumbnailer thumbnailer_;
   private final MainFrame mainFrame_;
 
-  private final Map<EntityChangeListener, Object> entityChangeListeners_;
+  private final Map<Class<?>, Map<EntityChangeListener<?>, Object>> entityChangeListeners_;
 
   private App() throws Exception {
     Plastic3DLookAndFeel.setCurrentTheme(new DesertYellow());
     UIManager.setLookAndFeel(new Plastic3DLookAndFeel());
 
     final File dataDir = getDataDir();
-    entityChangeListeners_ = new WeakHashMap<>();
+    entityChangeListeners_ = new HashMap<>();
     db_ = new SqliteDbConnector(dataDir, "taggy.sqlite.db");
     db_.performFlywayMigration();
     dbAccess_ = new DbAccess(db_.getSession());
@@ -110,53 +113,43 @@ public class App {
     mainFrame_.show();
   }
 
-  public void addEntityChangeListener(EntityChangeListener entityChangeListener) {
-    entityChangeListeners_.put(entityChangeListener, null);
+  public <E> void addEntityChangeListener(EntityChangeListener<E> listener, Class<E> clazz) {
+    entityChangeListeners_.computeIfAbsent(clazz, key -> new WeakHashMap<>()).put(listener, null);
   }
 
-  public void entitiesCreated(Collection<? extends Entity> entities) {
+  public void entitiesCreated(Collection<?> entities) {
     entities.forEach(this::entityCreated);
   }
 
-  public void entityCreated(Entity entity) {
-    entityChangeListeners_.keySet().forEach(listener -> {
+  public void entityCreated(Object entity) {
+    fireEvent(entity, listener -> listener.entityCreated(entity));
+  }
+
+  void fireEvent(Object entity, Consumer<EntityChangeListener<Object>> fireEventFunction) {
+    Optional.ofNullable(entityChangeListeners_.get(entity.getClass())).ifPresent(listeners -> listeners.keySet().forEach(listener -> {
       try {
-        listener.entityCreated(entity);
+        fireEventFunction.accept((EntityChangeListener<Object>)listener);
       } catch (RuntimeException re) {
         // TODO proper exception handling
         re.printStackTrace();
       }
-    });
+    }));
   }
 
-  public void entitiesChanged(Collection<? extends Entity> entities) {
+  public void entitiesChanged(Collection<?> entities) {
     entities.forEach(this::entityChanged);
   }
 
-  public void entityChanged(Entity entity) {
-    entityChangeListeners_.keySet().forEach(listener -> {
-      try {
-        listener.entityChanged(entity);
-      } catch (RuntimeException re) {
-        // TODO proper exception handling
-        re.printStackTrace();
-      }
-    });
+  public void entityChanged(Object entity) {
+    fireEvent(entity, listener -> listener.entityChanged(entity));
   }
 
-  public void entitiesRemoved(Collection<? extends Entity> entities) {
+  public void entitiesRemoved(Collection<?> entities) {
     entities.forEach(this::entityRemoved);
   }
 
-  public void entityRemoved(Entity entity) {
-    entityChangeListeners_.keySet().forEach(listener -> {
-      try {
-        listener.entityRemoved(entity);
-      } catch (RuntimeException re) {
-        // TODO proper exception handling
-        re.printStackTrace();
-      }
-    });
+  public void entityRemoved(Object entity) {
+    fireEvent(entity, listener -> listener.entityRemoved(entity));
   }
 
   public <E extends Entity> E storeEntity(E entity) {
@@ -169,6 +162,11 @@ public class App {
       entityChanged(entity);
     }
     return entity;
+  }
+
+  public <E extends Entity> void deleteEntity(E entity) {
+    dbAccess_.remove(entity);
+    entityRemoved(entity);
   }
 
 }

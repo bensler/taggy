@@ -17,7 +17,6 @@ import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -41,7 +40,6 @@ import com.bensler.decaf.swing.dialog.OkCancelDialog;
 import com.bensler.decaf.swing.dialog.WindowClosingTrigger;
 import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
 import com.bensler.decaf.swing.tree.EntityTree;
-import com.bensler.decaf.swing.tree.EntityTreeModel;
 import com.bensler.decaf.swing.view.PropertyViewImpl;
 import com.bensler.decaf.util.prefs.BulkPrefPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
@@ -49,7 +47,6 @@ import com.bensler.decaf.util.prefs.PrefPersister;
 import com.bensler.decaf.util.prefs.Prefs;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
-import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.persist.Tag;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -93,7 +90,7 @@ public class MainFrame {
   private final EntityTree<Tag> tagTree_;
   private final ThumbnailOverview thumbnails_;
   private final TagController tagCtrl_;
-
+  private final EntityChangeListenerTreeAdapter<Tag> treeAdapter_; // save it from GC
   private SlideshowFrame slideshowFrame_;
 
   public MainFrame(App app) {
@@ -116,6 +113,7 @@ public class MainFrame {
     tagTree_ = new EntityTree<>(TAG_NAME_VIEW);
     tagTree_.setVisibleRowCount(20, .5f);
     tagTree_.setSelectionListener((source, selection) -> displayThumbnailsOfSelectedTag());
+    app_.addEntityChangeListener(treeAdapter_ = new EntityChangeListenerTreeAdapter<>(tagTree_.getModel()), Tag.class);
     frame_.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     tagCtrl_.setAllTags(tagTree_);
     final EntityAction<Tag> editTagAction = new EntityAction<>(
@@ -186,7 +184,7 @@ public class MainFrame {
 
   void createTagUi(Optional<Tag> parentTag) {
     new OkCancelDialog<>(frame_, new TagDialog.Create(tagTree_.getData())).show(
-      parentTag, newTag -> tagTree_.addData(tagCtrl_.persistTag(newTag), true)
+      parentTag, newTag -> tagTree_.select(tagCtrl_.persistNewTag(newTag))
     );
   }
 
@@ -194,7 +192,7 @@ public class MainFrame {
     new OkCancelDialog<>(frame_, new TagDialog.Edit(tagTree_.getData())).show(
       tag, newTag -> {
         tagTree_.removeTree(tag);
-        tagTree_.addData(tagCtrl_.updateTag(tag, newTag), true);
+        tagTree_.select(tagCtrl_.updateTag(tag, newTag));
       }
     );
   }
@@ -206,15 +204,9 @@ public class MainFrame {
         tag.getName(), Optional.ofNullable(tag.getParent()).map(Tag::getName).orElse("Root")
       )
     )).show(frame_)) {
-      final DbAccess db = app_.getDbAccess();
-      final Set<Blob> blobs = tag.getBlobs();
-      final EntityTreeModel<Tag> treeModel = tagTree_.getModel();
-      final TreePath parentPath = treeModel.getTreePath(tag).getParentPath();
+      final TreePath parentPath = tagTree_.getModel().getTreePath(tag).getParentPath();
 
-      db.remove(tag);
-      blobs.forEach(db::refresh);
-      tagCtrl_.removeTag(tag);
-      treeModel.removeNode(tag);
+      tagCtrl_.deleteTag(tag);
       if (parentPath.getPathCount() > 1) {
         tagTree_.select((Tag)parentPath.getLastPathComponent());
       } else {
