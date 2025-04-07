@@ -62,6 +62,9 @@ class ImportDialog extends JDialog {
       new TablePropertyView<>("filename", "Filename", new PropertyViewImpl<>(
         new SimplePropertyGetter<>(FileToImport::getName, COLLATOR_COMPARATOR)
       )),
+      new TablePropertyView<>("relativePath", "Path", new PropertyViewImpl<>(
+        new SimplePropertyGetter<>(FileToImport::getRelativePath, COLLATOR_COMPARATOR)
+      )),
       new TablePropertyView<>("type", "Type", new PropertyViewImpl<>(
         new TypeIconRenderer(),
         new SimplePropertyGetter<>(FileToImport::getType, COLLATOR_COMPARATOR)

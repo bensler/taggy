@@ -1,6 +1,7 @@
 package com.bensler.taggy.imprt;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Optional;
 
 import com.bensler.decaf.util.Pair;
@@ -27,19 +28,22 @@ class FileToImport {
   }
 
   private final File file_;
+  private final Path relativePath_;
   private final long fileSize_;
   private String shaSum_;
   private Optional<Pair<ImportObstacle, Optional<String>>> importObstacle_;
   private String type_;
   private Blob blob_;
 
-  FileToImport(File file) {
+  FileToImport(Path basePath, File file) {
     fileSize_ = (file_ = file).length();
+    relativePath_ = basePath.relativize(file_.toPath());
     setImportObstacle(ImportObstacle.SHA_MISSING, null);
   }
 
-  FileToImport(File file, String shaSum, ImportObstacle obstacle, String obstacleMsg, String type, Blob blob) {
-    fileSize_ = (file_ = file).length();
+  FileToImport(FileToImport template, String shaSum, ImportObstacle obstacle, String obstacleMsg, String type, Blob blob) {
+    fileSize_ = (file_ = template.file_).length();
+    relativePath_ = template.relativePath_;
     shaSum_ = shaSum;
     setImportObstacle(obstacle, obstacleMsg);
     type_ = type;
@@ -48,6 +52,10 @@ class FileToImport {
 
   String getName() {
     return file_.getName();
+  }
+
+  String getRelativePath() {
+    return relativePath_.toString();
   }
 
   File getFile() {

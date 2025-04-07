@@ -8,7 +8,9 @@ import static com.bensler.taggy.ui.MainFrame.ICON_PLUS_30;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -49,6 +51,7 @@ public class ImportController {
   private final App app_;
   private final File importDir_;
   private final EntityAction<Void> actionImport_;
+  private final Map<File, String> fileShaMap_;
 
   public ImportController(App app, File dataDir) {
     app_ = app;
@@ -57,6 +60,7 @@ public class ImportController {
     actionImport_ = new EntityAction<>(
       IMPORT_ACTION_APPEARANCE, null, (source, entities) -> showImportDialog()
     );
+    fileShaMap_ = new HashMap<>();
   }
 
   public EntityAction<?> getImportAction() {
@@ -68,8 +72,10 @@ public class ImportController {
   }
 
   List<FileToImport> getFilesToImport() {
+    final Path basePath = importDir_.toPath();
+
     return getFilesToImport(importDir_)
-      .map(FileToImport::new)
+      .map(file -> new FileToImport(basePath, file))
       .map(forEachMapper(file -> getType(file.getFile()).ifPresentOrElse(
         file::setType, () -> file.setImportObstacle(ImportObstacle.UNSUPPORTED_TYPE, null)
       ))).toList();
@@ -88,17 +94,16 @@ public class ImportController {
       : Optional.empty();
   }
 
-  FileToImport importFile(FileToImport fileToImport) {
-    final File file = fileToImport.getFile();
-    final String type = fileToImport.getType();
+  FileToImport importFile(FileToImport file) {
+    final String type = file.getType();
 
     try {
-      final Blob blob = app_.getBlobCtrl().importFile(file, type);
+      final Blob blob = app_.getBlobCtrl().importFile(file.getFile(), type);
 
       return new FileToImport(file, blob.getSha256sum(), ImportObstacle.DUPLICATE, "just imported", type, blob);
     } catch (IOException | ImageReadException e) {
       e.printStackTrace();
-      return new FileToImport(file, fileToImport.getShaSum(), ImportObstacle.IMPORT_ERROR, e.getMessage(), fileToImport.getType(), null);
+      return new FileToImport(file, file.getShaSum(), ImportObstacle.IMPORT_ERROR, e.getMessage(), file.getType(), null);
     }
   }
 
