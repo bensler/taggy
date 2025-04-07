@@ -4,6 +4,7 @@ import static com.bensler.decaf.util.function.ForEachMapperAdapter.forEachMapper
 
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -47,7 +48,8 @@ public class TagController {
     return computeIfAbsent(dateStr, this::createDateTag);
   }
 
-  Tag computeIfAbsent(String tagDateKey, Function<String, Tag> tagCreator) {
+  /** had to impl it myself as recursive calls on {@link Map#computeIfAbsent(Object, Function)} fail in a {@link ConcurrentModificationException} */
+  private Tag computeIfAbsent(String tagDateKey, Function<String, Tag> tagCreator) {
     Tag tag = dateTags_.get(tagDateKey);
 
     if (tag == null) {
