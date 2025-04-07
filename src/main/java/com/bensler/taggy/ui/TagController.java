@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 import com.bensler.decaf.swing.tree.EntityTree;
 import com.bensler.decaf.util.Pair;
@@ -21,6 +21,10 @@ import com.bensler.taggy.persist.Tag;
 
 public class TagController {
 
+  public static final DateTimeFormatter PROPERTY_DATE_MONTH_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM");
+  public static final DateTimeFormatter PROPERTY_DATE_YEAR_FORMATTER = DateTimeFormatter.ofPattern("yyyy");
+  public static final DateTimeFormatter UI_MONTH_FORMATTER = DateTimeFormatter.ofPattern("MM (MMMM)");
+  public static final DateTimeFormatter UI_WEEK_DAY_FORMATTER = DateTimeFormatter.ofPattern("dd (E)");
   public static final String PROPERTY_DATE = "tag.date";
   public static final String VALUE_DATE_ROOT = "dateRoot";
 
@@ -40,41 +44,34 @@ public class TagController {
   }
 
   Tag getDateTag(String dateStr) {
-    return computeIfAbsent(dateStr, () -> createDateTag(dateStr));
+    return computeIfAbsent(dateStr, this::createDateTag);
   }
 
-  Tag computeIfAbsent(String tagDateStr, Supplier<Tag> tagCreator) {
-    Tag tag = dateTags_.get(tagDateStr);
+  Tag computeIfAbsent(String tagDateKey, Function<String, Tag> tagCreator) {
+    Tag tag = dateTags_.get(tagDateKey);
 
     if (tag == null) {
-      tag = tagCreator.get();
-      dateTags_.put(tagDateStr, tag);
+      tag = tagCreator.apply(tagDateKey);
+      dateTags_.put(tagDateKey, tag);
     }
     return tag;
   }
 
-  DateTimeFormatter propertyDateMonthFormatter = DateTimeFormatter.ofPattern("yyyy-MM");
-  DateTimeFormatter propertyDateYearFormatter = DateTimeFormatter.ofPattern("yyyy");
-  DateTimeFormatter uiMonthFormatter = DateTimeFormatter.ofPattern("MM (MMMM)");
-  DateTimeFormatter uiWeekDayFormatter = DateTimeFormatter.ofPattern("dd (E)");
-
   private Tag createDateTag(String dateStr) {
     final TemporalAccessor date = BlobController.dateFormatter.parse(dateStr);
-    final String propertyDateMonth = propertyDateMonthFormatter.format(date);
-    final Tag parentMonthTag = computeIfAbsent(propertyDateMonth, () -> createMonthTag(date, propertyDateMonth));
+    final Tag parentMonthTag = computeIfAbsent(PROPERTY_DATE_MONTH_FORMATTER.format(date), tagDateKey -> createMonthTag(date, tagDateKey));
 
-    return persistNewTag(new Tag(parentMonthTag, uiWeekDayFormatter.format(date), Map.of(PROPERTY_DATE, dateStr)));
+    return persistNewTag(new Tag(parentMonthTag, UI_WEEK_DAY_FORMATTER.format(date), Map.of(PROPERTY_DATE, dateStr)));
   }
 
   private Tag createMonthTag(TemporalAccessor date, String propertyDateMonth) {
-    final String year = propertyDateYearFormatter.format(date);
-    final Tag parentYearTag = computeIfAbsent(year, () -> createYearTag(date, year));
+    final Tag parentYearTag = computeIfAbsent(PROPERTY_DATE_YEAR_FORMATTER.format(date), this::createYearTag);
 
-    return persistNewTag(new Tag(parentYearTag, uiMonthFormatter.format(date), Map.of(PROPERTY_DATE, propertyDateMonth)));
+    return persistNewTag(new Tag(parentYearTag, UI_MONTH_FORMATTER.format(date), Map.of(PROPERTY_DATE, propertyDateMonth)));
   }
 
-  private Tag createYearTag(TemporalAccessor date, String propertyDateYear) {
-    final Tag datesRootTag = computeIfAbsent(VALUE_DATE_ROOT, () -> persistNewTag(new Tag(null, "Timeline", Map.of(PROPERTY_DATE, VALUE_DATE_ROOT))));
+  private Tag createYearTag(String propertyDateYear) {
+    final Tag datesRootTag = computeIfAbsent(VALUE_DATE_ROOT, tagDateKey -> persistNewTag(new Tag(null, "Timeline", Map.of(PROPERTY_DATE, VALUE_DATE_ROOT))));
 
     return persistNewTag(new Tag(datesRootTag, propertyDateYear, Map.of(PROPERTY_DATE, propertyDateYear)));
   }
