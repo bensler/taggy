@@ -98,7 +98,8 @@ class ImportDialog extends JDialog {
     setContentPane(mainPanel);
     final List<FileToImport> filesToImport = importController_.getFilesToImport();
     files_.addOrUpdateData(filesToImport);
-    filesToSha_ = new LinkedList<>(filesToImport.stream().filter(file -> file.hasObstacle(ImportObstacle.SHA_MISSING)).toList());
+    filesToSha_ = new LinkedList<>(filesToImport.stream()
+      .filter(file -> file.hasObstacle(ImportObstacle.SHA_MISSING) || file.hasObstacle(ImportObstacle.DUPLICATE_CHECK_MISSING)).toList());
     pack();
     final PrefKey baseKey = new PrefKey(App.PREFS_APP_ROOT, getClass());
     final BulkPrefPersister prefs = new BulkPrefPersister(
@@ -203,9 +204,15 @@ class ImportDialog extends JDialog {
         final File file = fileToImport.getFile();
 
         try {
-          final String shaSum = blobCtrl_.hashFile(file);
+          final String shaSum;
 
-          fileToImport.setShaSum(shaSum);
+          if (fileToImport.hasObstacle(ImportObstacle.DUPLICATE_CHECK_MISSING)) {
+            shaSum = fileToImport.getShaSum();
+          } else {
+            shaSum = blobCtrl_.hashFile(file);
+            fileToImport.setShaSum(shaSum);
+            importController_.putShaSum(file, shaSum);
+          }
           if (db_.doesBlobExist(shaSum)) {
             fileToImport.setImportObstacle(ImportObstacle.DUPLICATE, null);
           } else {

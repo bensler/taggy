@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.imaging.ImageReadException;
@@ -73,12 +74,37 @@ public class ImportController {
 
   List<FileToImport> getFilesToImport() {
     final Path basePath = importDir_.toPath();
-
-    return getFilesToImport(importDir_)
+    final List<FileToImport> result = getFilesToImport(importDir_)
       .map(file -> new FileToImport(basePath, file))
       .map(forEachMapper(file -> getType(file.getFile()).ifPresentOrElse(
         file::setType, () -> file.setImportObstacle(ImportObstacle.UNSUPPORTED_TYPE, null)
-      ))).toList();
+      )))
+      .map(forEachMapper(this::reuseSha)).toList();
+
+    synchronized (fileShaMap_) {
+      fileShaMap_.clear();
+      fileShaMap_.putAll(result.stream().filter(file -> file.hasObstacle(ImportObstacle.DUPLICATE_CHECK_MISSING))
+        .collect(Collectors.toMap(FileToImport::getFile, FileToImport::getShaSum)));
+    }
+    return result;
+  }
+
+  private void reuseSha(FileToImport file) {
+    if (file.hasObstacle(ImportObstacle.SHA_MISSING)) {
+      synchronized (fileShaMap_) {
+        final String sha;
+
+        if ((sha = fileShaMap_.get(file.getFile())) != null) {
+          file.setShaSum(sha);
+        }
+      }
+    }
+  }
+
+  void putShaSum(File file, String shaSum) {
+    synchronized (fileShaMap_) {
+      fileShaMap_.put(file, shaSum);
+    }
   }
 
   Stream<File> getFilesToImport(File dir) {
