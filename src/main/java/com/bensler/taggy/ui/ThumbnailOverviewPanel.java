@@ -109,7 +109,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
   private final static BasicStroke STROKE_DASH = new BasicStroke(
     1.0f, CAP_BUTT, JOIN_BEVEL, 0.0f, new float[] {4.0f, 4.0f}, 0
   );
-  private static final Comparator<Blob> BLOB_COMPARATOR = SimplePropertyGetter.createComparablePropertyGetter(Blob::getCreationTime).getEntityComparator();
+  private static final Comparator<Blob> BLOB_COMPARATOR = SimplePropertyGetter.createComparableGetter(Blob::getCreationTime);
 
   private final Color backgroundSelectionColor_;
   private final Color backgroundSelectionColorUnfocused_;

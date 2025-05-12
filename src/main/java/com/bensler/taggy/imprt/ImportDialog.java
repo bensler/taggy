@@ -1,5 +1,6 @@
 package com.bensler.taggy.imprt;
 
+import static com.bensler.decaf.swing.view.SimplePropertyGetter.createGetterComparator;
 import static com.bensler.decaf.util.cmp.CollatorComparator.COLLATOR_COMPARATOR;
 
 import java.awt.Dimension;
@@ -60,25 +61,25 @@ class ImportDialog extends JDialog {
     fileSizeRenderer_ = new FileSizeRenderer();
     files_ = new EntityTable<>(new TableView<>(
       new TablePropertyView<>("filename", "Filename", new PropertyViewImpl<>(
-        new SimplePropertyGetter<>(FileToImport::getName, COLLATOR_COMPARATOR)
+        createGetterComparator(FileToImport::getName, COLLATOR_COMPARATOR)
       )),
       new TablePropertyView<>("relativePath", "Path", new PropertyViewImpl<>(
-        new SimplePropertyGetter<>(FileToImport::getRelativePath, COLLATOR_COMPARATOR)
+        createGetterComparator(FileToImport::getRelativePath, COLLATOR_COMPARATOR)
       )),
       new TablePropertyView<>("type", "Type", new PropertyViewImpl<>(
         new TypeIconRenderer(),
-        new SimplePropertyGetter<>(FileToImport::getType, COLLATOR_COMPARATOR)
+        createGetterComparator(FileToImport::getType, COLLATOR_COMPARATOR)
       )),
       new TablePropertyView<>("fileSize", "Size", new PropertyViewImpl<>(
         fileSizeRenderer_,
-        SimplePropertyGetter.createComparablePropertyGetter(FileToImport::getFileSize)
+        SimplePropertyGetter.createComparableGetter(FileToImport::getFileSize)
       )),
       new TablePropertyView<>("shasum", "sha256-Hash", new PropertyViewImpl<>(
-        new SimplePropertyGetter<>(FileToImport::getShaSum, COLLATOR_COMPARATOR)
+        createGetterComparator(FileToImport::getShaSum, COLLATOR_COMPARATOR)
       )),
       new TablePropertyView<>("importable", "Importable", new PropertyViewImpl<>(
         new IsNewIconRenderer(),
-        SimplePropertyGetter.createComparablePropertyGetter(FileToImport::isImportable)
+        SimplePropertyGetter.createComparableGetter(FileToImport::isImportable)
       ))
     ));
     files_.setSelectionMode(SelectionMode.MULTIPLE_INTERVAL);

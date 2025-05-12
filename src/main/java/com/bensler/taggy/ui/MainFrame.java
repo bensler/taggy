@@ -3,8 +3,8 @@ package com.bensler.taggy.ui;
 import static com.bensler.decaf.swing.action.ActionState.DISABLED;
 import static com.bensler.decaf.swing.action.ActionState.ENABLED;
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
-import static com.bensler.decaf.swing.view.SimplePropertyGetter.createComparablePropertyGetter;
-import static com.bensler.decaf.swing.view.SimplePropertyGetter.createStringPropertyGetter;
+import static com.bensler.decaf.swing.view.SimplePropertyGetter.createGetter;
+import static com.bensler.decaf.util.cmp.CollatorComparator.COLLATOR_COMPARATOR;
 import static com.jgoodies.forms.layout.CellConstraints.CENTER;
 import static com.jgoodies.forms.layout.CellConstraints.FILL;
 import static com.jgoodies.forms.layout.CellConstraints.RIGHT;
@@ -26,6 +26,8 @@ import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.tree.TreePath;
 
+import org.hibernate.internal.util.compare.ComparableComparator;
+
 import com.bensler.decaf.swing.SplitpanePrefPersister;
 import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.ActionGroup;
@@ -40,7 +42,10 @@ import com.bensler.decaf.swing.dialog.OkCancelDialog;
 import com.bensler.decaf.swing.dialog.WindowClosingTrigger;
 import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
 import com.bensler.decaf.swing.tree.EntityTree;
+import com.bensler.decaf.swing.view.EntityPropertyComparator;
 import com.bensler.decaf.swing.view.PropertyViewImpl;
+import com.bensler.decaf.swing.view.SimplePropertyGetter;
+import com.bensler.decaf.util.cmp.ComparatorChain;
 import com.bensler.decaf.util.prefs.BulkPrefPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefPersister;
@@ -48,6 +53,7 @@ import com.bensler.decaf.util.prefs.Prefs;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.Tag;
+import com.bensler.taggy.persist.TagProperty;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
@@ -78,10 +84,17 @@ public class MainFrame {
   public static final ImageIcon ICON_X_30 = new ImageIcon(MainFrame.class.getResource("x_30x30.png"));
 
   public static final PropertyViewImpl<Blob, Integer> BLOB_ID_VIEW = new PropertyViewImpl<>(
-    createComparablePropertyGetter(Blob::getId)
+    SimplePropertyGetter.createComparableGetter(Blob::getId)
   );
+
+  public static final EntityPropertyComparator<Tag, String> TAG_NAME_COMPARATOR = new EntityPropertyComparator<>(Tag::getName, COLLATOR_COMPARATOR);
+
+  public static final EntityPropertyComparator<Tag, String> TAG_DATE_COMPARATOR = new EntityPropertyComparator<>(
+    tag -> tag.getProperty(TagProperty.REPRESENTED_DATE), new ComparableComparator<>()
+  );
+
   public static final PropertyViewImpl<Tag, String> TAG_NAME_VIEW = new PropertyViewImpl<>(
-    ICON_TAG_13, createStringPropertyGetter(Tag::getName)
+    ICON_TAG_13, createGetter(Tag::getName, new ComparatorChain<>(List.of(TAG_DATE_COMPARATOR, TAG_NAME_COMPARATOR)))
   );
 
   private final App app_;
@@ -153,7 +166,7 @@ public class MainFrame {
     new WindowClosingTrigger(frame_, evt -> frameClosing());
 
     final PrefKey baseKey = new PrefKey(App.PREFS_APP_ROOT, getClass());
-    prefs_ = new BulkPrefPersister(app.getPrefs(),
+    prefs_ = new BulkPrefPersister(app_.getPrefs(),
       new WindowPrefsPersister(baseKey, frame_),
       new SelectedTagPrefPersister(new PrefKey(baseKey, "selectedTag")),
       new SplitpanePrefPersister(new PrefKey(baseKey, "splitLeft"), leftSplitpane),
