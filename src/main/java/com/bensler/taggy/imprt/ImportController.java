@@ -8,10 +8,13 @@ import static com.bensler.taggy.ui.MainFrame.ICON_PLUS_30;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.imaging.ImageReadException;
@@ -49,6 +52,7 @@ public class ImportController {
   private final App app_;
   private final File importDir_;
   private final EntityAction<Void> actionImport_;
+  private final Map<File, String> fileShaMap_;
 
   public ImportController(App app, File dataDir) {
     app_ = app;
@@ -57,6 +61,7 @@ public class ImportController {
     actionImport_ = new EntityAction<>(
       IMPORT_ACTION_APPEARANCE, null, (source, entities) -> showImportDialog()
     );
+    fileShaMap_ = new HashMap<>();
   }
 
   public EntityAction<?> getImportAction() {
@@ -68,11 +73,38 @@ public class ImportController {
   }
 
   List<FileToImport> getFilesToImport() {
-    return getFilesToImport(importDir_)
-      .map(FileToImport::new)
+    final Path basePath = importDir_.toPath();
+    final List<FileToImport> result = getFilesToImport(importDir_)
+      .map(file -> new FileToImport(basePath, file))
       .map(forEachMapper(file -> getType(file.getFile()).ifPresentOrElse(
         file::setType, () -> file.setImportObstacle(ImportObstacle.UNSUPPORTED_TYPE, null)
-      ))).toList();
+      )))
+      .map(forEachMapper(this::reuseSha)).toList();
+
+    synchronized (fileShaMap_) {
+      fileShaMap_.clear();
+      fileShaMap_.putAll(result.stream().filter(file -> file.hasObstacle(ImportObstacle.DUPLICATE_CHECK_MISSING))
+        .collect(Collectors.toMap(FileToImport::getFile, FileToImport::getShaSum)));
+    }
+    return result;
+  }
+
+  private void reuseSha(FileToImport file) {
+    if (file.hasObstacle(ImportObstacle.SHA_MISSING)) {
+      synchronized (fileShaMap_) {
+        final String sha;
+
+        if ((sha = fileShaMap_.get(file.getFile())) != null) {
+          file.setShaSum(sha);
+        }
+      }
+    }
+  }
+
+  void putShaSum(File file, String shaSum) {
+    synchronized (fileShaMap_) {
+      fileShaMap_.put(file, shaSum);
+    }
   }
 
   Stream<File> getFilesToImport(File dir) {
@@ -88,17 +120,16 @@ public class ImportController {
       : Optional.empty();
   }
 
-  FileToImport importFile(FileToImport fileToImport) {
-    final File file = fileToImport.getFile();
-    final String type = fileToImport.getType();
+  FileToImport importFile(FileToImport file) {
+    final String type = file.getType();
 
     try {
-      final Blob blob = app_.getBlobCtrl().importFile(file, type);
+      final Blob blob = app_.getBlobCtrl().importFile(file.getFile(), type);
 
       return new FileToImport(file, blob.getSha256sum(), ImportObstacle.DUPLICATE, "just imported", type, blob);
     } catch (IOException | ImageReadException e) {
       e.printStackTrace();
-      return new FileToImport(file, fileToImport.getShaSum(), ImportObstacle.IMPORT_ERROR, e.getMessage(), fileToImport.getType(), null);
+      return new FileToImport(file, file.getShaSum(), ImportObstacle.IMPORT_ERROR, e.getMessage(), file.getType(), null);
     }
   }
 

@@ -1,5 +1,6 @@
 package com.bensler.taggy.imprt;
 
+import static com.bensler.decaf.swing.view.SimplePropertyGetter.createGetterComparator;
 import static com.bensler.decaf.util.cmp.CollatorComparator.COLLATOR_COMPARATOR;
 
 import java.awt.Dimension;
@@ -60,22 +61,25 @@ class ImportDialog extends JDialog {
     fileSizeRenderer_ = new FileSizeRenderer();
     files_ = new EntityTable<>(new TableView<>(
       new TablePropertyView<>("filename", "Filename", new PropertyViewImpl<>(
-        new SimplePropertyGetter<>(FileToImport::getName, COLLATOR_COMPARATOR)
+        createGetterComparator(FileToImport::getName, COLLATOR_COMPARATOR)
+      )),
+      new TablePropertyView<>("relativePath", "Path", new PropertyViewImpl<>(
+        createGetterComparator(FileToImport::getRelativePath, COLLATOR_COMPARATOR)
       )),
       new TablePropertyView<>("type", "Type", new PropertyViewImpl<>(
         new TypeIconRenderer(),
-        new SimplePropertyGetter<>(FileToImport::getType, COLLATOR_COMPARATOR)
+        createGetterComparator(FileToImport::getType, COLLATOR_COMPARATOR)
       )),
       new TablePropertyView<>("fileSize", "Size", new PropertyViewImpl<>(
         fileSizeRenderer_,
-        SimplePropertyGetter.createComparablePropertyGetter(FileToImport::getFileSize)
+        SimplePropertyGetter.createComparableGetter(FileToImport::getFileSize)
       )),
       new TablePropertyView<>("shasum", "sha256-Hash", new PropertyViewImpl<>(
-        new SimplePropertyGetter<>(FileToImport::getShaSum, COLLATOR_COMPARATOR)
+        createGetterComparator(FileToImport::getShaSum, COLLATOR_COMPARATOR)
       )),
       new TablePropertyView<>("importable", "Importable", new PropertyViewImpl<>(
         new IsNewIconRenderer(),
-        SimplePropertyGetter.createComparablePropertyGetter(FileToImport::isImportable)
+        SimplePropertyGetter.createComparableGetter(FileToImport::isImportable)
       ))
     ));
     files_.setSelectionMode(SelectionMode.MULTIPLE_INTERVAL);
@@ -95,7 +99,8 @@ class ImportDialog extends JDialog {
     setContentPane(mainPanel);
     final List<FileToImport> filesToImport = importController_.getFilesToImport();
     files_.addOrUpdateData(filesToImport);
-    filesToSha_ = new LinkedList<>(filesToImport.stream().filter(file -> file.hasObstacle(ImportObstacle.SHA_MISSING)).toList());
+    filesToSha_ = new LinkedList<>(filesToImport.stream()
+      .filter(file -> file.hasObstacle(ImportObstacle.SHA_MISSING) || file.hasObstacle(ImportObstacle.DUPLICATE_CHECK_MISSING)).toList());
     pack();
     final PrefKey baseKey = new PrefKey(App.PREFS_APP_ROOT, getClass());
     final BulkPrefPersister prefs = new BulkPrefPersister(
@@ -200,9 +205,15 @@ class ImportDialog extends JDialog {
         final File file = fileToImport.getFile();
 
         try {
-          final String shaSum = blobCtrl_.hashFile(file);
+          final String shaSum;
 
-          fileToImport.setShaSum(shaSum);
+          if (fileToImport.hasObstacle(ImportObstacle.DUPLICATE_CHECK_MISSING)) {
+            shaSum = fileToImport.getShaSum();
+          } else {
+            shaSum = blobCtrl_.hashFile(file);
+            fileToImport.setShaSum(shaSum);
+            importController_.putShaSum(file, shaSum);
+          }
           if (db_.doesBlobExist(shaSum)) {
             fileToImport.setImportObstacle(ImportObstacle.DUPLICATE, null);
           } else {

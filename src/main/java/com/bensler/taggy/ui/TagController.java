@@ -1,7 +1,11 @@
 package com.bensler.taggy.ui;
 
 import static com.bensler.decaf.util.function.ForEachMapperAdapter.forEachMapper;
+import static com.bensler.taggy.persist.TagProperty.REPRESENTED_DATE;
 
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -19,7 +23,10 @@ import com.bensler.taggy.persist.Tag;
 
 public class TagController {
 
-  public static final String PROPERTY_DATE = "tag.date";
+  public static final DateTimeFormatter PROPERTY_DATE_MONTH_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM");
+  public static final DateTimeFormatter PROPERTY_DATE_YEAR_FORMATTER = DateTimeFormatter.ofPattern("yyyy");
+  public static final DateTimeFormatter UI_MONTH_FORMATTER = DateTimeFormatter.ofPattern("MMMM");
+  public static final DateTimeFormatter UI_WEEK_DAY_FORMATTER = DateTimeFormatter.ofPattern("d (E)");
   public static final String VALUE_DATE_ROOT = "dateRoot";
 
   private final App app_;
@@ -32,7 +39,7 @@ public class TagController {
     allTags_ = new Hierarchy<>();
     dateTags_ = app_.getDbAccess().loadAllTags().stream()
       .map(forEachMapper(allTags_::add))
-      .map(tag -> new Pair<>(tag.getProperty(PROPERTY_DATE), tag))
+      .map(tag -> new Pair<>(tag.getProperty(REPRESENTED_DATE), tag))
       .filter(pair -> (pair.getLeft() != null))
       .collect(Collectors.toMap(Pair::getLeft, Pair::getRight, HashMap::new));
   }
@@ -41,38 +48,34 @@ public class TagController {
     return computeIfAbsent(dateStr, this::createDateTag);
   }
 
-  Tag computeIfAbsent(String tagDateStr, Function<String, Tag> tagCreator) {
-    Tag tag = dateTags_.get(tagDateStr);
+  /** had to impl it myself as recursive calls on {@link Map#computeIfAbsent(Object, Function)} fail in a {@link ConcurrentModificationException} */
+  private Tag computeIfAbsent(String tagDateKey, Function<String, Tag> tagCreator) {
+    Tag tag = dateTags_.get(tagDateKey);
 
     if (tag == null) {
-      tag = tagCreator.apply(tagDateStr);
-      dateTags_.put(tagDateStr, tag);
+      tag = tagCreator.apply(tagDateKey);
+      dateTags_.put(tagDateKey, tag);
     }
     return tag;
   }
 
   private Tag createDateTag(String dateStr) {
-    final String[] ymd = dateStr.split("-");
-    final String day = ymd[2];
-    final String ym = ymd[0] + "-" + ymd[1];
-    final Tag parentMonthTag = computeIfAbsent(ym, this::createMonthTag);
+    final TemporalAccessor date = BlobController.dateFormatter.parse(dateStr);
+    final Tag parentMonthTag = computeIfAbsent(PROPERTY_DATE_MONTH_FORMATTER.format(date), tagDateKey -> createMonthTag(date, tagDateKey));
 
-    return persistNewTag(new Tag(parentMonthTag, day, Map.of(PROPERTY_DATE, dateStr)));
+    return persistNewTag(new Tag(parentMonthTag, UI_WEEK_DAY_FORMATTER.format(date), Map.of(REPRESENTED_DATE, dateStr)));
   }
 
-  private Tag createMonthTag(String monthStr) {
-    final String[] ym = monthStr.split("-");
-    final String month = ym[1];
-    final String year = ym[0];
-    final Tag parentYearTag = computeIfAbsent(year, this::createYearTag);
+  private Tag createMonthTag(TemporalAccessor date, String propertyDateMonth) {
+    final Tag parentYearTag = computeIfAbsent(PROPERTY_DATE_YEAR_FORMATTER.format(date), this::createYearTag);
 
-    return persistNewTag(new Tag(parentYearTag, month, Map.of(PROPERTY_DATE, monthStr)));
+    return persistNewTag(new Tag(parentYearTag, UI_MONTH_FORMATTER.format(date), Map.of(REPRESENTED_DATE, propertyDateMonth)));
   }
 
-  private Tag createYearTag(String yearStr) {
-    final Tag datesRootTag = computeIfAbsent(VALUE_DATE_ROOT, dateRootStr -> persistNewTag(new Tag(null, "Timeline", Map.of(PROPERTY_DATE, dateRootStr))));
+  private Tag createYearTag(String propertyDateYear) {
+    final Tag datesRootTag = computeIfAbsent(VALUE_DATE_ROOT, tagDateKey -> persistNewTag(new Tag(null, "Timeline", Map.of(REPRESENTED_DATE, VALUE_DATE_ROOT))));
 
-    return persistNewTag(new Tag(datesRootTag, yearStr, Map.of(PROPERTY_DATE, yearStr)));
+    return persistNewTag(new Tag(datesRootTag, propertyDateYear, Map.of(REPRESENTED_DATE, propertyDateYear)));
   }
 
   void setAllTags(EntityTree<Tag> tree) {
@@ -85,7 +88,7 @@ public class TagController {
 
     app_.deleteEntity(tag);
     allTags_.removeNode(tag);
-    Optional.ofNullable(tag.getProperty(PROPERTY_DATE)).ifPresent(dateTags_::remove);
+    Optional.ofNullable(tag.getProperty(REPRESENTED_DATE)).ifPresent(dateTags_::remove);
     blobs.forEach(db::refresh);
   }
 
@@ -97,7 +100,7 @@ public class TagController {
     final Tag createdTag = app_.storeEntity(newTag);
 
     allTags_.add(createdTag);
-    Optional.ofNullable(createdTag.getProperty(PROPERTY_DATE)).ifPresent(dateStr -> dateTags_.put(dateStr, createdTag));
+    Optional.ofNullable(createdTag.getProperty(REPRESENTED_DATE)).ifPresent(dateStr -> dateTags_.put(dateStr, createdTag));
     return createdTag;
   }
 
