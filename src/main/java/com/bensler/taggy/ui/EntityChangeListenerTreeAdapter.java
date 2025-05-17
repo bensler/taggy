@@ -1,15 +1,17 @@
 package com.bensler.taggy.ui;
 
+import com.bensler.decaf.swing.tree.EntityTree;
 import com.bensler.decaf.swing.tree.EntityTreeModel;
 import com.bensler.decaf.util.tree.Hierarchical;
 import com.bensler.taggy.EntityChangeListener;
 
 public class EntityChangeListenerTreeAdapter<H extends Hierarchical<H>> implements EntityChangeListener<H> {
 
+  private final EntityTree<H> tree_;
   private final EntityTreeModel<H> model_;
 
-  public EntityChangeListenerTreeAdapter(EntityTreeModel<H> model) {
-    model_ = model;
+  public EntityChangeListenerTreeAdapter(EntityTree<H> tree) {
+    model_ = (tree_ = tree).getModel();
   }
 
   @Override
@@ -18,6 +20,7 @@ public class EntityChangeListenerTreeAdapter<H extends Hierarchical<H>> implemen
 
     if ((parent == null) || model_.contains(parent).isPresent()) {
       model_.addNode(entity);
+      tree_.expandCollapse(entity, true);
     }
   }
 

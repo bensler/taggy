@@ -126,7 +126,7 @@ public class MainFrame {
     tagTree_ = new EntityTree<>(TAG_NAME_VIEW);
     tagTree_.setVisibleRowCount(20, .5f);
     tagTree_.setSelectionListener((source, selection) -> displayThumbnailsOfSelectedTag());
-    app_.addEntityChangeListener(treeAdapter_ = new EntityChangeListenerTreeAdapter<>(tagTree_.getModel()), Tag.class);
+    app_.addEntityChangeListener(treeAdapter_ = new EntityChangeListenerTreeAdapter<>(tagTree_), Tag.class);
     frame_.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     tagCtrl_.setAllTags(tagTree_);
     final EntityAction<Tag> editTagAction = new EntityAction<>(
