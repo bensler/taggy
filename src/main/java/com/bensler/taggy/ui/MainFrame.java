@@ -6,7 +6,6 @@ import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
 import static com.bensler.decaf.swing.view.SimplePropertyGetter.createGetter;
 import static com.bensler.decaf.util.cmp.CollatorComparator.COLLATOR_COMPARATOR;
 import static com.jgoodies.forms.layout.CellConstraints.CENTER;
-import static com.jgoodies.forms.layout.CellConstraints.FILL;
 import static com.jgoodies.forms.layout.CellConstraints.RIGHT;
 import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 import static javax.swing.JSplitPane.HORIZONTAL_SPLIT;
@@ -15,8 +14,10 @@ import static javax.swing.WindowConstants.DISPOSE_ON_CLOSE;
 import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -45,6 +46,7 @@ import com.bensler.decaf.swing.tree.EntityTree;
 import com.bensler.decaf.swing.view.EntityPropertyComparator;
 import com.bensler.decaf.swing.view.PropertyViewImpl;
 import com.bensler.decaf.swing.view.SimplePropertyGetter;
+import com.bensler.decaf.util.Pair;
 import com.bensler.decaf.util.cmp.ComparatorChain;
 import com.bensler.decaf.util.prefs.BulkPrefPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
@@ -52,6 +54,7 @@ import com.bensler.decaf.util.prefs.PrefPersister;
 import com.bensler.decaf.util.prefs.Prefs;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
+import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.persist.Tag;
 import com.bensler.taggy.persist.TagProperty;
 import com.jgoodies.forms.layout.CellConstraints;
@@ -154,11 +157,18 @@ public class MainFrame {
     rightSplitpane.setResizeWeight(1);
     mainPanel.add(rightSplitpane, new CellConstraints(2, 4));
 
-    final JPanel buttonPanel = new JPanel(new FormLayout("f:p:g", "f:p:g"));
+    final FormLayout layout = new FormLayout("f:p, 3dlu, f:p", "f:p:g");
+    final JPanel buttonPanel;
+
+    layout.setColumnGroups(new int[][] {{1, 3}});
+    buttonPanel = new JPanel(layout);
     mainPanel.add(buttonPanel, new CellConstraints(2, 6, RIGHT, CENTER));
-    final JButton testButton = new JButton("Orphan Files");
-    testButton.addActionListener(evt -> new OrphanDialog(app_).show(app_.getDbAccess()));
-    buttonPanel.add(testButton, new CellConstraints(1, 1, FILL, FILL));
+    final JButton tmpButton = new JButton("Create Timeline");
+    tmpButton.addActionListener(evt -> createTimeline(app_.getDbAccess()));
+    buttonPanel.add(tmpButton, new CellConstraints(1, 1));
+    final JButton orphanButton = new JButton("Orphan Files");
+    orphanButton.addActionListener(evt -> new OrphanDialog(app_).show(app_.getDbAccess()));
+    buttonPanel.add(orphanButton, new CellConstraints(3, 1));
 
     mainPanel.setPreferredSize(new Dimension(750, 750));
     frame_.setContentPane(mainPanel);
@@ -172,6 +182,25 @@ public class MainFrame {
       new SplitpanePrefPersister(new PrefKey(baseKey, "splitLeft"), leftSplitpane),
       new SplitpanePrefPersister(new PrefKey(baseKey, "splitRight"), rightSplitpane)
     );
+  }
+
+  private void createTimeline(DbAccess dbAccess) {
+    dbAccess.loadAllBlobs()
+      .map(blob -> new Pair<>(blob, blob.getProperty(BlobController.PROPERTY_DATE_YMD)))
+      .filter(pair -> pair.getRight() != null)
+      .forEach(pair -> setDateTag(pair.getLeft(), pair.getRight()));
+  }
+
+  private void setDateTag(Blob blob, String dateStr) {
+    final Tag dateTag = tagCtrl_.getDateTag(dateStr);
+
+    if (!blob.getTags().contains(dateTag)) {
+      final Set<Tag> tags = new HashSet<>(blob.getTags());
+
+      tags.add(dateTag);
+      blob.setTags(tags);
+      app_.storeEntity(blob);
+    }
   }
 
   private Image createImage() {

@@ -1,6 +1,7 @@
 package com.bensler.taggy.persist;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.hibernate.Session;
 import org.hibernate.Transaction;
@@ -15,6 +16,10 @@ public class DbAccess {
 
   public List<Tag> loadAllTags() {
     return session_.createQuery("FROM Tag", Tag.class).getResultList();
+  }
+
+  public Stream<Blob> loadAllBlobs() {
+    return session_.createQuery("FROM Blob", Blob.class).getResultList().stream();
   }
 
   public void remove(Object obj) {
