@@ -1,5 +1,6 @@
 package com.bensler.taggy.imprt;
 
+import static com.bensler.decaf.swing.view.SimplePropertyGetter.createComparableGetter;
 import static com.bensler.decaf.swing.view.SimplePropertyGetter.createGetterComparator;
 import static com.bensler.decaf.util.cmp.CollatorComparator.COLLATOR_COMPARATOR;
 
@@ -27,7 +28,6 @@ import com.bensler.decaf.swing.table.TablePropertyView;
 import com.bensler.decaf.swing.table.TableView;
 import com.bensler.decaf.swing.view.PropertyViewImpl;
 import com.bensler.decaf.swing.view.SimpleCellRenderer;
-import com.bensler.decaf.swing.view.SimplePropertyGetter;
 import com.bensler.decaf.util.prefs.BulkPrefPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.taggy.App;
@@ -67,19 +67,16 @@ class ImportDialog extends JDialog {
         createGetterComparator(FileToImport::getRelativePath, COLLATOR_COMPARATOR)
       )),
       new TablePropertyView<>("type", "Type", new PropertyViewImpl<>(
-        new TypeIconRenderer(),
-        createGetterComparator(FileToImport::getType, COLLATOR_COMPARATOR)
+        new TypeIconRenderer(), createGetterComparator(FileToImport::getType, COLLATOR_COMPARATOR)
       )),
       new TablePropertyView<>("fileSize", "Size", new PropertyViewImpl<>(
-        fileSizeRenderer_,
-        SimplePropertyGetter.createComparableGetter(FileToImport::getFileSize)
+        fileSizeRenderer_, createComparableGetter(FileToImport::getFileSize)
       )),
       new TablePropertyView<>("shasum", "sha256-Hash", new PropertyViewImpl<>(
         createGetterComparator(FileToImport::getShaSum, COLLATOR_COMPARATOR)
       )),
       new TablePropertyView<>("importable", "Importable", new PropertyViewImpl<>(
-        new IsNewIconRenderer(),
-        SimplePropertyGetter.createComparableGetter(FileToImport::isImportable)
+        new IsNewIconRenderer(), createComparableGetter(FileToImport::isImportable)
       ))
     ));
     files_.setSelectionMode(SelectionMode.MULTIPLE_INTERVAL);
