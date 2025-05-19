@@ -48,8 +48,6 @@ import com.bensler.decaf.swing.view.SimplePropertyGetter;
 import com.bensler.decaf.util.cmp.ComparatorChain;
 import com.bensler.decaf.util.prefs.BulkPrefPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
-import com.bensler.decaf.util.prefs.PrefPersister;
-import com.bensler.decaf.util.prefs.Prefs;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.Tag;
@@ -168,7 +166,7 @@ public class MainFrame {
     final PrefKey baseKey = new PrefKey(App.PREFS_APP_ROOT, getClass());
     prefs_ = new BulkPrefPersister(app_.getPrefs(),
       new WindowPrefsPersister(baseKey, frame_),
-      new SelectedTagPrefPersister(new PrefKey(baseKey, "selectedTag")),
+      new TagPrefPersister(new PrefKey(baseKey, "selectedTag"), tagCtrl_, tagTree_::getSingleSelection, tagTree_::select),
       new SplitpanePrefPersister(new PrefKey(baseKey, "splitLeft"), leftSplitpane),
       new SplitpanePrefPersister(new PrefKey(baseKey, "splitRight"), rightSplitpane)
     );
@@ -252,32 +250,6 @@ public class MainFrame {
       app_.getDbAccess().refresh(tag);
       thumbnails_.setData(List.copyOf(tag.getBlobs()));
     }
-  }
-
-  class SelectedTagPrefPersister implements PrefPersister {
-
-    private final PrefKey prefKey_;
-
-    public SelectedTagPrefPersister(PrefKey prefKey) {
-       prefKey_ = prefKey;
-    }
-
-    @Override
-    public void apply(Prefs prefs) {
-      prefs.get(prefKey_)
-      .flatMap(Prefs::tryParseInt)
-      .map(Tag::new)
-      .map(tagCtrl_::resolveTag)
-      .ifPresent(tagTree_::select);
-    }
-
-    @Override
-    public void store(Prefs prefs) {
-      Optional.ofNullable(tagTree_.getSingleSelection())
-      .map(Tag::getId).map(String::valueOf)
-      .ifPresent(idStr -> prefs.put(prefKey_, idStr));
-    }
-
   }
 
 }
