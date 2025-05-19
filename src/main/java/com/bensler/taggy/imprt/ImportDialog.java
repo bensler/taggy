@@ -26,6 +26,7 @@ import com.bensler.decaf.swing.table.EntityTable;
 import com.bensler.decaf.swing.table.TablePrefPersister;
 import com.bensler.decaf.swing.table.TablePropertyView;
 import com.bensler.decaf.swing.table.TableView;
+import com.bensler.decaf.swing.tree.EntityTree;
 import com.bensler.decaf.swing.view.PropertyViewImpl;
 import com.bensler.decaf.swing.view.SimpleCellRenderer;
 import com.bensler.decaf.util.prefs.BulkPrefPersister;
@@ -33,6 +34,7 @@ import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.taggy.App;
 import com.bensler.taggy.imprt.FileToImport.ImportObstacle;
 import com.bensler.taggy.persist.DbAccess;
+import com.bensler.taggy.persist.Tag;
 import com.bensler.taggy.ui.BlobController;
 import com.bensler.taggy.ui.MainFrame;
 import com.jgoodies.forms.layout.CellConstraints;
@@ -44,6 +46,8 @@ class ImportDialog extends JDialog {
   private final BlobController blobCtrl_;
   private final DbAccess db_;
   private final EntityTable<FileToImport> files_;
+  private final EntityTree<Tag> initialTags_;
+  private final JButton initialTagsButton_;
   private final JLabel fileSizeLabel_;
   private final JButton importButton_;
   private final List<FileToImport> filesToSha_;
@@ -55,8 +59,8 @@ class ImportDialog extends JDialog {
     blobCtrl_ = app.getBlobCtrl();
     db_ = app.getDbAccess();
     final JPanel mainPanel = new JPanel(new FormLayout(
-      "3dlu, f:p:g, 3dlu",
-      "3dlu, f:p:g, 3dlu, f:p, 3dlu"
+      "3dlu, f:p:g, 3dlu, f:p, 3dlu",
+      "3dlu, f:p:g, 3dlu"
     ));
     fileSizeRenderer_ = new FileSizeRenderer();
     files_ = new EntityTable<>(new TableView<>(
@@ -81,17 +85,24 @@ class ImportDialog extends JDialog {
     ));
     files_.setSelectionMode(SelectionMode.MULTIPLE_INTERVAL);
     mainPanel.add(files_.getScrollPane(), new CellConstraints(2, 2));
-    final JPanel buttonPanel = new JPanel(new FormLayout(
-      "r:p:g, 3dlu, p ", "c:p"
+    final JPanel sidePanel = new JPanel(new FormLayout(
+      "f:p:g",
+      "p, 3dlu, p, 3dlu:g, p, 3dlu, p"
     ));
+    initialTags_ = new EntityTree<>(MainFrame.TAG_NAME_VIEW);
+    initialTags_.setVisibleRowCount(10, 0.5f);
+    initialTags_.setSelectionMode(SelectionMode.NONE);
+    initialTagsButton_ = new JButton("Set Initial Tags");
     fileSizeLabel_ = new JLabel();
     importButton_ = new JButton("Import");
     importButton_.setEnabled(false);
     importButton_.addActionListener(evt -> importSelection());
     files_.setSelectionListener((source, files) -> filesSelectionChanged(files));
-    buttonPanel.add(fileSizeLabel_, new CellConstraints(1, 1));
-    buttonPanel.add(importButton_, new CellConstraints(3, 1));
-    mainPanel.add(buttonPanel, new CellConstraints(2, 4));
+    sidePanel.add(initialTags_.getScrollPane(), new CellConstraints(1, 1));
+    sidePanel.add(initialTagsButton_, new CellConstraints(1, 3));
+    sidePanel.add(fileSizeLabel_, new CellConstraints(1, 5));
+    sidePanel.add(importButton_, new CellConstraints(1, 7));
+    mainPanel.add(sidePanel, new CellConstraints(4, 2));
     mainPanel.setPreferredSize(new Dimension(400, 400));
     setContentPane(mainPanel);
     final List<FileToImport> filesToImport = importController_.getFilesToImport();
