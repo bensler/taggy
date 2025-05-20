@@ -6,18 +6,16 @@
 <hibernate-mapping>
   <typedef name="TagProperty" class="com.bensler.taggy.persist.TagProperty$Converter" />
 
-  <class name = "com.bensler.taggy.persist.Tag" table = "tag">
-    <id access="field" name = "id_" type = "int" column = "id">
+  <class name="com.bensler.taggy.persist.Tag" table="tag">
+    <id access="field" name="id_" type="int" column="id">
       <generator class="identity"/>
     </id>
 
-    <property access="field" name = "name_" column = "name" type = "string"/>
+    <property access="field" name="name_" column="name" type="string"/>
     <many-to-one access="field" name="parent_" class="com.bensler.taggy.persist.Tag" column="parent_id"/>
     <set access="field" name="blobs_" table="blob_tag_xref" lazy="true">
       <key column="tag_id" />
-      <many-to-many entity-name="com.bensler.taggy.persist.Blob">
-        <column name="blob_id" />
-      </many-to-many>
+      <many-to-many entity-name="com.bensler.taggy.persist.Blob" column="blob_id" />
     </set>
     <map access="field" name="properties_" table="tag_property" lazy="false" fetch="join">
       <key column="tag_id" />
