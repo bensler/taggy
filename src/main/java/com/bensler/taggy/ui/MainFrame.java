@@ -71,6 +71,8 @@ public class MainFrame {
   public static final ImageIcon ICON_TAGS_36 = new ImageIcon(MainFrame.class.getResource("tags_36x36.png"));
   public static final ImageIcon ICON_TAGS_48 = new ImageIcon(MainFrame.class.getResource("tags_48x48.png"));
 
+  public static final ImageIcon ICON_CALENDAR_13 = new ImageIcon(MainFrame.class.getResource("calendar_13x13.png"));
+
   public static final ImageIcon ICON_EDIT_13 = new ImageIcon(MainFrame.class.getResource("edit_13x13.png"));
   public static final ImageIcon ICON_EDIT_30 = new ImageIcon(MainFrame.class.getResource("edit_30x30.png"));
 
@@ -92,7 +94,7 @@ public class MainFrame {
   );
 
   public static final PropertyViewImpl<Tag, String> TAG_NAME_VIEW = new PropertyViewImpl<>(
-    ICON_TAG_13, createGetter(Tag::getName, new ComparatorChain<>(List.of(TAG_DATE_COMPARATOR, TAG_NAME_COMPARATOR)))
+    new TagCellRenderer(), createGetter(Tag::getName, new ComparatorChain<>(List.of(TAG_DATE_COMPARATOR, TAG_NAME_COMPARATOR)))
   );
 
   private final App app_;
