@@ -78,7 +78,7 @@ public class TagController {
     return persistNewTag(new Tag(datesRootTag, propertyDateYear, Map.of(REPRESENTED_DATE, propertyDateYear)));
   }
 
-  void setAllTags(EntityTree<Tag> tree) {
+  public void setAllTags(EntityTree<Tag> tree) {
     tree.setData(allTags_);
   }
 

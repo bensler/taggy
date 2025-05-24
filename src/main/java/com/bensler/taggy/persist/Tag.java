@@ -58,6 +58,10 @@ public class Tag extends Object implements Hierarchical<Tag>, Named, Entity {
       return Set.copyOf(blobs_);
     }
 
+    public boolean removeBlob(Blob blob) {
+      return blobs_.remove(blob);
+    }
+
     public String getProperty(TagProperty key) {
       return properties_.get(key);
     }

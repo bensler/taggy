@@ -23,6 +23,7 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -43,9 +44,11 @@ import org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants;
 import org.apache.commons.imaging.formats.tiff.taginfos.TagInfoAscii;
 
 import com.bensler.taggy.App;
+import com.bensler.taggy.persist.AutoCloseableTxn;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.persist.Tag;
+
 
 public class BlobController {
 
@@ -150,13 +153,23 @@ public class BlobController {
 
   public void deleteBlob(Blob blob) {
     final App app = App.getApp();
-    final DbAccess dbAccess = app.getDbAccess();
 
-    Optional.ofNullable(blob.getSha256sum()).ifPresent(this::deleteFile);
-    Optional.ofNullable(blob.getThumbnailSha()).ifPresent(this::deleteFile);
-    dbAccess.remove(blob);
-    blob.getTags().stream().forEach(dbAccess::refresh);
+    final DbAccess dbAccess = app.getDbAccess();
+    final Set<Tag> tags = blob.getTags();
+    final String blobSha256sum = blob.getSha256sum();
+    final String thumbnailSha = blob.getThumbnailSha();
+
+    try (AutoCloseableTxn act = new AutoCloseableTxn(dbAccess.startTxn())) {
+      dbAccess.remove(blob);
+      tags.stream().forEach(tag -> {
+        tag.removeBlob(blob);
+        dbAccess.merge(tag);
+      });
+    }
+    Optional.ofNullable(blobSha256sum).ifPresent(this::deleteFile);
+    Optional.ofNullable(thumbnailSha).ifPresent(this::deleteFile);
     app.entityRemoved(blob);
+    app.entitiesChanged(tags);
   }
 
   private void deleteFile(String shasum) {
@@ -248,16 +261,18 @@ public class BlobController {
     );
   }
 
-  public Blob importFile(File file, String type) throws IOException, ImageReadException {
+  public Blob importFile(File file, String type, Tag initialTag) throws IOException, ImageReadException {
     final App app = App.getApp();
     final Map<String, String> metaData = new HashMap<>();
     final File thumbnail = importFile(file, metaData);
     final String fileSha = storeBlob(file, true);
     final String thumbSha = storeBlob(thumbnail, false);
-    final Set<Tag> tags = Optional.ofNullable(metaData.get(PROPERTY_DATE_YMD))
-      .map(app.getTagCtrl()::getDateTag)
-      .map(Set::of).orElseGet(Set::of);
+    final Set<Tag> tags = new HashSet<>();
 
+    Optional.ofNullable(metaData.get(PROPERTY_DATE_YMD))
+      .map(app.getTagCtrl()::getDateTag)
+      .ifPresent(tags::add);
+    Optional.ofNullable(initialTag).ifPresent(tags::add);
     return app.storeEntity(new Blob(file.getName(), fileSha, thumbSha, type, metaData, tags));
   }
 

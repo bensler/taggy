@@ -7,9 +7,11 @@ import static com.bensler.decaf.util.cmp.CollatorComparator.COLLATOR_COMPARATOR;
 import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.swing.Icon;
 import javax.swing.JButton;
@@ -19,6 +21,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
+import com.bensler.decaf.swing.dialog.OkCancelDialog;
 import com.bensler.decaf.swing.dialog.WindowClosingTrigger;
 import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
 import com.bensler.decaf.swing.selection.SelectionMode;
@@ -31,12 +34,14 @@ import com.bensler.decaf.swing.view.PropertyViewImpl;
 import com.bensler.decaf.swing.view.SimpleCellRenderer;
 import com.bensler.decaf.util.prefs.BulkPrefPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
+import com.bensler.decaf.util.tree.Hierarchy;
 import com.bensler.taggy.App;
 import com.bensler.taggy.imprt.FileToImport.ImportObstacle;
 import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.persist.Tag;
 import com.bensler.taggy.ui.BlobController;
 import com.bensler.taggy.ui.MainFrame;
+import com.bensler.taggy.ui.TagPrefPersister;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
@@ -46,8 +51,8 @@ class ImportDialog extends JDialog {
   private final BlobController blobCtrl_;
   private final DbAccess db_;
   private final EntityTable<FileToImport> files_;
-  private final EntityTree<Tag> initialTags_;
-  private final JButton initialTagsButton_;
+  private final EntityTree<Tag> initialTag_;
+  private final JButton initialTagButton_;
   private final JLabel fileSizeLabel_;
   private final JButton importButton_;
   private final List<FileToImport> filesToSha_;
@@ -89,17 +94,18 @@ class ImportDialog extends JDialog {
       "f:p:g",
       "p, 3dlu, p, 3dlu:g, p, 3dlu, p"
     ));
-    initialTags_ = new EntityTree<>(MainFrame.TAG_NAME_VIEW);
-    initialTags_.setVisibleRowCount(10, 0.5f);
-    initialTags_.setSelectionMode(SelectionMode.NONE);
-    initialTagsButton_ = new JButton("Set Initial Tags");
+    initialTag_ = new EntityTree<>(MainFrame.TAG_NAME_VIEW);
+    initialTag_.setVisibleRowCount(10, 0.5f);
+    initialTag_.setSelectionMode(SelectionMode.NONE);
+    initialTagButton_ = new JButton("Set Initial Tags");
+    initialTagButton_.addActionListener(evt -> chooseInitialTag());
     fileSizeLabel_ = new JLabel();
     importButton_ = new JButton("Import");
     importButton_.setEnabled(false);
     importButton_.addActionListener(evt -> importSelection());
     files_.setSelectionListener((source, files) -> filesSelectionChanged(files));
-    sidePanel.add(initialTags_.getScrollPane(), new CellConstraints(1, 1));
-    sidePanel.add(initialTagsButton_, new CellConstraints(1, 3));
+    sidePanel.add(initialTag_.getScrollPane(), new CellConstraints(1, 1));
+    sidePanel.add(initialTagButton_, new CellConstraints(1, 3));
     sidePanel.add(fileSizeLabel_, new CellConstraints(1, 5));
     sidePanel.add(importButton_, new CellConstraints(1, 7));
     mainPanel.add(sidePanel, new CellConstraints(4, 2));
@@ -113,7 +119,11 @@ class ImportDialog extends JDialog {
     final PrefKey baseKey = new PrefKey(App.PREFS_APP_ROOT, getClass());
     final BulkPrefPersister prefs = new BulkPrefPersister(
       app.getPrefs(), new WindowPrefsPersister(baseKey, this),
-      new TablePrefPersister(new PrefKey(baseKey, "files"), files_.getComponent())
+      new TagPrefPersister(
+        new PrefKey(baseKey, "initialTag"), app.getTagCtrl(),
+        this::getInitialTag,
+        newInitialTag -> setInitialTag(Optional.of(newInitialTag))
+      ), new TablePrefPersister(new PrefKey(baseKey, "files"), files_.getComponent())
     );
     new WindowClosingTrigger(this, evt -> {
       synchronized (filesToSha_) {
@@ -135,8 +145,30 @@ class ImportDialog extends JDialog {
     ) : "");
   }
 
+  private void chooseInitialTag() {
+    new OkCancelDialog<>(this, new ChooseInitialTagsDialog()).show(getInitialTag()).ifPresent(this::setInitialTag);
+  }
+
+  private Tag getInitialTag() {
+    final Set<Tag> leafes = initialTag_.getData().getLeafNodes();
+
+    return leafes.isEmpty() ? null : leafes.iterator().next();
+  }
+
+  private void setInitialTag(Optional<Tag> tag) {
+    final Set<Tag> collector = new HashSet<>();
+
+    tag.ifPresent(newInitialTag -> {
+      do {
+        collector.add(newInitialTag);
+      } while((newInitialTag = newInitialTag.getParent()) != null);
+    });
+    initialTag_.setData(new Hierarchy<>(collector));
+    initialTag_.expandCollapseAll(true);
+  }
+
   private void importSelection() {
-    new ImportProgressDialog(this, files_.getSelection()).setVisible(true);
+    new ImportProgressDialog(this, files_.getSelection(), getInitialTag()).setVisible(true);
   }
 
   static final class FileSizeRenderer extends SimpleCellRenderer<FileToImport, Long> {

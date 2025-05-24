@@ -21,6 +21,7 @@ import com.bensler.decaf.util.prefs.BulkPrefPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
+import com.bensler.taggy.persist.Tag;
 import com.bensler.taggy.ui.ThumbnailOverviewPanel;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -34,15 +35,17 @@ class ImportProgressDialog extends JDialog {
   private final int fileToProcessCount_;
   private final ImportController importController_;
   private final List<FileToImport> filesToImport_;
+  private final Tag initialTag_;
   private final BulkPrefPersister prefs_;
   private boolean canceled_;
 
-  ImportProgressDialog(ImportDialog parent, List<FileToImport> filesToImport) {
+  ImportProgressDialog(ImportDialog parent, List<FileToImport> filesToImport, Tag initialTag) {
     super(parent, "Importing Files", true);
     final App app = App.getApp();
     parent_ = parent;
 
     importController_ = app.getImportCtrl();
+    initialTag_ = initialTag;
     filesToImport_ = new LinkedList<>(filesToImport);
     canceled_ = false;
 
@@ -145,7 +148,7 @@ class ImportProgressDialog extends JDialog {
       Optional<FileToImport> fileInProgress = Optional.empty();
 
       while ((fileInProgress = getNextToImport(fileInProgress)).isPresent()) {
-        fileInProgress = Optional.of(importController_.importFile(fileInProgress.get()));
+        fileInProgress = Optional.of(importController_.importFile(fileInProgress.get(), initialTag_));
       }
     }
   }

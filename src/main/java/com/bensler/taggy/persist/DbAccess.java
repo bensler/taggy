@@ -17,18 +17,26 @@ public class DbAccess {
     return session_.createQuery("FROM Tag", Tag.class).getResultList();
   }
 
+  public Transaction startTxn() {
+    return session_.beginTransaction();
+  }
+
   public void remove(Object obj) {
-    final Transaction txn = session_.beginTransaction();
+//    final Transaction txn = session_.beginTransaction();
 
     try {
       session_.remove(obj);
     } finally {
-      txn.commit(); // TODO rollback in case of exc
+//      txn.commit(); // TODO rollback in case of exc
     }
   }
 
   public void refresh(Object obj) {
     session_.refresh(obj);
+  }
+
+  public <E extends Entity> E merge(E obj) {
+    return session_.merge(obj);
   }
 
   public <E extends Entity> E storeObject(E obj) {

@@ -87,7 +87,7 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
 
   void deleteImagesConfirm(List<Blob> blobs) {
     new OkCancelDialog<>(comp_, new DeleteImagesConfirmDialog(blobs.size())).show(blobs)
-    .stream().flatMap(List::stream).forEach(blobCtrl_::deleteBlob);
+    .ifPresent(blobsToDelete -> blobsToDelete.stream().flatMap(List::stream).forEach(blobCtrl_::deleteBlob));
   }
 
   void addTags(List<Blob> blobs) {

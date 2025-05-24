@@ -26,6 +26,7 @@ import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
 import com.bensler.taggy.App;
 import com.bensler.taggy.imprt.FileToImport.ImportObstacle;
 import com.bensler.taggy.persist.Blob;
+import com.bensler.taggy.persist.Tag;
 
 public class ImportController {
 
@@ -120,11 +121,11 @@ public class ImportController {
       : Optional.empty();
   }
 
-  FileToImport importFile(FileToImport file) {
+  FileToImport importFile(FileToImport file, Tag initialTag) {
     final String type = file.getType();
 
     try {
-      final Blob blob = app_.getBlobCtrl().importFile(file.getFile(), type);
+      final Blob blob = app_.getBlobCtrl().importFile(file.getFile(), type, initialTag);
 
       return new FileToImport(file, blob.getSha256sum(), ImportObstacle.DUPLICATE, "just imported", type, blob);
     } catch (IOException | ImageReadException e) {
