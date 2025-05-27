@@ -165,7 +165,7 @@ public class App {
   }
 
   public <E extends Entity> void deleteEntity(E entity) {
-    dbAccess_.remove(entity);
+    dbAccess_.removeNoTxn(entity);
     entityRemoved(entity);
   }
 

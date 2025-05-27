@@ -21,14 +21,8 @@ public class DbAccess {
     return session_.beginTransaction();
   }
 
-  public void remove(Object obj) {
-//    final Transaction txn = session_.beginTransaction();
-
-    try {
-      session_.remove(obj);
-    } finally {
-//      txn.commit(); // TODO rollback in case of exc
-    }
+  public void removeNoTxn(Object obj) {
+    session_.remove(obj);
   }
 
   public void refresh(Object obj) {

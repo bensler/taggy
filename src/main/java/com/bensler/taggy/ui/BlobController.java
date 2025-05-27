@@ -160,7 +160,7 @@ public class BlobController {
     final String thumbnailSha = blob.getThumbnailSha();
 
     try (AutoCloseableTxn act = new AutoCloseableTxn(dbAccess.startTxn())) {
-      dbAccess.remove(blob);
+      dbAccess.removeNoTxn(blob);
       tags.stream().forEach(tag -> {
         tag.removeBlob(blob);
         dbAccess.merge(tag);
