@@ -146,7 +146,7 @@ class ImportDialog extends JDialog {
   }
 
   private void chooseInitialTag() {
-    new OkCancelDialog<>(this, new ChooseInitialTagsDialog()).show(getInitialTag()).ifPresent(this::setInitialTag);
+    new OkCancelDialog<>(this, new ChooseInitialTagDialog()).show(getInitialTag()).ifPresent(this::setInitialTag);
   }
 
   private Tag getInitialTag() {

@@ -18,11 +18,11 @@ import com.bensler.taggy.persist.Tag;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class ChooseInitialTagsDialog extends BasicContentPanel<Tag, Tag> {
+public class ChooseInitialTagDialog extends BasicContentPanel<Tag, Tag> {
 
   private final EntityTree<Tag> allTags_;
 
-  public ChooseInitialTagsDialog() {
+  public ChooseInitialTagDialog() {
     super(new DialogAppearance(
       new OverlayIcon(ICON_IMAGE_48, new Overlay(ICON_TAGS_36, SE)),
       "Choose Initial Tag", "Tag to be assigned automatically on import."

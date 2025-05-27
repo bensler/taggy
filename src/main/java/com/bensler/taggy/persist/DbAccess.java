@@ -40,17 +40,13 @@ public class DbAccess {
   }
 
   public <E extends Entity> E storeObject(E obj) {
-    final Transaction txn = session_.beginTransaction();
-
-    try {
+    try (AutoCloseableTxn act = new AutoCloseableTxn(startTxn())) {
       if (obj.getId() == null) {
         session_.persist(obj);
         return obj;
       } else {
         return session_.merge(obj);
       }
-    } finally {
-      txn.commit(); // TODO rollback in case of exc
     }
   }
 
