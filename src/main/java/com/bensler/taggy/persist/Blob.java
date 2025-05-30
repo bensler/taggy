@@ -71,6 +71,10 @@ public class Blob extends Object implements Entity {
       tags_ = new HashSet<>(tags);
     }
 
+    public boolean removeTag(Tag tag) {
+      return tags_.remove(tag);
+    }
+
     public Hierarchy<Tag> getTagHierarchy() {
       final Hierarchy<Tag> tagHierarchy = new Hierarchy<>();
 

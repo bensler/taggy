@@ -17,6 +17,7 @@ import com.bensler.decaf.util.Pair;
 import com.bensler.decaf.util.stream.Collectors;
 import com.bensler.decaf.util.tree.Hierarchy;
 import com.bensler.taggy.App;
+import com.bensler.taggy.persist.AutoCloseableTxn;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.persist.Tag;
@@ -86,10 +87,16 @@ public class TagController {
     final Set<Blob> blobs = tag.getBlobs();
     final DbAccess db = app_.getDbAccess();
 
-    app_.deleteEntity(tag);
+    try (AutoCloseableTxn act = new AutoCloseableTxn(db.startTxn())) {
+      db.removeNoTxn(tag);
+      blobs.stream()
+      .map(forEachMapper(blob -> blob.removeTag(tag)))
+      .forEach(db::merge);
+    }
+    app_.entityRemoved(tag);
+    app_.entitiesChanged(blobs);
     allTags_.removeNode(tag);
     Optional.ofNullable(tag.getProperty(REPRESENTED_DATE)).ifPresent(dateTags_::remove);
-    blobs.forEach(db::refresh);
   }
 
   Tag resolveTag(Tag tag) {

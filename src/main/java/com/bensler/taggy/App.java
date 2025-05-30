@@ -164,9 +164,4 @@ public class App {
     return entity;
   }
 
-  public <E extends Entity> void deleteEntity(E entity) {
-    dbAccess_.removeNoTxn(entity);
-    entityRemoved(entity);
-  }
-
 }

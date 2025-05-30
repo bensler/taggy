@@ -1,5 +1,6 @@
 package com.bensler.taggy.ui;
 
+import static com.bensler.decaf.util.function.ForEachMapperAdapter.forEachMapper;
 import static com.bensler.taggy.imprt.ImportController.TYPE_BIN_PREFIX;
 import static com.bensler.taggy.imprt.ImportController.TYPE_IMG_PREFIX;
 import static org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants.ORIENTATION_VALUE_ROTATE_270_CW;
@@ -154,17 +155,16 @@ public class BlobController {
   public void deleteBlob(Blob blob) {
     final App app = App.getApp();
 
-    final DbAccess dbAccess = app.getDbAccess();
+    final DbAccess db = app.getDbAccess();
     final Set<Tag> tags = blob.getTags();
     final String blobSha256sum = blob.getSha256sum();
     final String thumbnailSha = blob.getThumbnailSha();
 
-    try (AutoCloseableTxn act = new AutoCloseableTxn(dbAccess.startTxn())) {
-      dbAccess.removeNoTxn(blob);
-      tags.stream().forEach(tag -> {
-        tag.removeBlob(blob);
-        dbAccess.merge(tag);
-      });
+    try (AutoCloseableTxn act = new AutoCloseableTxn(db.startTxn())) {
+      db.removeNoTxn(blob);
+      tags.stream()
+      .map(forEachMapper(tag -> tag.removeBlob(blob)))
+      .forEach(db::merge);
     }
     Optional.ofNullable(blobSha256sum).ifPresent(this::deleteFile);
     Optional.ofNullable(thumbnailSha).ifPresent(this::deleteFile);
