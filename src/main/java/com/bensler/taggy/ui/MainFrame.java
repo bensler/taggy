@@ -116,7 +116,7 @@ public class MainFrame {
       "3dlu, f:p, 3dlu, f:p:g, 3dlu, f:p, 3dlu"
     ));
 
-    final SelectionTagPanel selectionTagPanel = new SelectionTagPanel();
+    final SelectionTagPanel selectionTagPanel = new SelectionTagPanel(this);
     final JPanel toolbar = new JPanel(new FormLayout("f:p, 3dlu:g", "f:p"));
     toolbar.add(app_.getImportCtrl().getImportAction().createToolbarButton(), new CellConstraints(1, 1));
     mainPanel.add(toolbar, new CellConstraints(2, 2));
@@ -226,6 +226,10 @@ public class MainFrame {
         tagTree_.select(List.of());
       }
     }
+  }
+
+  void selectTag(Tag tag) {
+    tagTree_.select(tag);
   }
 
   public void show() {
