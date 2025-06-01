@@ -35,7 +35,7 @@ import com.jgoodies.forms.layout.FormLayout;
 
 public class AddImagesTagsDialog extends BasicContentPanel<List<Blob>, Set<Tag>> {
 
-  private final CheckboxTree<Tag> allTags_;
+  private final AllTagsTreeFiltered allTags_;
   private final CheckboxTree<Tag> assignedTags_;
   private final ThumbnailOverviewPanel images_;
   private final JSplitPane verticalSplitpane_;
@@ -48,17 +48,14 @@ public class AddImagesTagsDialog extends BasicContentPanel<List<Blob>, Set<Tag>>
       "Add Images Tags", "Add Tags to multiple Images"
     ), new FormLayout("f:p:g", "f:p:g"));
     app_ = App.getApp();
-    allTags_ = new CheckboxTree<>(TAG_NAME_VIEW);
-    allTags_.setVisibleRowCount(20, 1);
-    app_.getTagCtrl().setAllTags(allTags_);
-    allTags_.addCheckedListener(this::setAssignedTags);
     images_ = new ThumbnailOverviewPanel(app_, SCROLL_HORIZONTALLY);
     assignedTags_ = new CheckboxTree<>(TAG_NAME_VIEW);
     assignedTags_.setVisibleRowCount(15, 1);
     assignedTags_.addCheckedListener(this::assignedTagsTreeChanged);
+    allTags_ = new AllTagsTreeFiltered(this::setAssignedTags);
     verticalSplitpane_ = new JSplitPane(VERTICAL_SPLIT, true, images_.getScrollpane(), assignedTags_.getScrollPane());
     verticalSplitpane_.setResizeWeight(.5f);
-    horizontalSplitpane_ = new JSplitPane(HORIZONTAL_SPLIT, true, allTags_.getScrollPane(), verticalSplitpane_);
+    horizontalSplitpane_ = new JSplitPane(HORIZONTAL_SPLIT, true, allTags_.getComponent(), verticalSplitpane_);
     horizontalSplitpane_.setResizeWeight(.5f);
     add(horizontalSplitpane_, new CellConstraints(1, 1));
     // TODO crap, hard coded size ----------------------vvvvvvvv
@@ -85,13 +82,8 @@ public class AddImagesTagsDialog extends BasicContentPanel<List<Blob>, Set<Tag>>
   @Override
   protected void setData(List<Blob> blobs) {
     try {
-//      final Set<Tag> tags = blob.getTags();
-
       images_.setData(blobs);
       allTags_.expandCollapseAll(false);
-//      allTags_.setCheckedNodes(tags);
-//      tags.forEach(tag -> allTags_.expandCollapse(tag, true));
-//      setAssignedTags(tags);
     } catch (Exception e) {
       // TODO Auto-generated catch block
       e.printStackTrace();

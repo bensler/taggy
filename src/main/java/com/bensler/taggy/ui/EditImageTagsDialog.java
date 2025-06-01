@@ -32,7 +32,7 @@ import com.jgoodies.forms.layout.FormLayout;
 
 public class EditImageTagsDialog extends BasicContentPanel<Blob, Set<Tag>> {
 
-  private final CheckboxTree<Tag> allTags_;
+  private final AllTagsTreeFiltered allTags_;
   private final CheckboxTree<Tag> assignedTags_;
   private final ImageComponent imgComp_;
   private final JSplitPane verticalSplitpane_;
@@ -45,17 +45,14 @@ public class EditImageTagsDialog extends BasicContentPanel<Blob, Set<Tag>> {
       "Edit Image Tags", "Assign Tags to an Image"
     ), new FormLayout("f:p:g", "f:p:g"));
     app_ = App.getApp();
-    allTags_ = new CheckboxTree<>(TAG_NAME_VIEW);
-    allTags_.setVisibleRowCount(20, 1);
-    app_.getTagCtrl().setAllTags(allTags_);
-    allTags_.addCheckedListener(this::setAssignedTags);
+    allTags_ = new AllTagsTreeFiltered(this::setAssignedTags);
     imgComp_ = new ImageComponent();
     assignedTags_ = new CheckboxTree<>(TAG_NAME_VIEW);
     assignedTags_.setVisibleRowCount(15, 1);
     assignedTags_.addCheckedListener(this::assignedTagsTreeChanged);
     verticalSplitpane_ = new JSplitPane(VERTICAL_SPLIT, true, imgComp_, assignedTags_.getScrollPane());
     verticalSplitpane_.setResizeWeight(.5f);
-    horizontalSplitpane_ = new JSplitPane(HORIZONTAL_SPLIT, true, allTags_.getScrollPane(), verticalSplitpane_);
+    horizontalSplitpane_ = new JSplitPane(HORIZONTAL_SPLIT, true, allTags_.getComponent(), verticalSplitpane_);
     horizontalSplitpane_.setResizeWeight(.5f);
     add(horizontalSplitpane_, new CellConstraints(1, 1));
     // TODO crap, hard coded size ----------------------vvvvvvvv
@@ -85,9 +82,7 @@ public class EditImageTagsDialog extends BasicContentPanel<Blob, Set<Tag>> {
       final Set<Tag> tags = blob.getTags();
 
       imgComp_.setImage(app_.getBlobCtrl().loadRotated(blob));
-      allTags_.expandCollapseAll(false);
-      allTags_.setCheckedNodes(tags);
-      tags.forEach(tag -> allTags_.expandCollapse(tag, true));
+      allTags_.makeAllTagsVisible(tags);
       setAssignedTags(tags);
     } catch (Exception e) {
       // TODO Auto-generated catch block
