@@ -55,10 +55,8 @@ public class AllTagsTreeFiltered {
     );
 
     tagTree_.setData(filteredTags);
-    if (filtering) {
-      tagTree_.expandCollapseAll(true);
-    } else {
-      tagTree_.expandCollapseAll(false);
+    tagTree_.expandCollapseAll(filtering);
+    if (!filtering) {
       tagTree_.getCheckedNodes().forEach(tag -> tagTree_.expandCollapse(tag, true));
     }
   }
