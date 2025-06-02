@@ -45,7 +45,8 @@ public class AllTagsTreeFiltered {
   }
 
   private void filterChanged(String filterStr) {
-    final String matchStr = filterStr.toLowerCase();
+    final String matchStr = filterStr.toLowerCase().trim();
+    final boolean filtering = !matchStr.isEmpty();
     final Hierarchy<Tag> filteredTags = new Hierarchy<>(allTags_.stream()
       .filter(tag -> tag.getName().toLowerCase().contains(matchStr))
       .flatMap(tag -> Hierarchical.toPath(tag).stream())
@@ -54,6 +55,12 @@ public class AllTagsTreeFiltered {
     );
 
     tagTree_.setData(filteredTags);
+    if (filtering) {
+      tagTree_.expandCollapseAll(true);
+    } else {
+      tagTree_.expandCollapseAll(false);
+      tagTree_.getCheckedNodes().forEach(tag -> tagTree_.expandCollapse(tag, true));
+    }
   }
 
   public JPanel getComponent() {
