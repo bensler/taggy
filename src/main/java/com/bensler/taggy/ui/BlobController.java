@@ -62,6 +62,7 @@ public class BlobController {
   public static final String DATE_PREFIX = TYPE_BIN_PREFIX + "date.";
   public static final String PROPERTY_DATE_EPOCH_SECONDS = DATE_PREFIX + "epochSeconds";
   public static final String PROPERTY_DATE_YMD = DATE_PREFIX + "ymd";
+  public static final String PROPERTY_FILENAME = TYPE_BIN_PREFIX + "filename";
 
   public enum Orientation {
     ROTATE_000_CW(AffineTransform.getQuadrantRotateInstance(0), null),
@@ -273,7 +274,8 @@ public class BlobController {
       .map(app.getTagCtrl()::getDateTag)
       .ifPresent(tags::add);
     Optional.ofNullable(initialTag).ifPresent(tags::add);
-    return app.storeEntity(new Blob(file.getName(), fileSha, thumbSha, type, metaData, tags));
+//    metaData.put(PROPERTY_FILENAME, file.getName());
+    return app.storeEntity(new Blob(fileSha, thumbSha, type, metaData, tags));
   }
 
   private Optional<JpegImageMetadata> getMetaData(File srcFile) throws ImageReadException, IOException {

@@ -9,7 +9,6 @@
       <generator class="identity"/>
     </id>
 
-    <property access="field" name="filename_" column="filename" type="string"/>
     <property access="field" name="sha256sum_" column="sha256sum" type="string"/>
     <property access="field" name="thumbnailSha_" column="thumbnail_sha" type="string"/>
     <property access="field" name="type_" column="type" type="string"/>

@@ -15,7 +15,6 @@ import com.bensler.taggy.ui.BlobController;
 public class Blob extends Object implements Entity {
 
     private final Integer id_;
-    private final String filename_;
     private final String sha256sum_;
     private final String thumbnailSha_;
     private final String type_;
@@ -25,12 +24,11 @@ public class Blob extends Object implements Entity {
 
     /** Hibernate needs this empty constructor */
     Blob() {
-      this(null, null, null, null, Map.of(), Set.of());
+      this(null, null, null, Map.of(), Set.of());
     }
 
-    public Blob(final String filename, String shaSum, String thumbnailSha, String type, Map<String, String> metaData, Set<Tag> tags) {
+    public Blob(String shaSum, String thumbnailSha, String type, Map<String, String> metaData, Set<Tag> tags) {
       id_ = null;
-      filename_ = filename;
       sha256sum_ = shaSum;
       thumbnailSha_ = thumbnailSha;
       type_ = type;
@@ -41,10 +39,6 @@ public class Blob extends Object implements Entity {
     @Override
     public Integer getId() {
       return id_;
-    }
-
-    public String getFilename() {
-      return filename_;
     }
 
     public String getSha256sum() {
@@ -110,7 +104,7 @@ public class Blob extends Object implements Entity {
 
     @Override
     public String toString() {
-      return filename_;
+      return "Blob[%s]".formatted(id_);
     }
 
     @Override
