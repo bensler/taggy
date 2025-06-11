@@ -42,6 +42,7 @@ import com.bensler.taggy.persist.Tag;
 import com.bensler.taggy.ui.BlobController;
 import com.bensler.taggy.ui.MainFrame;
 import com.bensler.taggy.ui.TagPrefPersister;
+import com.bensler.taggy.ui.TagUi;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
@@ -94,7 +95,7 @@ class ImportDialog extends JDialog {
       "f:p:g",
       "p, 3dlu, p, 3dlu:g, p, 3dlu, p"
     ));
-    initialTag_ = new EntityTree<>(MainFrame.TAG_NAME_VIEW);
+    initialTag_ = new EntityTree<>(TagUi.NAME_VIEW);
     initialTag_.setVisibleRowCount(10, 0.5f);
     initialTag_.setSelectionMode(SelectionMode.NONE);
     initialTagButton_ = new JButton("Set Initial Tags");

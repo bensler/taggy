@@ -3,8 +3,6 @@ package com.bensler.taggy.ui;
 import static com.bensler.decaf.swing.action.ActionState.DISABLED;
 import static com.bensler.decaf.swing.action.ActionState.ENABLED;
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
-import static com.bensler.decaf.swing.view.SimplePropertyGetter.createGetter;
-import static com.bensler.decaf.util.cmp.CollatorComparator.COLLATOR_COMPARATOR;
 import static com.jgoodies.forms.layout.CellConstraints.CENTER;
 import static com.jgoodies.forms.layout.CellConstraints.FILL;
 import static com.jgoodies.forms.layout.CellConstraints.RIGHT;
@@ -26,8 +24,6 @@ import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.tree.TreePath;
 
-import org.hibernate.internal.util.compare.ComparableComparator;
-
 import com.bensler.decaf.swing.SplitpanePrefPersister;
 import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.ActionGroup;
@@ -42,16 +38,13 @@ import com.bensler.decaf.swing.dialog.OkCancelDialog;
 import com.bensler.decaf.swing.dialog.WindowClosingTrigger;
 import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
 import com.bensler.decaf.swing.tree.EntityTree;
-import com.bensler.decaf.swing.view.EntityPropertyComparator;
 import com.bensler.decaf.swing.view.PropertyViewImpl;
 import com.bensler.decaf.swing.view.SimplePropertyGetter;
-import com.bensler.decaf.util.cmp.ComparatorChain;
 import com.bensler.decaf.util.prefs.BulkPrefPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.Tag;
-import com.bensler.taggy.persist.TagProperty;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
@@ -71,7 +64,7 @@ public class MainFrame {
   public static final ImageIcon ICON_TAGS_36 = new ImageIcon(MainFrame.class.getResource("tags_36x36.png"));
   public static final ImageIcon ICON_TAGS_48 = new ImageIcon(MainFrame.class.getResource("tags_48x48.png"));
 
-  public static final ImageIcon ICON_CALENDAR_13 = new ImageIcon(MainFrame.class.getResource("calendar_13x13.png"));
+  public static final ImageIcon ICON_TIMELINE_13 = new ImageIcon(MainFrame.class.getResource("calendar_13x13.png"));
 
   public static final ImageIcon ICON_EDIT_13 = new ImageIcon(MainFrame.class.getResource("edit_13x13.png"));
   public static final ImageIcon ICON_EDIT_30 = new ImageIcon(MainFrame.class.getResource("edit_30x30.png"));
@@ -85,16 +78,6 @@ public class MainFrame {
 
   public static final PropertyViewImpl<Blob, Integer> BLOB_ID_VIEW = new PropertyViewImpl<>(
     SimplePropertyGetter.createComparableGetter(Blob::getId)
-  );
-
-  public static final EntityPropertyComparator<Tag, String> TAG_NAME_COMPARATOR = new EntityPropertyComparator<>(Tag::getName, COLLATOR_COMPARATOR);
-
-  public static final EntityPropertyComparator<Tag, String> TAG_DATE_COMPARATOR = new EntityPropertyComparator<>(
-    tag -> tag.getProperty(TagProperty.REPRESENTED_DATE), new ComparableComparator<>()
-  );
-
-  public static final PropertyViewImpl<Tag, String> TAG_NAME_VIEW = new PropertyViewImpl<>(
-    new TagCellRenderer(), createGetter(Tag::getName, new ComparatorChain<>(List.of(TAG_DATE_COMPARATOR, TAG_NAME_COMPARATOR)))
   );
 
   private final App app_;
@@ -123,7 +106,7 @@ public class MainFrame {
 
     thumbnails_ = new ThumbnailOverview(app_);
     thumbnails_.setSelectionListener((source, selection) -> selectionTagPanel.setData(selection));
-    tagTree_ = new EntityTree<>(TAG_NAME_VIEW);
+    tagTree_ = new EntityTree<>(TagUi.NAME_VIEW);
     tagTree_.setVisibleRowCount(20, .5f);
     tagTree_.setSelectionListener((source, selection) -> displayThumbnailsOfSelectedTag());
     app_.addEntityChangeListener(treeAdapter_ = new EntityChangeListenerTreeAdapter<>(tagTree_), Tag.class);
@@ -136,15 +119,18 @@ public class MainFrame {
     );
     final EntityAction<Tag> newTagAction = new EntityAction<>(
       new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_PLUS_10, SE)), null, "Create Tag", "Creates a new Tag under the currently selected Tag"),
-      new SingleEntityFilter<>(ENABLED),
-      new SingleEntityActionAdapter<>((source, tag) -> createTagUi(tag))
+      TagUi.TAG_FILTER, new SingleEntityActionAdapter<>((source, tag) -> createTagUi(tag))
+    );
+    final EntityAction<Tag> newTimelineTagAction = new EntityAction<>(
+      new ActionAppearance(new OverlayIcon(ICON_TIMELINE_13, new Overlay(ICON_PLUS_10, SE)), null, "Create Timeline Tag", "Creates a new Tag representing a calendar date"),
+      TagUi.TIMELINE_TAG_FILTER, new SingleEntityActionAdapter<>((source, tag) -> createTagUi(tag))
     );
     final EntityAction<Tag> deleteTagAction = new EntityAction<>(
       new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_X_10, SE)), null, "Delete Tag", "Remove currently selected Tag"),
       new SingleEntityFilter<>(DISABLED, tag -> tagCtrl_.isLeaf(tag) ? ENABLED : DISABLED),
       new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(this::deleteTagUi))
     );
-    tagTree_.setContextActions(new ActionGroup<>(editTagAction, newTagAction, deleteTagAction));
+    tagTree_.setContextActions(new ActionGroup<>(editTagAction, newTagAction, newTimelineTagAction, deleteTagAction));
     final JSplitPane leftSplitpane = new JSplitPane(HORIZONTAL_SPLIT, true,
       tagTree_.getScrollPane(), thumbnails_.getScrollPane()
     );

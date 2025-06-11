@@ -15,7 +15,7 @@ public class TagCellRenderer extends SimpleCellRenderer<Tag, String> {
   @Override
   protected Icon getIcon(Tag tag, String name) {
     return (tag.getProperty(TagProperty.REPRESENTED_DATE) == null)
-      ? MainFrame.ICON_TAG_13 : MainFrame.ICON_CALENDAR_13;
+      ? MainFrame.ICON_TAG_13 : MainFrame.ICON_TIMELINE_13;
   }
 
 }

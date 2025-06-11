@@ -25,7 +25,7 @@ public class SelectionTagPanel {
   final EntityTree<Tag> tagTree_;
 
   public SelectionTagPanel(MainFrame mainFrame) {
-    tagTree_ = new EntityTree<>(MainFrame.TAG_NAME_VIEW);
+    tagTree_ = new EntityTree<>(TagUi.NAME_VIEW);
     tagTree_.setVisibleRowCount(20, .5f);
     final EntityAction<Tag> focusAction = new EntityAction<>(
       new ActionAppearance(null, null, "Focus", null),

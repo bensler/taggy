@@ -45,7 +45,7 @@ public abstract class TagDialog<IN> extends BasicContentPanel<IN, Tag> {
 
     final CellConstraints cc = new CellConstraints();
 
-    parentTag_ = new EntityTree<>(MainFrame.TAG_NAME_VIEW);
+    parentTag_ = new EntityTree<>(TagUi.NAME_VIEW);
     addValidationSource(parentTag_);
     parentTag_.setVisibleRowCount(5, 2.0f);
     add(new JLabel("Parent Tag:"), cc.xy(1, 1, "r, t"));

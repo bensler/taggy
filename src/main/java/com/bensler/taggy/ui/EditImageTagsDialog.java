@@ -3,7 +3,6 @@ package com.bensler.taggy.ui;
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
 import static com.bensler.taggy.ui.MainFrame.ICON_IMAGE_48;
 import static com.bensler.taggy.ui.MainFrame.ICON_TAGS_36;
-import static com.bensler.taggy.ui.MainFrame.TAG_NAME_VIEW;
 import static javax.swing.JSplitPane.HORIZONTAL_SPLIT;
 import static javax.swing.JSplitPane.VERTICAL_SPLIT;
 
@@ -47,7 +46,7 @@ public class EditImageTagsDialog extends BasicContentPanel<Blob, Set<Tag>> {
     app_ = App.getApp();
     allTags_ = new AllTagsTreeFiltered(this::setAssignedTags);
     imgComp_ = new ImageComponent();
-    assignedTags_ = new CheckboxTree<>(TAG_NAME_VIEW);
+    assignedTags_ = new CheckboxTree<>(TagUi.NAME_VIEW);
     assignedTags_.setVisibleRowCount(15, 1);
     assignedTags_.addCheckedListener(this::assignedTagsTreeChanged);
     verticalSplitpane_ = new JSplitPane(VERTICAL_SPLIT, true, imgComp_, assignedTags_.getScrollPane());

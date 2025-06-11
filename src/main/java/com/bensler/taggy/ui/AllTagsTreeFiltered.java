@@ -1,7 +1,6 @@
 package com.bensler.taggy.ui;
 
 import static com.bensler.decaf.swing.text.TextfieldListener.addTextfieldListener;
-import static com.bensler.taggy.ui.MainFrame.TAG_NAME_VIEW;
 import static com.jgoodies.forms.layout.CellConstraints.DEFAULT;
 import static com.jgoodies.forms.layout.CellConstraints.FILL;
 
@@ -29,7 +28,7 @@ public class AllTagsTreeFiltered {
 
   public AllTagsTreeFiltered(CheckedListener<Tag> listener) {
     final App app = App.getApp();
-    tagTree_ = new CheckboxTree<>(TAG_NAME_VIEW);
+    tagTree_ = new CheckboxTree<>(TagUi.NAME_VIEW);
     tagTree_.setVisibleRowCount(20, 1);
     app.getTagCtrl().setAllTags(tagTree_);
     allTags_ = tagTree_.getData().getMembers();

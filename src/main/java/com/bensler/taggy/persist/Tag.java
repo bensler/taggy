@@ -66,6 +66,10 @@ public class Tag extends Object implements Hierarchical<Tag>, Named, Entity {
       return properties_.get(key);
     }
 
+    public boolean conatainsProperty(TagProperty key) {
+      return properties_.containsKey(key);
+    }
+
     @Override
     public String toString() {
       return name_;

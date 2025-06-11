@@ -4,7 +4,6 @@ import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
 import static com.bensler.taggy.ui.MainFrame.ICON_IMAGE_48;
 import static com.bensler.taggy.ui.MainFrame.ICON_PLUS_20;
 import static com.bensler.taggy.ui.MainFrame.ICON_TAGS_36;
-import static com.bensler.taggy.ui.MainFrame.TAG_NAME_VIEW;
 import static com.bensler.taggy.ui.ThumbnailOverviewPanel.ScrollingPolicy.SCROLL_HORIZONTALLY;
 import static javax.swing.JSplitPane.HORIZONTAL_SPLIT;
 import static javax.swing.JSplitPane.VERTICAL_SPLIT;
@@ -49,7 +48,7 @@ public class AddImagesTagsDialog extends BasicContentPanel<List<Blob>, Set<Tag>>
     ), new FormLayout("f:p:g", "f:p:g"));
     app_ = App.getApp();
     images_ = new ThumbnailOverviewPanel(app_, SCROLL_HORIZONTALLY);
-    assignedTags_ = new CheckboxTree<>(TAG_NAME_VIEW);
+    assignedTags_ = new CheckboxTree<>(TagUi.NAME_VIEW);
     assignedTags_.setVisibleRowCount(15, 1);
     assignedTags_.addCheckedListener(this::assignedTagsTreeChanged);
     allTags_ = new AllTagsTreeFiltered(this::setAssignedTags);
