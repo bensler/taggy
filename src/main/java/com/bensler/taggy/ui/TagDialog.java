@@ -31,17 +31,13 @@ public abstract class TagDialog<IN> extends BasicContentPanel<IN, Tag> {
   protected final EntityTree<Tag> parentTag_;
   protected final JTextField nameTextfield_;
   protected final Hierarchy<Tag> allTags_;
-  protected final DialogAppearance appearance_;
 
   protected TagDialog(Hierarchy<Tag> allTags, DialogAppearance appearance) {
-    super(new DialogAppearance(
-      new OverlayIcon(ICON_TAGS_48, new Overlay(ICON_PLUS_30, SE)), "Create Tag", "Create a New Tag"
-    ), new FormLayout(
+    super(appearance, new FormLayout(
       "r:p, 3dlu, f:p:g",
       "f:p:g, 3dlu, c:p"
     ));
     allTags_ = allTags;
-    appearance_ = appearance;
 
     final CellConstraints cc = new CellConstraints();
 

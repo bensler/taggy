@@ -65,6 +65,7 @@ public class MainFrame {
   public static final ImageIcon ICON_TAGS_48 = new ImageIcon(MainFrame.class.getResource("tags_48x48.png"));
 
   public static final ImageIcon ICON_TIMELINE_13 = new ImageIcon(MainFrame.class.getResource("calendar_13x13.png"));
+  public static final ImageIcon ICON_TIMELINE_48 = new ImageIcon(MainFrame.class.getResource("calendar_48x48.png"));
 
   public static final ImageIcon ICON_EDIT_13 = new ImageIcon(MainFrame.class.getResource("edit_13x13.png"));
   public static final ImageIcon ICON_EDIT_30 = new ImageIcon(MainFrame.class.getResource("edit_30x30.png"));
@@ -114,8 +115,7 @@ public class MainFrame {
     tagCtrl_.setAllTags(tagTree_);
     final EntityAction<Tag> editTagAction = new EntityAction<>(
       new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_EDIT_13, SE)), null, "Edit Tag", "Edit currently selected Tag"),
-      new SingleEntityFilter<>(DISABLED),
-      new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(this::editTagUi))
+      TagUi.TAG_FILTER, new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(this::editTagUi))
     );
     final EntityAction<Tag> newTagAction = new EntityAction<>(
       new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_PLUS_10, SE)), null, "Create Tag", "Creates a new Tag under the currently selected Tag"),
@@ -123,7 +123,7 @@ public class MainFrame {
     );
     final EntityAction<Tag> newTimelineTagAction = new EntityAction<>(
       new ActionAppearance(new OverlayIcon(ICON_TIMELINE_13, new Overlay(ICON_PLUS_10, SE)), null, "Create Timeline Tag", "Creates a new Tag representing a calendar date"),
-      TagUi.TIMELINE_TAG_FILTER, new SingleEntityActionAdapter<>((source, tag) -> createTagUi(tag))
+      TagUi.TIMELINE_TAG_FILTER, new SingleEntityActionAdapter<>((source, tag) -> createTimelineUi(tag))
     );
     final EntityAction<Tag> deleteTagAction = new EntityAction<>(
       new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_X_10, SE)), null, "Delete Tag", "Remove currently selected Tag"),
@@ -184,6 +184,12 @@ public class MainFrame {
   void createTagUi(Optional<Tag> parentTag) {
     new OkCancelDialog<>(frame_, new TagDialog.Create(tagTree_.getData())).show(
       parentTag, newTag -> tagTree_.select(tagCtrl_.persistNewTag(newTag))
+    );
+  }
+
+  void createTimelineUi(Optional<Tag> parentTag) {
+    new OkCancelDialog<>(frame_, new CreateTimelineTagDialog(tagTree_.getData())).show(
+      null, newTag -> tagTree_.select(tagCtrl_.persistNewTag(newTag))
     );
   }
 
