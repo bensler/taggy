@@ -62,17 +62,26 @@ public abstract class TagDialog<IN> extends BasicContentPanel<IN, Tag> {
   }
 
   @Override
-  protected boolean validateContent(Object validationSource) {
+  protected void validateContent(ValidationContext validationCtx, Object eventSource) {
     final Tag selectedTag = parentTag_.getSingleSelection();
     final Set<Tag> potentialSiblings = allTags_.getChildren(selectedTag);
     final String newName = getNewName();
 
-    return (!newName.isEmpty())
-      && potentialSiblings.stream()
-      .map(Tag::getName)
-      .filter(newName::equals)
-      .findFirst()
-      .isEmpty();
+    if (newName.isEmpty()) {
+      validationCtx.addErrorMsg("Name must not be empty.");
+    } else {
+      final boolean topLevel = (selectedTag == null);
+      final boolean nameAlreadyExists = !potentialSiblings.stream()
+        .map(Tag::getName)
+        .filter(newName::equals)
+        .findFirst()
+        .isEmpty();
+
+      if (nameAlreadyExists) {
+        validationCtx.addErrorMsg(topLevel ? "There is alread a top level Tag \"%s\"".formatted(newName)
+        : "Parent Tag \"%s\" already has a child Tag \"%s\"".formatted(selectedTag.getName(), newName));
+      }
+    }
   }
 
   protected String getNewName() {
@@ -83,7 +92,8 @@ public abstract class TagDialog<IN> extends BasicContentPanel<IN, Tag> {
 
     public Create(Hierarchy<Tag> allTags) {
       super(allTags, new DialogAppearance(
-        new OverlayIcon(ICON_TAGS_48, new Overlay(ICON_PLUS_30, SE)), "Create Tag", "Create a New Tag"
+        new OverlayIcon(ICON_TAGS_48, new Overlay(ICON_PLUS_30, SE)),
+        "Create Tag", "Create a New Tag", true
       ));
     }
 
@@ -104,7 +114,8 @@ public abstract class TagDialog<IN> extends BasicContentPanel<IN, Tag> {
 
     public Edit(Hierarchy<Tag> allTags) {
       super(allTags, new DialogAppearance(
-        new OverlayIcon(ICON_TAGS_48, new Overlay(ICON_EDIT_30, SE)), "Edit Tag", "Edit an existing Tag"
+        new OverlayIcon(ICON_TAGS_48, new Overlay(ICON_EDIT_30, SE)),
+        "Edit Tag", "Edit an existing Tag", true
       ));
     }
 

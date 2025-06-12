@@ -205,7 +205,7 @@ public class MainFrame {
   void deleteTagUi(Tag tag) {
     if (new ConfirmationDialog(new DialogAppearance(
       new OverlayIcon(ICON_TAG_48, new Overlay(ICON_X_30, SE)), "Confirmation: Delete Tag",
-      "Do you really want to delete tag \"%s\" under \"%s\"?".formatted(
+      "Do you really want to delete Tag \"%s\" under \"%s\"?".formatted(
         tag.getName(), Optional.ofNullable(tag.getParent()).map(Tag::getName).orElse("Root")
       )
     )).show(frame_)) {
