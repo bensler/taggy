@@ -92,9 +92,8 @@ public class BlobController {
     PROPERTY_ORIENTATION_VALUE_270_CW, Orientation.ROTATE_270_CW
   );
 
-  public final static DateTimeFormatter dateParser = DateTimeFormatter.ofPattern("yyyy:MM:dd HH:mm:ss")
+  private final static DateTimeFormatter META_DATA_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy:MM:dd HH:mm:ss")
     .withZone(ZoneOffset.UTC);
-  public final static DateTimeFormatter dateFormatter  = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
   public static final List<TagInfoAscii> DATE_TAGS = List.of(
     TiffTagConstants.TIFF_TAG_DATE_TIME,
@@ -353,9 +352,9 @@ public class BlobController {
       DATE_TAGS.stream()
         .flatMap(tag -> Optional.ofNullable(jpgMeta.findEXIFValue(tag)).stream())
         .findFirst()
-        .map(this::getTiffStringValue).map(dateParser::parse).map(LocalDateTime::from).ifPresent(instant -> {
+        .map(this::getTiffStringValue).map(META_DATA_DATE_FORMAT::parse).map(LocalDateTime::from).ifPresent(instant -> {
           metaDataSink.put(PROPERTY_DATE_EPOCH_SECONDS, String.valueOf(instant.toEpochSecond(ZoneOffset.UTC)));
-          metaDataSink.put(PROPERTY_DATE_YMD, dateFormatter.format(instant));
+          metaDataSink.put(PROPERTY_DATE_YMD, TagController.YYYY_MM_DD.format(instant));
         });
     } catch (RuntimeException rte) { // never trust untrusted date strings
       rte.printStackTrace();

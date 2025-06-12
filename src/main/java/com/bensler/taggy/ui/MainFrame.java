@@ -123,7 +123,7 @@ public class MainFrame {
     );
     final EntityAction<Tag> newTimelineTagAction = new EntityAction<>(
       new ActionAppearance(new OverlayIcon(ICON_TIMELINE_13, new Overlay(ICON_PLUS_10, SE)), null, "Create Timeline Tag", "Creates a new Tag representing a calendar date"),
-      TagUi.TIMELINE_TAG_FILTER, new SingleEntityActionAdapter<>((source, tag) -> createTimelineUi(tag))
+      TagUi.TIMELINE_TAG_FILTER, new SingleEntityActionAdapter<>((source, tag) -> createTimelineUi())
     );
     final EntityAction<Tag> deleteTagAction = new EntityAction<>(
       new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_X_10, SE)), null, "Delete Tag", "Remove currently selected Tag"),
@@ -187,8 +187,8 @@ public class MainFrame {
     );
   }
 
-  void createTimelineUi(Optional<Tag> parentTag) {
-    new OkCancelDialog<>(frame_, new CreateTimelineTagDialog(tagTree_.getData())).show(
+  void createTimelineUi() {
+    new OkCancelDialog<>(frame_, new CreateTimelineTagDialog(tagCtrl_)).show(
       null, newTag -> tagTree_.select(tagCtrl_.persistNewTag(newTag))
     );
   }

@@ -40,12 +40,12 @@
      inkscape:groupmode="layer"
      id="layer2"
      inkscape:label="drawing"
-     style="opacity:1;stroke-width:0.997575"
+     style="opacity:1;stroke-width:0.997575;fill:#505050;fill-opacity:1"
      transform="matrix(1.0059117,0,0,0.99896101,-22.43592,-18.166877)"><g
        id="g4"
        inkscape:label="days"
-       style="stroke-width:0.997575"><rect
-         style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.263941"
+       style="stroke-width:0.997575;fill:#505050;fill-opacity:1"><rect
+         style="fill:#505050;fill-opacity:1;stroke:none;stroke-width:0.263941"
          id="rect3-3"
          width="18.098345"
          height="13.72676"
@@ -53,7 +53,7 @@
          y="92.667831"
          ry="2.6666634"
          inkscape:label="day23" /><rect
-         style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.263941"
+         style="fill:#505050;fill-opacity:1;stroke:none;stroke-width:0.263941"
          id="rect3-6"
          width="18.098345"
          height="13.72676"
@@ -61,7 +61,7 @@
          y="92.521828"
          ry="2.6666634"
          inkscape:label="day22" /><rect
-         style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.263941"
+         style="fill:#505050;fill-opacity:1;stroke:none;stroke-width:0.263941"
          id="rect3-0"
          width="18.098345"
          height="13.72676"
@@ -69,7 +69,7 @@
          y="92.602867"
          ry="2.6666634"
          inkscape:label="day21" /><rect
-         style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.263941"
+         style="fill:#505050;fill-opacity:1;stroke:none;stroke-width:0.263941"
          id="rect3-7"
          width="18.098345"
          height="13.72676"
@@ -77,7 +77,7 @@
          y="68.261147"
          ry="2.6666634"
          inkscape:label="day13" /><rect
-         style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.263941"
+         style="fill:#505050;fill-opacity:1;stroke:none;stroke-width:0.263941"
          id="rect3-2"
          width="18.098345"
          height="13.72676"
@@ -85,7 +85,7 @@
          y="68.182449"
          ry="2.6666634"
          inkscape:label="day12" /><rect
-         style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.263941"
+         style="fill:#505050;fill-opacity:1;stroke:none;stroke-width:0.263941"
          id="rect3"
          width="18.098345"
          height="13.72676"
@@ -95,12 +95,12 @@
          inkscape:label="day11" /></g><g
        id="g5"
        inkscape:label="calendar"
-       style="stroke-width:0.997575"><path
+       style="stroke-width:0.997575;fill:#505050;fill-opacity:1"><path
          id="rect2"
-         style="opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.263941"
+         style="opacity:1;fill:#505050;fill-opacity:1;stroke:none;stroke-width:0.263941"
          inkscape:label="calendar"
          d="m 32.970597,29.095898 c -5.909328,0 -10.666532,4.757205 -10.666532,10.666533 v 77.871219 c 0,5.90932 4.757204,10.66653 10.666532,10.66653 h 88.020463 c 5.90933,0 10.66654,-4.75721 10.66654,-10.66653 V 39.762431 c 0,-5.909328 -4.75721,-10.666533 -10.66654,-10.666533 h -6.09988 v 12.282455 c 0,5.328082 -4.28942,9.617501 -9.6175,9.617501 -5.328084,0 -9.617503,-4.289419 -9.617503,-9.617501 V 29.095898 H 58.054338 v 12.2592 c 0,5.328082 -4.288903,9.617501 -9.616984,9.617501 -5.328082,0 -9.617501,-4.289419 -9.617501,-9.617501 v -12.2592 z M 31.038416,55.344425 H 122.75375 V 119.78132 H 31.038416 Z" /><rect
-         style="opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.263941"
+         style="opacity:1;fill:#505050;fill-opacity:1;stroke:none;stroke-width:0.263941"
          id="rect4-6"
          width="11.715837"
          height="29.639315"
@@ -108,7 +108,7 @@
          y="18.225147"
          ry="5.8579183"
          inkscape:label="ring-r" /><rect
-         style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.263941"
+         style="fill:#505050;fill-opacity:1;stroke:none;stroke-width:0.263941"
          id="rect4"
          width="11.715837"
          height="29.639315"

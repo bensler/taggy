@@ -24,6 +24,8 @@ import com.bensler.taggy.persist.Tag;
 
 public class TagController {
 
+  public final static DateTimeFormatter YYYY_MM_DD = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
   public static final DateTimeFormatter PROPERTY_DATE_MONTH_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM");
   public static final DateTimeFormatter PROPERTY_DATE_YEAR_FORMATTER = DateTimeFormatter.ofPattern("yyyy");
   public static final DateTimeFormatter UI_MONTH_FORMATTER = DateTimeFormatter.ofPattern("MMMM");
@@ -49,6 +51,10 @@ public class TagController {
     return computeIfAbsent(dateStr, this::createDateTag);
   }
 
+  /** @param data according to {@link BlobController#dateParser}*/
+  public boolean containsDateTag(String date) {
+    return dateTags_.containsKey(date);
+  }
   /** had to impl it myself as recursive calls on {@link Map#computeIfAbsent(Object, Function)} fail in a {@link ConcurrentModificationException} */
   private Tag computeIfAbsent(String tagDateKey, Function<String, Tag> tagCreator) {
     Tag tag = dateTags_.get(tagDateKey);
@@ -61,7 +67,7 @@ public class TagController {
   }
 
   private Tag createDateTag(String dateStr) {
-    final TemporalAccessor date = BlobController.dateFormatter.parse(dateStr);
+    final TemporalAccessor date = YYYY_MM_DD.parse(dateStr);
     final Tag parentMonthTag = computeIfAbsent(PROPERTY_DATE_MONTH_FORMATTER.format(date), tagDateKey -> createMonthTag(date, tagDateKey));
 
     return persistNewTag(new Tag(parentMonthTag, UI_WEEK_DAY_FORMATTER.format(date), Map.of(REPRESENTED_DATE, dateStr)));
