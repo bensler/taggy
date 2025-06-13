@@ -35,8 +35,8 @@ import com.bensler.decaf.swing.table.TableView;
 import com.bensler.decaf.swing.tree.EntityTree;
 import com.bensler.decaf.swing.view.PropertyViewImpl;
 import com.bensler.decaf.swing.view.SimpleCellRenderer;
-import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.decaf.util.prefs.PrefKey;
+import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.decaf.util.tree.Hierarchy;
 import com.bensler.taggy.App;
 import com.bensler.taggy.imprt.FileToImport.ImportObstacle;
@@ -100,7 +100,7 @@ class ImportDialog extends JDialog {
     initialTag_.setSelectionMode(SelectionMode.NONE);
     initialTagButton_ = new JButton("Set Initial Tags");
     initialTagButton_.addActionListener(evt -> chooseInitialTag());
-    fileSizeLabel_ = new JLabel();
+    fileSizeLabel_ = new JLabel(" ", JLabel.RIGHT);
     importButton_ = new JButton("Import");
     importButton_.setEnabled(false);
     importButton_.addActionListener(evt -> importSelection());
@@ -148,7 +148,7 @@ class ImportDialog extends JDialog {
     importButton_.setEnabled(selectionNotEmpty && files.stream().allMatch(FileToImport::isImportable));
     fileSizeLabel_.setText(selectionNotEmpty ? "%s file%s (%s)".formatted(
       filesCount, ((filesCount < 2) ? "" : "s"), fileSizeRenderer_.formatFileSize(fileSizesSum)
-    ) : "");
+    ) : " ");
   }
 
   private void chooseInitialTag() {
