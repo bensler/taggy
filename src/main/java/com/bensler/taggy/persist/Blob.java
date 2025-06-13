@@ -90,6 +90,10 @@ public class Blob extends Object implements Entity {
       }
     }
 
+    public Set<String> getPropertyNames() {
+      return properties_.keySet();
+    }
+
     public String getProperty(String name) {
       return properties_.get(name);
     }
