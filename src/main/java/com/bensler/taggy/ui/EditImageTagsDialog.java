@@ -19,7 +19,7 @@ import com.bensler.decaf.swing.dialog.BasicContentPanel;
 import com.bensler.decaf.swing.dialog.DialogAppearance;
 import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
 import com.bensler.decaf.swing.tree.CheckboxTree;
-import com.bensler.decaf.util.prefs.BulkPrefPersister;
+import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.tree.Hierarchical;
 import com.bensler.decaf.util.tree.Hierarchy;
@@ -62,7 +62,7 @@ public class EditImageTagsDialog extends BasicContentPanel<Blob, Set<Tag>> {
   protected void contextSet(Context ctx) {
     final PrefKey baseKey = new PrefKey(App.PREFS_APP_ROOT, getClass());
 
-    ctx.setPrefs(new BulkPrefPersister(
+    ctx.setPrefs(new PrefPersisterImpl(
       app_.getPrefs(),
       new WindowPrefsPersister(baseKey, ctx_.getDialog()),
       new SplitpanePrefPersister(new PrefKey(baseKey, "verticalSplitpane"), verticalSplitpane_),

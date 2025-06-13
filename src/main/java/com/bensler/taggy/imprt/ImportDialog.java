@@ -18,9 +18,12 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSplitPane;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
+import com.bensler.decaf.swing.SplitpanePrefPersister;
+import com.bensler.decaf.swing.awt.WindowHelper;
 import com.bensler.decaf.swing.dialog.OkCancelDialog;
 import com.bensler.decaf.swing.dialog.WindowClosingTrigger;
 import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
@@ -32,7 +35,7 @@ import com.bensler.decaf.swing.table.TableView;
 import com.bensler.decaf.swing.tree.EntityTree;
 import com.bensler.decaf.swing.view.PropertyViewImpl;
 import com.bensler.decaf.swing.view.SimpleCellRenderer;
-import com.bensler.decaf.util.prefs.BulkPrefPersister;
+import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.tree.Hierarchy;
 import com.bensler.taggy.App;
@@ -65,32 +68,29 @@ class ImportDialog extends JDialog {
     blobCtrl_ = app.getBlobCtrl();
     db_ = app.getDbAccess();
     final JPanel mainPanel = new JPanel(new FormLayout(
-      "3dlu, f:p:g, 3dlu, f:p, 3dlu",
+      "3dlu, f:p:g, 3dlu",
       "3dlu, f:p:g, 3dlu"
     ));
     fileSizeRenderer_ = new FileSizeRenderer();
+    final TablePropertyView<FileToImport, String> pathCol;
     files_ = new EntityTable<>(new TableView<>(
-      new TablePropertyView<>("filename", "Filename", new PropertyViewImpl<>(
-        createGetterComparator(FileToImport::getName, COLLATOR_COMPARATOR)
-      )),
-      new TablePropertyView<>("relativePath", "Path", new PropertyViewImpl<>(
-        createGetterComparator(FileToImport::getRelativePath, COLLATOR_COMPARATOR)
-      )),
+      new TablePropertyView<>("filename", "Filename", createGetterComparator(FileToImport::getName, COLLATOR_COMPARATOR)),
+      pathCol = new TablePropertyView<>("relativePath", "Path", createGetterComparator(FileToImport::getRelativePath, COLLATOR_COMPARATOR)),
       new TablePropertyView<>("type", "Type", new PropertyViewImpl<>(
         new TypeIconRenderer(), createGetterComparator(FileToImport::getType, COLLATOR_COMPARATOR)
       )),
       new TablePropertyView<>("fileSize", "Size", new PropertyViewImpl<>(
         fileSizeRenderer_, createComparableGetter(FileToImport::getFileSize)
       )),
-      new TablePropertyView<>("shasum", "sha256-Hash", new PropertyViewImpl<>(
-        createGetterComparator(FileToImport::getShaSum, COLLATOR_COMPARATOR)
-      )),
+      new TablePropertyView<>("shasum", "sha256-Hash", createGetterComparator(FileToImport::getShaSum, COLLATOR_COMPARATOR)),
       new TablePropertyView<>("importable", "Importable", new PropertyViewImpl<>(
         new IsNewIconRenderer(), createComparableGetter(FileToImport::isImportable)
       ))
     ));
+    files_.sortByColumn(pathCol);
+    files_.getComponent().setMinimumSize(new Dimension(400, 400));
     files_.setSelectionMode(SelectionMode.MULTIPLE_INTERVAL);
-    mainPanel.add(files_.getScrollPane(), new CellConstraints(2, 2));
+
     final JPanel sidePanel = new JPanel(new FormLayout(
       "f:p:g",
       "p, 3dlu, p, 3dlu:g, p, 3dlu, p"
@@ -109,8 +109,10 @@ class ImportDialog extends JDialog {
     sidePanel.add(initialTagButton_, new CellConstraints(1, 3));
     sidePanel.add(fileSizeLabel_, new CellConstraints(1, 5));
     sidePanel.add(importButton_, new CellConstraints(1, 7));
-    mainPanel.add(sidePanel, new CellConstraints(4, 2));
-    mainPanel.setPreferredSize(new Dimension(400, 400));
+
+    final JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, files_.getScrollPane(), sidePanel);
+    splitPane.setDividerLocation(.7f);
+    mainPanel.add(splitPane, new CellConstraints(2, 2));
     setContentPane(mainPanel);
     final List<FileToImport> filesToImport = importController_.getFilesToImport();
     files_.addOrUpdateData(filesToImport);
@@ -118,13 +120,15 @@ class ImportDialog extends JDialog {
       .filter(file -> file.hasObstacle(ImportObstacle.SHA_MISSING) || file.hasObstacle(ImportObstacle.DUPLICATE_CHECK_MISSING)).toList());
     pack();
     final PrefKey baseKey = new PrefKey(App.PREFS_APP_ROOT, getClass());
-    final BulkPrefPersister prefs = new BulkPrefPersister(
-      app.getPrefs(), new WindowPrefsPersister(baseKey, this),
+    final PrefPersisterImpl prefs = new PrefPersisterImpl(app.getPrefs(),
+      new WindowPrefsPersister(baseKey, this),
+      new SplitpanePrefPersister(new PrefKey(baseKey, "split"), splitPane),
       new TagPrefPersister(
         new PrefKey(baseKey, "initialTag"), app.getTagCtrl(),
         this::getInitialTag,
         newInitialTag -> setInitialTag(Optional.of(newInitialTag))
-      ), new TablePrefPersister(new PrefKey(baseKey, "files"), files_.getComponent())
+      ),
+      new TablePrefPersister(new PrefKey(baseKey, "files"), files_.getComponent())
     );
     new WindowClosingTrigger(this, evt -> {
       synchronized (filesToSha_) {
@@ -132,6 +136,7 @@ class ImportDialog extends JDialog {
       }
       prefs.store();
     });
+    WindowHelper.centerOnParent(this);
     new Thread(new ShaSumDuplicateCheckThread(), "Taggy.Import.ShaSumDuplicateCheck").start();
   }
 

@@ -40,7 +40,7 @@ import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
 import com.bensler.decaf.swing.tree.EntityTree;
 import com.bensler.decaf.swing.view.PropertyViewImpl;
 import com.bensler.decaf.swing.view.SimplePropertyGetter;
-import com.bensler.decaf.util.prefs.BulkPrefPersister;
+import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
@@ -83,7 +83,7 @@ public class MainFrame {
 
   private final App app_;
   private final JFrame frame_;
-  private final BulkPrefPersister prefs_;
+  private final PrefPersisterImpl prefs_;
   private final EntityTree<Tag> tagTree_;
   private final ThumbnailOverview thumbnails_;
   private final TagController tagCtrl_;
@@ -152,11 +152,12 @@ public class MainFrame {
     new WindowClosingTrigger(frame_, evt -> frameClosing());
 
     final PrefKey baseKey = new PrefKey(App.PREFS_APP_ROOT, getClass());
-    prefs_ = new BulkPrefPersister(app_.getPrefs(),
+    prefs_ = new PrefPersisterImpl(app_.getPrefs(),
       new WindowPrefsPersister(baseKey, frame_),
       new TagPrefPersister(new PrefKey(baseKey, "selectedTag"), tagCtrl_, tagTree_::getSingleSelection, tagTree_::select),
       new SplitpanePrefPersister(new PrefKey(baseKey, "splitLeft"), leftSplitpane),
-      new SplitpanePrefPersister(new PrefKey(baseKey, "splitRight"), rightSplitpane)
+      new SplitpanePrefPersister(new PrefKey(baseKey, "splitRight"), rightSplitpane),
+      selectionTagPanel.createPrefPersister(new PrefKey(baseKey, "selectionTagPanel"))
     );
   }
 

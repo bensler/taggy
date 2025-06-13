@@ -17,7 +17,7 @@ import javax.swing.SwingUtilities;
 
 import com.bensler.decaf.swing.dialog.WindowClosingTrigger;
 import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
-import com.bensler.decaf.util.prefs.BulkPrefPersister;
+import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
@@ -36,7 +36,7 @@ class ImportProgressDialog extends JDialog {
   private final ImportController importController_;
   private final List<FileToImport> filesToImport_;
   private final Tag initialTag_;
-  private final BulkPrefPersister prefs_;
+  private final PrefPersisterImpl prefs_;
   private boolean canceled_;
 
   ImportProgressDialog(ImportDialog parent, List<FileToImport> filesToImport, Tag initialTag) {
@@ -78,7 +78,7 @@ class ImportProgressDialog extends JDialog {
       (parentBounds.y + (parentBounds.height / 2)) - (getHeight() / 2)
     );
 
-    prefs_ = new BulkPrefPersister(
+    prefs_ = new PrefPersisterImpl(
       app.getPrefs(), new WindowPrefsPersister(new PrefKey(App.PREFS_APP_ROOT, getClass()), this)
     );
     new WindowClosingTrigger(this, evt -> {

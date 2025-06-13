@@ -10,7 +10,7 @@ import com.bensler.decaf.swing.dialog.BasicContentPanel;
 import com.bensler.decaf.swing.dialog.DialogAppearance;
 import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
 import com.bensler.decaf.swing.tree.EntityTree;
-import com.bensler.decaf.util.prefs.BulkPrefPersister;
+import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Tag;
@@ -37,7 +37,7 @@ public class ChooseInitialTagDialog extends BasicContentPanel<Tag, Tag> {
   protected void contextSet(Context ctx) {
     final PrefKey baseKey = new PrefKey(App.PREFS_APP_ROOT, getClass());
 
-    ctx.setPrefs(new BulkPrefPersister(
+    ctx.setPrefs(new PrefPersisterImpl(
       App.getApp().getPrefs(), new WindowPrefsPersister(baseKey, ctx_.getDialog())
     ));
   }

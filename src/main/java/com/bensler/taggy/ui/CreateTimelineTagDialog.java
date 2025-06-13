@@ -13,7 +13,7 @@ import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
 import com.bensler.decaf.swing.dialog.BasicContentPanel;
 import com.bensler.decaf.swing.dialog.DialogAppearance;
 import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
-import com.bensler.decaf.util.prefs.BulkPrefPersister;
+import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Tag;
@@ -44,7 +44,7 @@ public class CreateTimelineTagDialog extends BasicContentPanel<Void, Tag> {
 
   @Override
   protected void contextSet(Context ctx) {
-    ctx.setPrefs(new BulkPrefPersister(
+    ctx.setPrefs(new PrefPersisterImpl(
       App.getApp().getPrefs(),
       new WindowPrefsPersister(new PrefKey(App.PREFS_APP_ROOT, CreateTimelineTagDialog.class), ctx_.getDialog())
     ));

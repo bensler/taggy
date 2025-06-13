@@ -11,7 +11,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
-import com.bensler.decaf.util.prefs.BulkPrefPersister;
+import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.taggy.App;
 import com.bensler.taggy.EntityChangeListener;
@@ -23,7 +23,7 @@ import com.jgoodies.forms.layout.FormLayout;
 public class OrphanDialog extends JDialog implements EntityChangeListener<Blob> {
 
   private final ThumbnailOverview thumbViewer_;
-  private final BulkPrefPersister prefs_;
+  private final PrefPersisterImpl prefs_;
 
   public OrphanDialog(App app) {
     super(app.getMainFrame().getFrame(), "Uncategorized Files");
@@ -43,7 +43,7 @@ public class OrphanDialog extends JDialog implements EntityChangeListener<Blob> 
     setContentPane(mainPanel);
 
     pack();
-    prefs_ = new BulkPrefPersister(
+    prefs_ = new PrefPersisterImpl(
       app.getPrefs(), new WindowPrefsPersister(new PrefKey(App.PREFS_APP_ROOT, getClass()), this)
     );
     setDefaultCloseOperation(DISPOSE_ON_CLOSE);

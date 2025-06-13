@@ -11,7 +11,7 @@ import javax.swing.SwingUtilities;
 
 import com.bensler.decaf.swing.SplitpanePrefPersister;
 import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
-import com.bensler.decaf.util.prefs.BulkPrefPersister;
+import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
@@ -23,7 +23,7 @@ public class SlideshowFrame extends JFrame {
 
   private final ImageComponent imageComponent_;
   private final ThumbnailOverviewPanel thumbs_;
-  private final BulkPrefPersister prefs_;
+  private final PrefPersisterImpl prefs_;
 
   public SlideshowFrame(App app) {
     super("Slideshow");
@@ -46,7 +46,7 @@ public class SlideshowFrame extends JFrame {
     setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
     final PrefKey baseKey = new PrefKey(App.PREFS_APP_ROOT, getClass());
-    prefs_ = new BulkPrefPersister(app.getPrefs(),
+    prefs_ = new PrefPersisterImpl(app.getPrefs(),
       new WindowPrefsPersister(baseKey, this),
       new SplitpanePrefPersister(new PrefKey(baseKey, "split"), splitPane)
     );

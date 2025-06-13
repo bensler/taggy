@@ -12,7 +12,7 @@ import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
 import com.bensler.decaf.swing.dialog.BasicContentPanel;
 import com.bensler.decaf.swing.dialog.DialogAppearance;
 import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
-import com.bensler.decaf.util.prefs.BulkPrefPersister;
+import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
@@ -41,7 +41,7 @@ public class DeleteImagesConfirmDialog extends BasicContentPanel<List<Blob>, Lis
 
   @Override
   protected void contextSet(Context ctx) {
-    ctx.setPrefs(new BulkPrefPersister(
+    ctx.setPrefs(new PrefPersisterImpl(
       app_.getPrefs(), new WindowPrefsPersister(new PrefKey(App.PREFS_APP_ROOT, getClass()), ctx_.getDialog())
     ));
     ctx_.setCancelButtonText("No");

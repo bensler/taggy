@@ -18,8 +18,8 @@ import com.bensler.decaf.swing.dialog.BasicContentPanel;
 import com.bensler.decaf.swing.dialog.DialogAppearance;
 import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
 import com.bensler.decaf.swing.tree.EntityTree;
-import com.bensler.decaf.util.prefs.BulkPrefPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
+import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.decaf.util.tree.Hierarchy;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Tag;
@@ -54,10 +54,9 @@ public abstract class TagDialog<IN> extends BasicContentPanel<IN, Tag> {
 
   @Override
   protected void contextSet(Context ctx) {
-    ctx.setPrefs(new BulkPrefPersister(
-      App.getApp().getPrefs(),
-      new WindowPrefsPersister(new PrefKey(App.PREFS_APP_ROOT, TagDialog.class), ctx_.getDialog())
-    ));
+    ctx.setPrefs(new PrefPersisterImpl(App.getApp().getPrefs(), new WindowPrefsPersister(new PrefKey(
+      App.PREFS_APP_ROOT, TagDialog.class.getSimpleName() + "." + getClass().getSimpleName()), ctx_.getDialog()
+    )));
     ctx.setComponentToFocus(nameTextfield_);
   }
 

@@ -12,17 +12,22 @@ import java.util.stream.Collectors;
 
 import javax.swing.JSplitPane;
 
+import com.bensler.decaf.swing.SplitpanePrefPersister;
 import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.ActionGroup;
 import com.bensler.decaf.swing.action.EntityAction;
 import com.bensler.decaf.swing.action.SingleEntityActionAdapter;
 import com.bensler.decaf.swing.action.SingleEntityFilter;
 import com.bensler.decaf.swing.table.EntityTable;
+import com.bensler.decaf.swing.table.TablePrefPersister;
 import com.bensler.decaf.swing.table.TablePropertyView;
 import com.bensler.decaf.swing.table.TableView;
 import com.bensler.decaf.swing.tree.EntityTree;
 import com.bensler.decaf.swing.view.PropertyViewImpl;
 import com.bensler.decaf.util.Pair;
+import com.bensler.decaf.util.prefs.BulkPrefPersister;
+import com.bensler.decaf.util.prefs.PrefKey;
+import com.bensler.decaf.util.prefs.PrefPersister;
 import com.bensler.decaf.util.tree.Hierarchical;
 import com.bensler.decaf.util.tree.Hierarchy;
 import com.bensler.taggy.persist.Blob;
@@ -43,10 +48,12 @@ public class SelectedBlobsDetailPanel {
       new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(mainFrame::selectTag))
     );
     tagTree_.setContextActions(new ActionGroup<>(focusAction));
+    final TablePropertyView<Pair<String, String>, String> propertyKeyColumn;
     propertiesTable_ = new EntityTable<>(new TableView<>(
-      new TablePropertyView<>("key", "Name", new PropertyViewImpl<>(createGetterComparator(Pair::getLeft, COLLATOR_COMPARATOR))),
+      propertyKeyColumn = new TablePropertyView<>("key", "Name", createGetterComparator(Pair::getLeft, COLLATOR_COMPARATOR)),
       new TablePropertyView<>("value", "Value", new PropertyViewImpl<>(createGetterComparator(Pair::getRight, COLLATOR_COMPARATOR)))
     ));
+    propertiesTable_.sortByColumn(propertyKeyColumn);
     splitpane_ = new JSplitPane(VERTICAL_SPLIT, true,
       tagTree_.getScrollPane(), propertiesTable_.getScrollPane()
     );
@@ -81,6 +88,13 @@ public class SelectedBlobsDetailPanel {
 
   public JSplitPane getComponent() {
     return splitpane_;
+  }
+
+  public PrefPersister createPrefPersister(PrefKey prefKey) {
+    return new BulkPrefPersister(
+      new SplitpanePrefPersister(new PrefKey(prefKey, "split"), splitpane_),
+      new TablePrefPersister(new PrefKey(prefKey, "properties"), propertiesTable_.getComponent())
+    );
   }
 
 }
