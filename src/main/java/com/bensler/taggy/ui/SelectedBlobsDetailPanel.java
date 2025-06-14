@@ -40,6 +40,8 @@ public class SelectedBlobsDetailPanel {
   private final EntityTree<Tag> tagTree_;
   private final EntityTable<Pair<String, String>> propertiesTable_;
   private final JSplitPane splitpane_;
+  /** keep divider position {@link #propertiesTable_} is hidden */
+  private int lastSplitpaneDividerLocation=100;
 
   public SelectedBlobsDetailPanel(MainFrame mainFrame) {
     tagTree_ = new EntityTree<>(TagUi.NAME_VIEW);
@@ -60,6 +62,8 @@ public class SelectedBlobsDetailPanel {
       tagTree_.getScrollPane(), propertiesTable_.getScrollPane()
     );
     splitpane_.setDividerLocation(.7f);
+    hidePropertiesTable();
+    lastSplitpaneDividerLocation = -1;
   }
 
   public void setData(List<Blob> blobs) {
@@ -85,28 +89,47 @@ public class SelectedBlobsDetailPanel {
       );
       if (splitpane_.getBottomComponent() == null) {
         splitpane_.setBottomComponent(propertiesTable_.getScrollPane());
-        splitpane_.setDividerLocation(lastSplitpaneDividerLocation );
+        if (lastSplitpaneDividerLocation > 0) {
+          splitpane_.setDividerLocation(lastSplitpaneDividerLocation);
+        }
       }
     } else {
-      if (splitpane_.getBottomComponent() != null) {
-        lastSplitpaneDividerLocation =  splitpane_.getDividerLocation();
-        splitpane_.setBottomComponent(null);
-      }
-      propertiesTable_.clear();
+      hidePropertiesTable();
     }
   }
+  private boolean isPropertiesTableHidden() {
+    return (splitpane_.getBottomComponent() == null);
+  }
 
-private int lastSplitpaneDividerLocation=100;
+  private void hidePropertiesTable() {
+    if (!isPropertiesTableHidden()) {
+      lastSplitpaneDividerLocation = splitpane_.getDividerLocation();
+      splitpane_.setBottomComponent(null);
+    }
+    propertiesTable_.clear();
+  }
 
   public JSplitPane getComponent() {
     return splitpane_;
   }
 
+  private void setDividerLocation(int location) {
+    if (isPropertiesTableHidden()) {
+      lastSplitpaneDividerLocation = location;
+    } else {
+      splitpane_.setDividerLocation(location);
+    }
+  }
+
+  private int getDividerLocation() {
+    return (isPropertiesTableHidden() && (lastSplitpaneDividerLocation > 0) ? lastSplitpaneDividerLocation : splitpane_.getDividerLocation());
+  }
+
   public PrefPersister createPrefPersister(PrefKey prefKey) {
     return new BulkPrefPersister(
       new DelegatingPrefPersister(new PrefKey(prefKey, "split"),
-        () -> Optional.of(String.valueOf(splitpane_.getDividerLocation())),
-        value -> Prefs.tryParseInt(value).ifPresent(splitpane_::setDividerLocation)
+        () -> Optional.of(String.valueOf(getDividerLocation())),
+        value -> Prefs.tryParseInt(value).ifPresent(this::setDividerLocation)
       ),
       new TablePrefPersister(new PrefKey(prefKey, "properties"), propertiesTable_.getComponent())
     );
