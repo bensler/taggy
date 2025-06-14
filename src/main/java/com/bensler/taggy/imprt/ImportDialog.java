@@ -3,6 +3,7 @@ package com.bensler.taggy.imprt;
 import static com.bensler.decaf.swing.view.SimplePropertyGetter.createComparableGetter;
 import static com.bensler.decaf.swing.view.SimplePropertyGetter.createGetterComparator;
 import static com.bensler.decaf.util.cmp.CollatorComparator.COLLATOR_COMPARATOR;
+import static com.bensler.decaf.util.prefs.DelegatingPrefPersister.createSplitPanePrefPersister;
 
 import java.awt.Dimension;
 import java.io.File;
@@ -22,7 +23,6 @@ import javax.swing.JSplitPane;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
-import com.bensler.decaf.swing.SplitpanePrefPersister;
 import com.bensler.decaf.swing.awt.WindowHelper;
 import com.bensler.decaf.swing.dialog.OkCancelDialog;
 import com.bensler.decaf.swing.dialog.WindowClosingTrigger;
@@ -122,8 +122,8 @@ class ImportDialog extends JDialog {
     final PrefKey baseKey = new PrefKey(App.PREFS_APP_ROOT, getClass());
     final PrefPersisterImpl prefs = new PrefPersisterImpl(app.getPrefs(),
       new WindowPrefsPersister(baseKey, this),
-      new SplitpanePrefPersister(new PrefKey(baseKey, "split"), splitPane),
-      new TagPrefPersister(
+      createSplitPanePrefPersister(new PrefKey(baseKey, "split"), splitPane),
+      TagPrefPersister.create(
         new PrefKey(baseKey, "initialTag"), app.getTagCtrl(),
         this::getInitialTag,
         newInitialTag -> setInitialTag(Optional.of(newInitialTag))

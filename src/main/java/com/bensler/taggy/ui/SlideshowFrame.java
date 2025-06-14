@@ -1,5 +1,7 @@
 package com.bensler.taggy.ui;
 
+import static com.bensler.decaf.util.prefs.DelegatingPrefPersister.createSplitPanePrefPersister;
+
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
@@ -9,10 +11,9 @@ import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
 
-import com.bensler.decaf.swing.SplitpanePrefPersister;
 import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
-import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.decaf.util.prefs.PrefKey;
+import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.ui.ThumbnailOverviewPanel.ScrollingPolicy;
@@ -48,7 +49,7 @@ public class SlideshowFrame extends JFrame {
     final PrefKey baseKey = new PrefKey(App.PREFS_APP_ROOT, getClass());
     prefs_ = new PrefPersisterImpl(app.getPrefs(),
       new WindowPrefsPersister(baseKey, this),
-      new SplitpanePrefPersister(new PrefKey(baseKey, "split"), splitPane)
+      createSplitPanePrefPersister(new PrefKey(baseKey, "split"), splitPane)
     );
   }
 

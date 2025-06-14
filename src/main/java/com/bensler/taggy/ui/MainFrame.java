@@ -3,6 +3,7 @@ package com.bensler.taggy.ui;
 import static com.bensler.decaf.swing.action.ActionState.DISABLED;
 import static com.bensler.decaf.swing.action.ActionState.ENABLED;
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
+import static com.bensler.decaf.util.prefs.DelegatingPrefPersister.createSplitPanePrefPersister;
 import static com.jgoodies.forms.layout.CellConstraints.CENTER;
 import static com.jgoodies.forms.layout.CellConstraints.FILL;
 import static com.jgoodies.forms.layout.CellConstraints.RIGHT;
@@ -24,7 +25,6 @@ import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.tree.TreePath;
 
-import com.bensler.decaf.swing.SplitpanePrefPersister;
 import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.ActionGroup;
 import com.bensler.decaf.swing.action.EntityAction;
@@ -40,8 +40,8 @@ import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
 import com.bensler.decaf.swing.tree.EntityTree;
 import com.bensler.decaf.swing.view.PropertyViewImpl;
 import com.bensler.decaf.swing.view.SimplePropertyGetter;
-import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.decaf.util.prefs.PrefKey;
+import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.Tag;
@@ -154,9 +154,9 @@ public class MainFrame {
     final PrefKey baseKey = new PrefKey(App.PREFS_APP_ROOT, getClass());
     prefs_ = new PrefPersisterImpl(app_.getPrefs(),
       new WindowPrefsPersister(baseKey, frame_),
-      new TagPrefPersister(new PrefKey(baseKey, "selectedTag"), tagCtrl_, tagTree_::getSingleSelection, tagTree_::select),
-      new SplitpanePrefPersister(new PrefKey(baseKey, "splitLeft"), leftSplitpane),
-      new SplitpanePrefPersister(new PrefKey(baseKey, "splitRight"), rightSplitpane),
+      TagPrefPersister.create(new PrefKey(baseKey, "selectedTag"), tagCtrl_, tagTree_::getSingleSelection, tagTree_::select),
+      createSplitPanePrefPersister(new PrefKey(baseKey, "splitLeft"), leftSplitpane),
+      createSplitPanePrefPersister(new PrefKey(baseKey, "splitRight"), rightSplitpane),
       selectionTagPanel.createPrefPersister(new PrefKey(baseKey, "selectionTagPanel"))
     );
   }

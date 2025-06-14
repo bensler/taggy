@@ -1,6 +1,7 @@
 package com.bensler.taggy.ui;
 
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
+import static com.bensler.decaf.util.prefs.DelegatingPrefPersister.createSplitPanePrefPersister;
 import static com.bensler.taggy.ui.MainFrame.ICON_IMAGE_48;
 import static com.bensler.taggy.ui.MainFrame.ICON_TAGS_36;
 import static javax.swing.JSplitPane.HORIZONTAL_SPLIT;
@@ -12,15 +13,14 @@ import java.util.stream.Collectors;
 
 import javax.swing.JSplitPane;
 
-import com.bensler.decaf.swing.SplitpanePrefPersister;
 import com.bensler.decaf.swing.awt.OverlayIcon;
 import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
 import com.bensler.decaf.swing.dialog.BasicContentPanel;
 import com.bensler.decaf.swing.dialog.DialogAppearance;
 import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
 import com.bensler.decaf.swing.tree.CheckboxTree;
-import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.decaf.util.prefs.PrefKey;
+import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.decaf.util.tree.Hierarchical;
 import com.bensler.decaf.util.tree.Hierarchy;
 import com.bensler.taggy.App;
@@ -65,8 +65,8 @@ public class EditImageTagsDialog extends BasicContentPanel<Blob, Set<Tag>> {
     ctx.setPrefs(new PrefPersisterImpl(
       app_.getPrefs(),
       new WindowPrefsPersister(baseKey, ctx_.getDialog()),
-      new SplitpanePrefPersister(new PrefKey(baseKey, "verticalSplitpane"), verticalSplitpane_),
-      new SplitpanePrefPersister(new PrefKey(baseKey, "horizontalSplitpane"), horizontalSplitpane_)
+      createSplitPanePrefPersister(new PrefKey(baseKey, "verticalSplitpane"), verticalSplitpane_),
+      createSplitPanePrefPersister(new PrefKey(baseKey, "horizontalSplitpane"), horizontalSplitpane_)
     ));
   }
 

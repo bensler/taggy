@@ -7,12 +7,12 @@ import static com.bensler.decaf.util.cmp.CollatorComparator.COLLATOR_COMPARATOR;
 import static javax.swing.JSplitPane.VERTICAL_SPLIT;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.swing.JSplitPane;
 
-import com.bensler.decaf.swing.SplitpanePrefPersister;
 import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.ActionGroup;
 import com.bensler.decaf.swing.action.EntityAction;
@@ -26,8 +26,10 @@ import com.bensler.decaf.swing.tree.EntityTree;
 import com.bensler.decaf.swing.view.PropertyViewImpl;
 import com.bensler.decaf.util.Pair;
 import com.bensler.decaf.util.prefs.BulkPrefPersister;
+import com.bensler.decaf.util.prefs.DelegatingPrefPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefPersister;
+import com.bensler.decaf.util.prefs.Prefs;
 import com.bensler.decaf.util.tree.Hierarchical;
 import com.bensler.decaf.util.tree.Hierarchy;
 import com.bensler.taggy.persist.Blob;
@@ -81,10 +83,20 @@ public class SelectedBlobsDetailPanel {
         .map(name -> new Pair<>(name, blob.getProperty(name)))
         .collect(Collectors.toList())
       );
+      if (splitpane_.getBottomComponent() == null) {
+        splitpane_.setBottomComponent(propertiesTable_.getScrollPane());
+        splitpane_.setDividerLocation(lastSplitpaneDividerLocation );
+      }
     } else {
+      if (splitpane_.getBottomComponent() != null) {
+        lastSplitpaneDividerLocation =  splitpane_.getDividerLocation();
+        splitpane_.setBottomComponent(null);
+      }
       propertiesTable_.clear();
     }
   }
+
+private int lastSplitpaneDividerLocation=100;
 
   public JSplitPane getComponent() {
     return splitpane_;
@@ -92,7 +104,10 @@ public class SelectedBlobsDetailPanel {
 
   public PrefPersister createPrefPersister(PrefKey prefKey) {
     return new BulkPrefPersister(
-      new SplitpanePrefPersister(new PrefKey(prefKey, "split"), splitpane_),
+      new DelegatingPrefPersister(new PrefKey(prefKey, "split"),
+        () -> Optional.of(String.valueOf(splitpane_.getDividerLocation())),
+        value -> Prefs.tryParseInt(value).ifPresent(splitpane_::setDividerLocation)
+      ),
       new TablePrefPersister(new PrefKey(prefKey, "properties"), propertiesTable_.getComponent())
     );
   }
