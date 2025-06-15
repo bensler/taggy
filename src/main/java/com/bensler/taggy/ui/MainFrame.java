@@ -2,6 +2,7 @@ package com.bensler.taggy.ui;
 
 import static com.bensler.decaf.swing.action.ActionState.DISABLED;
 import static com.bensler.decaf.swing.action.ActionState.ENABLED;
+import static com.bensler.decaf.swing.action.ActionState.HIDDEN;
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
 import static com.bensler.decaf.util.prefs.DelegatingPrefPersister.createSplitPanePrefPersister;
 import static com.jgoodies.forms.layout.CellConstraints.CENTER;
@@ -127,7 +128,7 @@ public class MainFrame {
     );
     final EntityAction<Tag> deleteTagAction = new EntityAction<>(
       new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_X_10, SE)), null, "Delete Tag", "Remove currently selected Tag"),
-      new SingleEntityFilter<>(DISABLED, tag -> tagCtrl_.isLeaf(tag) ? ENABLED : DISABLED),
+      new SingleEntityFilter<>(HIDDEN, tag -> tagCtrl_.isLeaf(tag) ? ENABLED : DISABLED),
       new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(this::deleteTagUi))
     );
     tagTree_.setContextActions(new ActionGroup<>(editTagAction, newTagAction, newTimelineTagAction, deleteTagAction));
