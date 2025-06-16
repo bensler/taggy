@@ -100,20 +100,6 @@ public class MainFrame {
       "3dlu, f:p:g, 3dlu",
       "3dlu, f:p, 3dlu, f:p:g, 3dlu, f:p, 3dlu"
     ));
-
-    final SelectedBlobsDetailPanel selectionTagPanel = new SelectedBlobsDetailPanel(this);
-    final JPanel toolbar = new JPanel(new FormLayout("f:p, 3dlu:g", "f:p"));
-    toolbar.add(app_.getImportCtrl().getImportAction().createToolbarButton(), new CellConstraints(1, 1));
-    mainPanel.add(toolbar, new CellConstraints(2, 2));
-
-    thumbnails_ = new ThumbnailOverview(app_);
-    thumbnails_.setSelectionListener((source, selection) -> selectionTagPanel.setData(selection));
-    tagTree_ = new EntityTree<>(TagUi.NAME_VIEW);
-    tagTree_.setVisibleRowCount(20, .5f);
-    tagTree_.setSelectionListener((source, selection) -> displayThumbnailsOfSelectedTag());
-    app_.addEntityChangeListener(treeAdapter_ = new EntityChangeListenerTreeAdapter<>(tagTree_), Tag.class);
-    frame_.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-    tagCtrl_.setAllTags(tagTree_);
     final EntityAction<Tag> editTagAction = new EntityAction<>(
       new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_EDIT_13, SE)), null, "Edit Tag", "Edit currently selected Tag"),
       TagUi.TAG_FILTER, new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(this::editTagUi))
@@ -131,7 +117,23 @@ public class MainFrame {
       new SingleEntityFilter<>(HIDDEN, tag -> tagCtrl_.isLeaf(tag) ? ENABLED : DISABLED),
       new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(this::deleteTagUi))
     );
+
+    thumbnails_ = new ThumbnailOverview(app_);
+
+    final JPanel toolbar = new JPanel(new FormLayout("f:p, 3dlu, f:p, 3dlu:g", "f:p"));
+    toolbar.add(app_.getImportCtrl().getImportAction().createToolbarButton(), new CellConstraints(1, 1));
+    toolbar.add(thumbnails_.getSlideshowAction().createToolbarButton(), new CellConstraints(3, 1));
+    mainPanel.add(toolbar, new CellConstraints(2, 2));
+
+    final SelectedBlobsDetailPanel selectionTagPanel = new SelectedBlobsDetailPanel(this);
+    thumbnails_.setSelectionListener((source, selection) -> selectionTagPanel.setData(selection));
+    tagTree_ = new EntityTree<>(TagUi.NAME_VIEW);
+    tagTree_.setVisibleRowCount(20, .5f);
+    tagTree_.setSelectionListener((source, selection) -> displayThumbnailsOfSelectedTag());
     tagTree_.setContextActions(new ActionGroup<>(editTagAction, newTagAction, newTimelineTagAction, deleteTagAction));
+    app_.addEntityChangeListener(treeAdapter_ = new EntityChangeListenerTreeAdapter<>(tagTree_), Tag.class);
+    frame_.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    tagCtrl_.setAllTags(tagTree_);
     final JSplitPane leftSplitpane = new JSplitPane(HORIZONTAL_SPLIT, true,
       tagTree_.getScrollPane(), thumbnails_.getScrollPane()
     );

@@ -5,6 +5,7 @@ import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
 import static com.bensler.taggy.ui.MainFrame.ICON_IMAGE_13;
 import static com.bensler.taggy.ui.MainFrame.ICON_PLUS_10;
 import static com.bensler.taggy.ui.MainFrame.ICON_SLIDESHOW_13;
+import static com.bensler.taggy.ui.MainFrame.ICON_SLIDESHOW_48;
 import static com.bensler.taggy.ui.MainFrame.ICON_TAG_13;
 import static com.bensler.taggy.ui.MainFrame.ICON_X_10;
 
@@ -42,13 +43,14 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
   private final ActionGroup<Blob> contextActions_;
   @SuppressWarnings("unused") // keep it referenced as App holds it weakly
   private final EntityChangeListener<Blob> entityRemoveListener_;
+  private final EntityAction<Blob> slideshowAction_;
 
   public ThumbnailOverview(App app) {
     blobCtrl_ = (app_ = app).getBlobCtrl();
     comp_ = new ThumbnailOverviewPanel(app, ScrollingPolicy.SCROLL_VERTICALLY);
     comp_.setFocusable();
-    final EntityAction<Blob> slideshowAction = new EntityAction<>(
-      new ActionAppearance(ICON_SLIDESHOW_13, null, "Slide Show", "ViewImages in full detail"),
+    slideshowAction_ = new EntityAction<>(
+      new ActionAppearance(ICON_SLIDESHOW_13, ICON_SLIDESHOW_48, "Slide Show", "ViewImages in full detail"),
       null, (source, blobs) -> app_.getMainFrame().getSlideshowFrame().show(blobs)
     );
     final EntityAction<Blob> editImageTagsAction = new EntityAction<>(
@@ -64,10 +66,14 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
       new ActionAppearance(new OverlayIcon(ICON_IMAGE_13, new Overlay(ICON_X_10, SE)), null, "Delete Image(s)", "Remove currently selected Image(s)"),
       EntityAction.atLeastOneFilter(DISABLED), (source, blobs) -> deleteImagesConfirm(blobs)
     );
-    contextActions_ = new ActionGroup<>(slideshowAction, editImageTagsAction, addImageTagsAction, deleteImageAction);
+    contextActions_ = new ActionGroup<>(slideshowAction_, editImageTagsAction, addImageTagsAction, deleteImageAction);
     comp_.addMouseListener(new ContextMenuMouseAdapter(this::triggerContextMenu));
     comp_.addMouseListener(new DoubleClickMouseAdapter(evt -> doubleClick()));
     app_.addEntityChangeListener(entityRemoveListener_ = new EntityRemovedAdapter<>(entity -> contains(entity).ifPresent(this::removeImage)), Blob.class);
+  }
+
+  public EntityAction<Blob> getSlideshowAction() {
+    return slideshowAction_;
   }
 
   void doubleClick() {
