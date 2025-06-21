@@ -3,6 +3,7 @@ package com.bensler.taggy.ui;
 import static com.bensler.taggy.imprt.Thumbnailer.THUMBNAIL_SIZE;
 import static java.awt.BasicStroke.CAP_BUTT;
 import static java.awt.BasicStroke.JOIN_BEVEL;
+import static java.util.Objects.requireNonNull;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
@@ -27,9 +28,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
@@ -123,7 +126,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
   private final ScrollingPolicy scrollingPolicy_;
 
   private final List<Blob> selection_;
-  private EntitySelectionListener<Blob> selectionListener_;
+  private final Set<EntitySelectionListener<Blob>> selectionListeners_;
   private Dimension prefViewPortSize_;
 
   public ThumbnailOverviewPanel(App app, ScrollingPolicy scrollingPolicy) {
@@ -132,7 +135,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     blobs_ = new ArrayList<>();
     images_ = new HashMap<>();
     selection_ = new ArrayList<>();
-    setSelectionListener(null);
+    selectionListeners_ = new HashSet<>();
 
     backgroundSelectionColor_ = UIManager.getColor("Tree.selectionBackground");
     backgroundSelectionColorUnfocused_ = ColorHelper.mix(
@@ -398,15 +401,15 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     @Override
     public void close() {
       if (!oldSelection_.equals(selection_)) {
-        // TODO ----------------------------vvvv
-        selectionListener_.selectionChanged(null, selection_);
+        // TODO ------------------------------------------- vvvv
+        selectionListeners_.forEach(l -> l.selectionChanged(null, selection_));
         repaint();
       }
     }
   }
 
-  public void setSelectionListener(EntitySelectionListener<Blob> listener) {
-    selectionListener_ = ((listener == null) ? EntitySelectionListener.getNopInstance() : listener);
+  public void addSelectionListener(EntitySelectionListener<Blob> listener) {
+    selectionListeners_.add(requireNonNull(listener));
   }
 
   public List<Blob> getSelection() {

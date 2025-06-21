@@ -38,7 +38,7 @@ public class SlideshowFrame extends JFrame {
     imageComponent_ = new ImageComponent();
     thumbs_ = new ThumbnailOverviewPanel(app, ScrollingPolicy.SCROLL_HORIZONTALLY);
     thumbs_.setFocusable();
-    thumbs_.setSelectionListener((source, selection) -> setBlob(thumbs_.getSingleSelection()));
+    thumbs_.addSelectionListener((source, selection) -> setBlob(thumbs_.getSingleSelection()));
     final JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true, imageComponent_, thumbs_.getScrollpane());
     splitPane.setResizeWeight(1);
     mainPanel.add(splitPane, new CellConstraints(2, 2));

@@ -115,8 +115,8 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
   }
 
   @Override
-  public void setSelectionListener(EntitySelectionListener<Blob> listener) {
-    comp_.setSelectionListener(listener);
+  public void addSelectionListener(EntitySelectionListener<Blob> listener) {
+    comp_.addSelectionListener(listener);
   }
 
   @Override

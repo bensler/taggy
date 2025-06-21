@@ -126,10 +126,10 @@ public class MainFrame {
     mainPanel.add(toolbar, new CellConstraints(2, 2));
 
     final SelectedBlobsDetailPanel selectionTagPanel = new SelectedBlobsDetailPanel(this);
-    thumbnails_.setSelectionListener((source, selection) -> selectionTagPanel.setData(selection));
+    thumbnails_.addSelectionListener((source, selection) -> selectionTagPanel.setData(selection));
     tagTree_ = new EntityTree<>(TagUi.NAME_VIEW);
     tagTree_.setVisibleRowCount(20, .5f);
-    tagTree_.setSelectionListener((source, selection) -> displayThumbnailsOfSelectedTag());
+    tagTree_.addSelectionListener((source, selection) -> displayThumbnailsOfSelectedTag());
     tagTree_.setContextActions(new ActionGroup<>(editTagAction, newTagAction, newTimelineTagAction, deleteTagAction));
     app_.addEntityChangeListener(treeAdapter_ = new EntityChangeListenerTreeAdapter<>(tagTree_), Tag.class);
     frame_.setDefaultCloseOperation(DISPOSE_ON_CLOSE);

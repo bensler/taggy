@@ -104,7 +104,7 @@ class ImportDialog extends JDialog {
     importButton_ = new JButton("Import");
     importButton_.setEnabled(false);
     importButton_.addActionListener(evt -> importSelection());
-    files_.setSelectionListener((source, files) -> filesSelectionChanged(files));
+    files_.addSelectionListener((source, files) -> filesSelectionChanged(files));
     sidePanel.add(initialTag_.getScrollPane(), new CellConstraints(1, 1));
     sidePanel.add(initialTagButton_, new CellConstraints(1, 3));
     sidePanel.add(fileSizeLabel_, new CellConstraints(1, 5));
