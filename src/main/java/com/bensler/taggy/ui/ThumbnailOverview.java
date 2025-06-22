@@ -11,8 +11,11 @@ import static com.bensler.taggy.ui.MainFrame.ICON_X_10;
 
 import java.awt.event.MouseEvent;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
@@ -44,8 +47,10 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
   @SuppressWarnings("unused") // keep it referenced as App holds it weakly
   private final EntityChangeListener<Blob> entityRemoveListener_;
   private final EntityAction<Blob> slideshowAction_;
+  private final Set<FocusListener<Blob>> focusListeners_;
 
   public ThumbnailOverview(App app) {
+    focusListeners_ = new HashSet<>();
     blobCtrl_ = (app_ = app).getBlobCtrl();
     comp_ = new ThumbnailOverviewPanel(app, ScrollingPolicy.SCROLL_VERTICALLY);
     comp_.setFocusable();
@@ -163,6 +168,11 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
 
   public void removeImage(Blob blob) {
     comp_.removeImage(blob);
+  }
+
+  @Override
+  public void addFocusListener(FocusListener<Blob> listener) {
+    focusListeners_.add(Objects.requireNonNull(listener));
   }
 
 }
