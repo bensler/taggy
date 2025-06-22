@@ -37,14 +37,20 @@ import com.bensler.taggy.persist.Tag;
 
 public class SelectedBlobsDetailPanel {
 
+  static class NameValuePair extends Pair<String, String> {
+    NameValuePair(String left, String right) {
+      super(left, right);
+    }
+  }
+
   private final EntityTree<Tag> tagTree_;
-  private final EntityTable<Pair<String, String>> propertiesTable_;
+  private final EntityTable<NameValuePair> propertiesTable_;
   private final JSplitPane splitpane_;
   /** keep divider position {@link #propertiesTable_} is hidden */
   private int lastSplitpaneDividerLocation=100;
 
   public SelectedBlobsDetailPanel(MainFrame mainFrame) {
-    tagTree_ = new EntityTree<>(TagUi.NAME_VIEW);
+    tagTree_ = new EntityTree<>(TagUi.NAME_VIEW, Tag.class);
     tagTree_.setVisibleRowCount(20, .5f);
     final EntityAction<Tag> focusAction = new EntityAction<>(
       new ActionAppearance(null, null, "Focus", null),
@@ -52,11 +58,11 @@ public class SelectedBlobsDetailPanel {
       new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(mainFrame::selectTag))
     );
     tagTree_.setContextActions(new ActionGroup<>(focusAction));
-    final TablePropertyView<Pair<String, String>, String> propertyKeyColumn;
+    final TablePropertyView<NameValuePair, String> propertyKeyColumn;
     propertiesTable_ = new EntityTable<>(new TableView<>(
-      propertyKeyColumn = new TablePropertyView<>("key", "Name", createGetterComparator(Pair::getLeft, COLLATOR_COMPARATOR)),
-      new TablePropertyView<>("value", "Value", new PropertyViewImpl<>(createGetterComparator(Pair::getRight, COLLATOR_COMPARATOR)))
-    ));
+      propertyKeyColumn = new TablePropertyView<>("key", "Name", createGetterComparator(NameValuePair::getLeft, COLLATOR_COMPARATOR)),
+      new TablePropertyView<>("value", "Value", new PropertyViewImpl<>(createGetterComparator(NameValuePair::getRight, COLLATOR_COMPARATOR)))
+    ), NameValuePair.class);
     propertiesTable_.sortByColumn(propertyKeyColumn);
     splitpane_ = new JSplitPane(VERTICAL_SPLIT, true,
       tagTree_.getScrollPane(), propertiesTable_.getScrollPane()
@@ -84,7 +90,7 @@ public class SelectedBlobsDetailPanel {
       propertiesTable_.clear();
       propertiesTable_.addOrUpdateData(
         blob.getPropertyNames().stream()
-        .map(name -> new Pair<>(name, blob.getProperty(name)))
+        .map(name -> new NameValuePair(name, blob.getProperty(name)))
         .collect(Collectors.toList())
       );
       if (splitpane_.getBottomComponent() == null) {

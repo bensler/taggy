@@ -127,7 +127,7 @@ public class MainFrame {
 
     final SelectedBlobsDetailPanel selectionTagPanel = new SelectedBlobsDetailPanel(this);
     thumbnails_.addSelectionListener((source, selection) -> selectionTagPanel.setData(selection));
-    tagTree_ = new EntityTree<>(TagUi.NAME_VIEW);
+    tagTree_ = new EntityTree<>(TagUi.NAME_VIEW, Tag.class);
     tagTree_.setVisibleRowCount(20, .5f);
     tagTree_.addSelectionListener((source, selection) -> displayThumbnailsOfSelectedTag());
     tagTree_.setContextActions(new ActionGroup<>(editTagAction, newTagAction, newTimelineTagAction, deleteTagAction));

@@ -86,7 +86,7 @@ class ImportDialog extends JDialog {
       new TablePropertyView<>("importable", "Importable", new PropertyViewImpl<>(
         new IsNewIconRenderer(), createComparableGetter(FileToImport::isImportable)
       ))
-    ));
+    ), FileToImport.class);
     files_.sortByColumn(pathCol);
     files_.getComponent().setMinimumSize(new Dimension(400, 400));
     files_.setSelectionMode(SelectionMode.MULTIPLE_INTERVAL);
@@ -95,7 +95,7 @@ class ImportDialog extends JDialog {
       "f:p:g",
       "p, 3dlu, p, 3dlu:g, p, 3dlu, p"
     ));
-    initialTag_ = new EntityTree<>(TagUi.NAME_VIEW);
+    initialTag_ = new EntityTree<>(TagUi.NAME_VIEW, Tag.class);
     initialTag_.setVisibleRowCount(10, 0.5f);
     initialTag_.setSelectionMode(SelectionMode.NONE);
     initialTagButton_ = new JButton("Set Initial Tags");

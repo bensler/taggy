@@ -28,7 +28,7 @@ public class AllTagsTreeFiltered {
 
   public AllTagsTreeFiltered(CheckedListener<Tag> listener) {
     final App app = App.getApp();
-    tagTree_ = new CheckboxTree<>(TagUi.NAME_VIEW);
+    tagTree_ = new CheckboxTree<>(TagUi.NAME_VIEW, Tag.class);
     tagTree_.setVisibleRowCount(20, 1);
     app.getTagCtrl().setAllTags(tagTree_);
     allTags_ = tagTree_.getData().getMembers();

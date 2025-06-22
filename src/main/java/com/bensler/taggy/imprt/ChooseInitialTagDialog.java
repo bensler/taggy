@@ -10,8 +10,8 @@ import com.bensler.decaf.swing.dialog.BasicContentPanel;
 import com.bensler.decaf.swing.dialog.DialogAppearance;
 import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
 import com.bensler.decaf.swing.tree.EntityTree;
-import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.decaf.util.prefs.PrefKey;
+import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Tag;
 import com.bensler.taggy.ui.TagUi;
@@ -27,7 +27,7 @@ public class ChooseInitialTagDialog extends BasicContentPanel<Tag, Tag> {
       new OverlayIcon(ICON_IMAGE_48, new Overlay(ICON_TAGS_36, SE)),
       "Choose Initial Tag", "Tag to be assigned automatically on import."
     ), new FormLayout("f:p:g", "f:p:g"));
-    allTags_ = new EntityTree<>(TagUi.NAME_VIEW);
+    allTags_ = new EntityTree<>(TagUi.NAME_VIEW, Tag.class);
     allTags_.setVisibleRowCount(20, 1);
     add(allTags_.getScrollPane(), new CellConstraints(1, 1));
     App.getApp().getTagCtrl().setAllTags(allTags_);

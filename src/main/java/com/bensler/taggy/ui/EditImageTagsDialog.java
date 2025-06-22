@@ -46,7 +46,7 @@ public class EditImageTagsDialog extends BasicContentPanel<Blob, Set<Tag>> {
     app_ = App.getApp();
     allTags_ = new AllTagsTreeFiltered(this::setAssignedTags);
     imgComp_ = new ImageComponent();
-    assignedTags_ = new CheckboxTree<>(TagUi.NAME_VIEW);
+    assignedTags_ = new CheckboxTree<>(TagUi.NAME_VIEW, Tag.class);
     assignedTags_.setVisibleRowCount(15, 1);
     assignedTags_.addCheckedListener(this::assignedTagsTreeChanged);
     verticalSplitpane_ = new JSplitPane(VERTICAL_SPLIT, true, imgComp_, assignedTags_.getScrollPane());

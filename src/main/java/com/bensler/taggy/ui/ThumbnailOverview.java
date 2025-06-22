@@ -47,7 +47,7 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
   @SuppressWarnings("unused") // keep it referenced as App holds it weakly
   private final EntityChangeListener<Blob> entityRemoveListener_;
   private final EntityAction<Blob> slideshowAction_;
-  private final Set<FocusListener<Blob>> focusListeners_;
+  private final Set<FocusListener> focusListeners_;
 
   public ThumbnailOverview(App app) {
     focusListeners_ = new HashSet<>();
@@ -75,6 +75,11 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
     comp_.addMouseListener(new ContextMenuMouseAdapter(this::triggerContextMenu));
     comp_.addMouseListener(new DoubleClickMouseAdapter(evt -> doubleClick()));
     app_.addEntityChangeListener(entityRemoveListener_ = new EntityRemovedAdapter<>(entity -> contains(entity).ifPresent(this::removeImage)), Blob.class);
+  }
+
+  @Override
+  public Class<Blob> getEntityClass() {
+    return Blob.class;
   }
 
   public EntityAction<Blob> getSlideshowAction() {
@@ -171,7 +176,7 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
   }
 
   @Override
-  public void addFocusListener(FocusListener<Blob> listener) {
+  public void addFocusListener(FocusListener listener) {
     focusListeners_.add(Objects.requireNonNull(listener));
   }
 
