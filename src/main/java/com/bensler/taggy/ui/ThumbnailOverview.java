@@ -120,11 +120,6 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
   }
 
   @Override
-  public Blob getSingleSelection() {
-    return comp_.getSingleSelection();
-  }
-
-  @Override
   public void addSelectionListener(EntitySelectionListener<Blob> listener) {
     comp_.addSelectionListener(listener);
   }

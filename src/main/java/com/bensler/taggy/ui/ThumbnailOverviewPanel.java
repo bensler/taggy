@@ -434,12 +434,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
   }
 
   public void select(Blob blob) {
-    try (SelectionEvent selectionEvent = new SelectionEvent()) {
-      selection_.clear();
-      if (images_.containsKey(blob)) {
-        selection_.add(blob);
-      }
-    }
+    select(List.of(blob));
   }
 
   public Optional<Blob> contains(Object blob) {
