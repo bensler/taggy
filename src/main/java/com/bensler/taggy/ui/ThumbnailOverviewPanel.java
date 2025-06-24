@@ -16,8 +16,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -155,24 +153,13 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
   public void scrollToEnd() {
     scrollRectToVisible(scrollingPolicy_.getScrollToEndTarget(this));
   }
+
   public JScrollPane getScrollpane() {
     return scrollPane_;
   }
 
   public void setFocusable() {
     setFocusable(true);
-    addFocusListener(new FocusListener() {
-
-      @Override
-      public void focusLost(FocusEvent e) {
-        repaint();
-      }
-
-      @Override
-      public void focusGained(FocusEvent e) {
-        repaint();
-      }
-    });
     addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent evt) {

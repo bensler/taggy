@@ -29,6 +29,7 @@ import javax.swing.tree.TreePath;
 import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.ActionGroup;
 import com.bensler.decaf.swing.action.EntityAction;
+import com.bensler.decaf.swing.action.FocusedComponentActionController;
 import com.bensler.decaf.swing.action.SingleEntityActionAdapter;
 import com.bensler.decaf.swing.action.SingleEntityFilter;
 import com.bensler.decaf.swing.awt.OverlayIcon;
@@ -89,6 +90,7 @@ public class MainFrame {
   private final ThumbnailOverview thumbnails_;
   private final TagController tagCtrl_;
   private final EntityChangeListenerTreeAdapter<Tag> treeAdapter_; // save it from GC
+  private final FocusedComponentActionController actionCtrl_; // save it from GC
   private SlideshowFrame slideshowFrame_;
 
   public MainFrame(App app) {
@@ -148,6 +150,8 @@ public class MainFrame {
     final JButton testButton = new JButton("Orphan Files");
     testButton.addActionListener(evt -> new OrphanDialog(app_).show(app_.getDbAccess()));
     buttonPanel.add(testButton, new CellConstraints(1, 1, FILL, FILL));
+
+    actionCtrl_ = new FocusedComponentActionController(tagTree_, thumbnails_);
 
     mainPanel.setPreferredSize(new Dimension(750, 750));
     frame_.setContentPane(mainPanel);

@@ -9,6 +9,8 @@ import static com.bensler.taggy.ui.MainFrame.ICON_SLIDESHOW_48;
 import static com.bensler.taggy.ui.MainFrame.ICON_TAG_13;
 import static com.bensler.taggy.ui.MainFrame.ICON_X_10;
 
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
 import java.util.Collection;
 import java.util.HashSet;
@@ -38,7 +40,7 @@ import com.bensler.taggy.EntityChangeListener.EntityRemovedAdapter;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.ui.ThumbnailOverviewPanel.ScrollingPolicy;
 
-public class ThumbnailOverview implements EntityComponent<Blob> {
+public class ThumbnailOverview implements EntityComponent<Blob>, FocusListener {
 
   private final App app_;
   private final BlobController blobCtrl_;
@@ -75,6 +77,28 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
     comp_.addMouseListener(new ContextMenuMouseAdapter(this::triggerContextMenu));
     comp_.addMouseListener(new DoubleClickMouseAdapter(evt -> doubleClick()));
     app_.addEntityChangeListener(entityRemoveListener_ = new EntityRemovedAdapter<>(entity -> contains(entity).ifPresent(this::removeImage)), Blob.class);
+    comp_.addFocusListener(this);
+  }
+
+  @Override
+  public void focusLost(FocusEvent e) {
+    focusLost();
+  }
+
+  @Override
+  public void focusGained(FocusEvent e) {
+    focusGained();
+  }
+
+  private void focusLost() {
+    comp_.repaint();
+    focusListeners_.forEach(l -> l.focusLost(this));
+  }
+
+
+  private void focusGained() {
+    comp_.repaint();
+    focusListeners_.forEach(l -> l.focusGained(this));
   }
 
   @Override
@@ -121,7 +145,8 @@ public class ThumbnailOverview implements EntityComponent<Blob> {
 
   @Override
   public void addSelectionListener(EntitySelectionListener<Blob> listener) {
-    comp_.addSelectionListener(listener);
+    // TODO rm this hack ------vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+    comp_.addSelectionListener((source, selection) -> listener.selectionChanged(this, selection));
   }
 
   @Override
