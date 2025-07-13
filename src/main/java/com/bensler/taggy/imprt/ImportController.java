@@ -60,7 +60,7 @@ public class ImportController {
     importDir_ = new File(dataDir, IMPORT_DIR);
     importDir_.mkdirs();
     actionImport_ = new EntityAction<>(
-      IMPORT_ACTION_APPEARANCE, null, (source, entities) -> showImportDialog()
+      IMPORT_ACTION_APPEARANCE, Void.class, null, (source, entities) -> showImportDialog()
     );
     fileShaMap_ = new HashMap<>();
   }

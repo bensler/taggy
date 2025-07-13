@@ -104,35 +104,30 @@ public class MainFrame {
     ));
     final EntityAction<Tag> editTagAction = new EntityAction<>(
       new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_EDIT_13, SE)), null, "Edit Tag", "Edit currently selected Tag"),
-      TagUi.TAG_FILTER, new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(this::editTagUi))
+      Tag.class, TagUi.TAG_FILTER, new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(this::editTagUi))
     );
     final EntityAction<Tag> newTagAction = new EntityAction<>(
       new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_PLUS_10, SE)), null, "Create Tag", "Creates a new Tag under the currently selected Tag"),
-      TagUi.TAG_FILTER, new SingleEntityActionAdapter<>((source, tag) -> createTagUi(tag))
+      Tag.class, TagUi.TAG_FILTER, new SingleEntityActionAdapter<>((source, tag) -> createTagUi(tag))
     );
     final EntityAction<Tag> newTimelineTagAction = new EntityAction<>(
       new ActionAppearance(new OverlayIcon(ICON_TIMELINE_13, new Overlay(ICON_PLUS_10, SE)), null, "Create Timeline Tag", "Creates a new Tag representing a calendar date"),
-      TagUi.TIMELINE_TAG_FILTER, new SingleEntityActionAdapter<>((source, tag) -> createTimelineUi())
+      Tag.class, TagUi.TIMELINE_TAG_FILTER, new SingleEntityActionAdapter<>((source, tag) -> createTimelineUi())
     );
     final EntityAction<Tag> deleteTagAction = new EntityAction<>(
       new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_X_10, SE)), null, "Delete Tag", "Remove currently selected Tag"),
-      new SingleEntityFilter<>(HIDDEN, tag -> tagCtrl_.isLeaf(tag) ? ENABLED : DISABLED),
+      Tag.class, new SingleEntityFilter<>(HIDDEN, tag -> tagCtrl_.isLeaf(tag) ? ENABLED : DISABLED),
       new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(this::deleteTagUi))
     );
 
     thumbnails_ = new ThumbnailOverview(app_);
-
-    final JPanel toolbar = new JPanel(new FormLayout("f:p, 3dlu, f:p, 3dlu:g", "f:p"));
-    toolbar.add(app_.getImportCtrl().getImportAction().createToolbarButton(), new CellConstraints(1, 1));
-    toolbar.add(thumbnails_.getSlideshowAction().createToolbarButton(), new CellConstraints(3, 1));
-    mainPanel.add(toolbar, new CellConstraints(2, 2));
 
     final SelectedBlobsDetailPanel selectionTagPanel = new SelectedBlobsDetailPanel(this);
     thumbnails_.addSelectionListener((source, selection) -> selectionTagPanel.setData(selection));
     tagTree_ = new EntityTree<>(TagUi.NAME_VIEW, Tag.class);
     tagTree_.setVisibleRowCount(20, .5f);
     tagTree_.addSelectionListener((source, selection) -> displayThumbnailsOfSelectedTag());
-    tagTree_.setContextActions(new ActionGroup<>(editTagAction, newTagAction, newTimelineTagAction, deleteTagAction));
+    tagTree_.setContextActions(new ActionGroup(editTagAction, newTagAction, newTimelineTagAction, deleteTagAction));
     app_.addEntityChangeListener(treeAdapter_ = new EntityChangeListenerTreeAdapter<>(tagTree_), Tag.class);
     frame_.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     tagCtrl_.setAllTags(tagTree_);
@@ -151,7 +146,10 @@ public class MainFrame {
     testButton.addActionListener(evt -> new OrphanDialog(app_).show(app_.getDbAccess()));
     buttonPanel.add(testButton, new CellConstraints(1, 1, FILL, FILL));
 
-    actionCtrl_ = new FocusedComponentActionController(tagTree_, thumbnails_);
+    mainPanel.add((actionCtrl_ = new FocusedComponentActionController(new ActionGroup(
+      app_.getImportCtrl().getImportAction(),
+      thumbnails_.getSlideshowAction()
+    ), List.of(tagTree_, thumbnails_))).createToolbar(), new CellConstraints(2, 2));
 
     mainPanel.setPreferredSize(new Dimension(750, 750));
     frame_.setContentPane(mainPanel);

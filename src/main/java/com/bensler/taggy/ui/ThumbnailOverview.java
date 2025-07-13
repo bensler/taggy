@@ -45,7 +45,7 @@ public class ThumbnailOverview implements EntityComponent<Blob>, FocusListener {
   private final App app_;
   private final BlobController blobCtrl_;
   private final ThumbnailOverviewPanel comp_;
-  private final ActionGroup<Blob> contextActions_;
+  private final ActionGroup contextActions_;
   @SuppressWarnings("unused") // keep it referenced as App holds it weakly
   private final EntityChangeListener<Blob> entityRemoveListener_;
   private final EntityAction<Blob> slideshowAction_;
@@ -58,22 +58,22 @@ public class ThumbnailOverview implements EntityComponent<Blob>, FocusListener {
     comp_.setFocusable();
     slideshowAction_ = new EntityAction<>(
       new ActionAppearance(ICON_SLIDESHOW_13, ICON_SLIDESHOW_48, "Slide Show", "ViewImages in full detail"),
-      null, (source, blobs) -> app_.getMainFrame().getSlideshowFrame().show(blobs)
+      Blob.class, null, (source, blobs) -> app_.getMainFrame().getSlideshowFrame().show(blobs)
     );
     final EntityAction<Blob> editImageTagsAction = new EntityAction<>(
       new ActionAppearance(ICON_TAG_13, null, "Edit Image Tags", "Edit Tags of this Image"),
-      new SingleEntityFilter<>(DISABLED),
+      Blob.class, new SingleEntityFilter<>(DISABLED),
       new SingleEntityActionAdapter<>((source, blob) -> blob.ifPresent(this::editTags))
     );
     final EntityAction<Blob> addImageTagsAction = new EntityAction<>(
       new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_PLUS_10, SE)), null, "Add Image Tags", "Add Tags to several Images at once"),
-      null, (source, blobs) -> addTags(blobs)
+      Blob.class, null, (source, blobs) -> addTags(blobs)
     );
     final EntityAction<Blob> deleteImageAction = new EntityAction<>(
       new ActionAppearance(new OverlayIcon(ICON_IMAGE_13, new Overlay(ICON_X_10, SE)), null, "Delete Image(s)", "Remove currently selected Image(s)"),
-      EntityAction.atLeastOneFilter(DISABLED), (source, blobs) -> deleteImagesConfirm(blobs)
+      Blob.class, EntityAction.atLeastOneFilter(DISABLED), (source, blobs) -> deleteImagesConfirm(blobs)
     );
-    contextActions_ = new ActionGroup<>(slideshowAction_, editImageTagsAction, addImageTagsAction, deleteImageAction);
+    contextActions_ = new ActionGroup(slideshowAction_, editImageTagsAction, addImageTagsAction, deleteImageAction);
     comp_.addMouseListener(new ContextMenuMouseAdapter(this::triggerContextMenu));
     comp_.addMouseListener(new DoubleClickMouseAdapter(evt -> doubleClick()));
     app_.addEntityChangeListener(entityRemoveListener_ = new EntityRemovedAdapter<>(entity -> contains(entity).ifPresent(this::removeImage)), Blob.class);

@@ -53,11 +53,11 @@ public class SelectedBlobsDetailPanel {
     tagTree_ = new EntityTree<>(TagUi.NAME_VIEW, Tag.class);
     tagTree_.setVisibleRowCount(20, .5f);
     final EntityAction<Tag> focusAction = new EntityAction<>(
-      new ActionAppearance(null, null, "Focus", null),
+      new ActionAppearance(null, null, "Focus", null), Tag.class,
       new SingleEntityFilter<>(HIDDEN, tag -> ENABLED),
       new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(mainFrame::selectTag))
     );
-    tagTree_.setContextActions(new ActionGroup<>(focusAction));
+    tagTree_.setContextActions(new ActionGroup(focusAction));
     final TablePropertyView<NameValuePair, String> propertyKeyColumn;
     propertiesTable_ = new EntityTable<>(new TableView<>(
       propertyKeyColumn = new TablePropertyView<>("key", "Name", createGetterComparator(NameValuePair::getLeft, COLLATOR_COMPARATOR)),
