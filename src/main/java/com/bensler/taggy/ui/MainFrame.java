@@ -17,6 +17,7 @@ import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -127,7 +128,9 @@ public class MainFrame {
     tagTree_ = new EntityTree<>(TagUi.NAME_VIEW, Tag.class);
     tagTree_.setVisibleRowCount(20, .5f);
     tagTree_.addSelectionListener((source, selection) -> displayThumbnailsOfSelectedTag());
-    tagTree_.setContextActions(new ActionGroup(editTagAction, newTagAction, newTimelineTagAction, deleteTagAction));
+    tagTree_.setContextActions(new FocusedComponentActionController(
+      new ActionGroup(editTagAction, newTagAction, newTimelineTagAction, deleteTagAction), Set.of(tagTree_)
+    ));
     app_.addEntityChangeListener(treeAdapter_ = new EntityChangeListenerTreeAdapter<>(tagTree_), Tag.class);
     frame_.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     tagCtrl_.setAllTags(tagTree_);

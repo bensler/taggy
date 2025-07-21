@@ -16,6 +16,7 @@ import javax.swing.JSplitPane;
 import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.ActionGroup;
 import com.bensler.decaf.swing.action.EntityAction;
+import com.bensler.decaf.swing.action.FocusedComponentActionController;
 import com.bensler.decaf.swing.action.SingleEntityActionAdapter;
 import com.bensler.decaf.swing.action.SingleEntityFilter;
 import com.bensler.decaf.swing.table.EntityTable;
@@ -57,7 +58,7 @@ public class SelectedBlobsDetailPanel {
       new SingleEntityFilter<>(HIDDEN, tag -> ENABLED),
       new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(mainFrame::selectTag))
     );
-    tagTree_.setContextActions(new ActionGroup(focusAction));
+    tagTree_.setContextActions(new FocusedComponentActionController(new ActionGroup(focusAction), Set.of(tagTree_)));
     final TablePropertyView<NameValuePair, String> propertyKeyColumn;
     propertiesTable_ = new EntityTable<>(new TableView<>(
       propertyKeyColumn = new TablePropertyView<>("key", "Name", createGetterComparator(NameValuePair::getLeft, COLLATOR_COMPARATOR)),

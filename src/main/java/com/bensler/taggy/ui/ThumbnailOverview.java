@@ -28,6 +28,7 @@ import com.bensler.decaf.swing.action.ActionGroup;
 import com.bensler.decaf.swing.action.ContextMenuMouseAdapter;
 import com.bensler.decaf.swing.action.DoubleClickMouseAdapter;
 import com.bensler.decaf.swing.action.EntityAction;
+import com.bensler.decaf.swing.action.FocusedComponentActionController;
 import com.bensler.decaf.swing.action.SingleEntityActionAdapter;
 import com.bensler.decaf.swing.action.SingleEntityFilter;
 import com.bensler.decaf.swing.awt.OverlayIcon;
@@ -45,7 +46,7 @@ public class ThumbnailOverview implements EntityComponent<Blob>, FocusListener {
   private final App app_;
   private final BlobController blobCtrl_;
   private final ThumbnailOverviewPanel comp_;
-  private final ActionGroup contextActions_;
+  private final FocusedComponentActionController contextActions_;
   @SuppressWarnings("unused") // keep it referenced as App holds it weakly
   private final EntityChangeListener<Blob> entityRemoveListener_;
   private final EntityAction<Blob> slideshowAction_;
@@ -73,7 +74,9 @@ public class ThumbnailOverview implements EntityComponent<Blob>, FocusListener {
       new ActionAppearance(new OverlayIcon(ICON_IMAGE_13, new Overlay(ICON_X_10, SE)), null, "Delete Image(s)", "Remove currently selected Image(s)"),
       Blob.class, EntityAction.atLeastOneFilter(DISABLED), (source, blobs) -> deleteImagesConfirm(blobs)
     );
-    contextActions_ = new ActionGroup(slideshowAction_, editImageTagsAction, addImageTagsAction, deleteImageAction);
+    contextActions_ = new FocusedComponentActionController(
+      new ActionGroup(slideshowAction_, editImageTagsAction, addImageTagsAction, deleteImageAction), Set.of(this)
+    );
     comp_.addMouseListener(new ContextMenuMouseAdapter(this::triggerContextMenu));
     comp_.addMouseListener(new DoubleClickMouseAdapter(evt -> doubleClick()));
     app_.addEntityChangeListener(entityRemoveListener_ = new EntityRemovedAdapter<>(entity -> contains(entity).ifPresent(this::removeImage)), Blob.class);
@@ -111,7 +114,8 @@ public class ThumbnailOverview implements EntityComponent<Blob>, FocusListener {
   }
 
   void doubleClick() {
-    contextActions_.createContextMenu(this).triggerPrimaryAction();
+    throw new RuntimeException("TODO");
+//    contextActions_.createContextMenu(this).triggerPrimaryAction();
   }
 
   void triggerContextMenu(MouseEvent evt) {
@@ -122,7 +126,7 @@ public class ThumbnailOverview implements EntityComponent<Blob>, FocusListener {
         select(blob);
       }
     });
-    contextActions_.createContextMenu(this).showPopupMenu(evt);
+    contextActions_.showPopupMenu(evt);
   }
 
   void deleteImagesConfirm(List<Blob> blobs) {
