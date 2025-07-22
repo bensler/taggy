@@ -114,8 +114,7 @@ public class ThumbnailOverview implements EntityComponent<Blob>, FocusListener {
   }
 
   void doubleClick() {
-    throw new RuntimeException("TODO");
-//    contextActions_.createContextMenu(this).triggerPrimaryAction();
+    contextActions_.triggerPrimaryAction();
   }
 
   void triggerContextMenu(MouseEvent evt) {
