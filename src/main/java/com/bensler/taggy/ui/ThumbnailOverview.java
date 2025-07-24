@@ -84,18 +84,10 @@ public class ThumbnailOverview implements EntityComponent<Blob>, FocusListener {
   }
 
   @Override
-  public void focusLost(FocusEvent e) {
-    focusLost();
-  }
+  public void focusLost(FocusEvent e) { }
 
   @Override
   public void focusGained(FocusEvent e) {
-    focusGained();
-  }
-
-  private void focusLost() { }
-
-  private void focusGained() {
     comp_.repaint();
     focusListeners_.forEach(l -> l.focusGained(this));
   }
