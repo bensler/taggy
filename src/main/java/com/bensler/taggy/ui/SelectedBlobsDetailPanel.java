@@ -58,7 +58,7 @@ public class SelectedBlobsDetailPanel {
       new SingleEntityFilter<>(HIDDEN, tag -> ENABLED),
       new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(mainFrame::selectTag))
     );
-    tagTree_.setContextActions(new FocusedComponentActionController(new ActionGroup(focusAction), Set.of(tagTree_)));
+    tagTree_.setCtxActions(new FocusedComponentActionController(new ActionGroup(focusAction), Set.of(tagTree_)));
     final TablePropertyView<NameValuePair, String> propertyKeyColumn;
     propertiesTable_ = new EntityTable<>(new TableView<>(
       propertyKeyColumn = new TablePropertyView<>("key", "Name", createGetterComparator(NameValuePair::getLeft, COLLATOR_COMPARATOR)),
