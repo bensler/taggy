@@ -2,7 +2,7 @@ package com.bensler.taggy.ui;
 
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
 import static com.bensler.decaf.util.prefs.DelegatingPrefPersister.createSplitPanePrefPersister;
-import static com.bensler.taggy.ui.MainFrame.ICON_IMAGE_48;
+import static com.bensler.taggy.ui.MainFrame.ICON_IMAGES_48;
 import static com.bensler.taggy.ui.MainFrame.ICON_PLUS_20;
 import static com.bensler.taggy.ui.MainFrame.ICON_TAGS_36;
 import static com.bensler.taggy.ui.ThumbnailOverviewPanel.ScrollingPolicy.SCROLL_HORIZONTALLY;
@@ -34,6 +34,8 @@ import com.jgoodies.forms.layout.FormLayout;
 
 public class AddImagesTagsDialog extends BasicContentPanel<List<Blob>, Set<Tag>> {
 
+  public static final OverlayIcon ICON = new OverlayIcon(ICON_IMAGES_48, new Overlay(ICON_TAGS_36, SE), new Overlay(ICON_PLUS_20, SE));
+
   private final AllTagsTreeFiltered allTags_;
   private final CheckboxTree<Tag> assignedTags_;
   private final ThumbnailOverviewPanel images_;
@@ -43,7 +45,7 @@ public class AddImagesTagsDialog extends BasicContentPanel<List<Blob>, Set<Tag>>
 
   public AddImagesTagsDialog() {
     super(new DialogAppearance(
-      new OverlayIcon(ICON_IMAGE_48, new Overlay(ICON_TAGS_36, SE), new Overlay(ICON_PLUS_20, SE)),
+      ICON,
       "Add Images Tags", "Add Tags to multiple Images"
     ), new FormLayout("f:p:g", "f:p:g"));
     app_ = App.getApp();

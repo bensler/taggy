@@ -150,8 +150,9 @@ public class MainFrame {
     buttonPanel.add(testButton, new CellConstraints(1, 1, FILL, FILL));
 
     mainPanel.add((actionCtrl_ = new FocusedComponentActionController(new ActionGroup(
-      app_.getImportCtrl().getImportAction(),
-      thumbnails_.getSlideshowAction()
+      new ActionGroup(app_.getImportCtrl().getImportAction()),
+      new ActionGroup(thumbnails_.getSlideshowAction()),
+      thumbnails_.getToolbarActions()
     ), List.of(tagTree_, thumbnails_))).createToolbar(), new CellConstraints(2, 2));
 
     mainPanel.setPreferredSize(new Dimension(750, 750));

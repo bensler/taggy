@@ -45,9 +45,12 @@ public class ThumbnailOverview implements EntityComponent<Blob>, FocusListener {
   private final App app_;
   private final BlobController blobCtrl_;
   private final ThumbnailOverviewPanel comp_;
+
+  private final EntityAction<Blob> editImageTagsAction_;
+  private final EntityAction<Blob> addImagesTagsAction_;
+  private final EntityAction<Blob> slideshowAction_;
   @SuppressWarnings("unused") // keep it referenced as App holds it weakly
   private final EntityChangeListener<Blob> entityRemoveListener_;
-  private final EntityAction<Blob> slideshowAction_;
   private final Set<FocusListener> focusListeners_;
 
   public ThumbnailOverview(App app) {
@@ -56,16 +59,16 @@ public class ThumbnailOverview implements EntityComponent<Blob>, FocusListener {
     comp_ = new ThumbnailOverviewPanel(app, ScrollingPolicy.SCROLL_VERTICALLY);
     comp_.setFocusable();
     slideshowAction_ = new EntityAction<>(
-      new ActionAppearance(ICON_SLIDESHOW_13, ICON_SLIDESHOW_48, "Slide Show", "ViewImages in full detail"),
+      new ActionAppearance(ICON_SLIDESHOW_13, ICON_SLIDESHOW_48, "Slide Show", "View Images in full detail"),
       Blob.class, atLeastOneFilter(HIDDEN), (source, blobs) -> app_.getMainFrame().getSlideshowFrame().show(blobs)
     );
-    final EntityAction<Blob> editImageTagsAction = new EntityAction<>(
-      new ActionAppearance(ICON_TAG_13, null, "Edit Image Tags", "Edit Tags of this Image"),
+    editImageTagsAction_ = new EntityAction<>(
+      new ActionAppearance(ICON_TAG_13, EditImageTagsDialog.ICON, "Edit Image Tags", "Edit Tags of this Image"),
       Blob.class, new SingleEntityFilter<>(HIDDEN),
       new SingleEntityActionAdapter<>((source, blob) -> blob.ifPresent(this::editTags))
     );
-    final EntityAction<Blob> addImageTagsAction = new EntityAction<>(
-      new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_PLUS_10, SE)), null, "Add Image Tags", "Add Tags to several Images at once"),
+    addImagesTagsAction_ = new EntityAction<>(
+      new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_PLUS_10, SE)), AddImagesTagsDialog.ICON, "Add Image Tags", "Add Tags to several Images at once"),
       Blob.class, atLeastOneFilter(HIDDEN), (source, blobs) -> addTags(blobs)
     );
     final EntityAction<Blob> deleteImageAction = new EntityAction<>(
@@ -73,7 +76,7 @@ public class ThumbnailOverview implements EntityComponent<Blob>, FocusListener {
       Blob.class, atLeastOneFilter(HIDDEN), (source, blobs) -> deleteImagesConfirm(blobs)
     );
     new FocusedComponentActionController(
-      new ActionGroup(slideshowAction_, editImageTagsAction, addImageTagsAction, deleteImageAction), Set.of(this)
+      new ActionGroup(slideshowAction_, editImageTagsAction_, addImagesTagsAction_, deleteImageAction), Set.of(this)
     ).attachTo(this, overview -> {}, this::beforeCtxMenuOpen);
     app_.addEntityChangeListener(entityRemoveListener_ = new EntityRemovedAdapter<>(entity -> contains(entity).ifPresent(this::removeImage)), Blob.class);
     comp_.addFocusListener(this);
@@ -103,6 +106,10 @@ public class ThumbnailOverview implements EntityComponent<Blob>, FocusListener {
 
   public EntityAction<Blob> getSlideshowAction() {
     return slideshowAction_;
+  }
+
+  public ActionGroup getToolbarActions() {
+    return new ActionGroup(editImageTagsAction_, addImagesTagsAction_);
   }
 
   void deleteImagesConfirm(List<Blob> blobs) {

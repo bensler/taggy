@@ -31,6 +31,8 @@ import com.jgoodies.forms.layout.FormLayout;
 
 public class EditImageTagsDialog extends BasicContentPanel<Blob, Set<Tag>> {
 
+  public static final OverlayIcon ICON = new OverlayIcon(ICON_IMAGE_48, new Overlay(ICON_TAGS_36, SE));
+
   private final AllTagsTreeFiltered allTags_;
   private final CheckboxTree<Tag> assignedTags_;
   private final ImageComponent imgComp_;
@@ -40,7 +42,7 @@ public class EditImageTagsDialog extends BasicContentPanel<Blob, Set<Tag>> {
 
   public EditImageTagsDialog() {
     super(new DialogAppearance(
-      new OverlayIcon(ICON_IMAGE_48, new Overlay(ICON_TAGS_36, SE)),
+      ICON,
       "Edit Image Tags", "Assign Tags to an Image"
     ), new FormLayout("f:p:g", "f:p:g"));
     app_ = App.getApp();
