@@ -7,7 +7,7 @@ import static com.bensler.taggy.ui.MainFrame.ICON_IMAGE_13;
 import static com.bensler.taggy.ui.MainFrame.ICON_PLUS_10;
 import static com.bensler.taggy.ui.MainFrame.ICON_SLIDESHOW_13;
 import static com.bensler.taggy.ui.MainFrame.ICON_SLIDESHOW_48;
-import static com.bensler.taggy.ui.MainFrame.ICON_TAG_13;
+import static com.bensler.taggy.ui.MainFrame.ICON_TAG_SIMPLE_13;
 import static com.bensler.taggy.ui.MainFrame.ICON_X_10;
 
 import java.awt.event.FocusEvent;
@@ -63,12 +63,12 @@ public class ThumbnailOverview implements EntityComponent<Blob>, FocusListener {
       Blob.class, atLeastOneFilter(HIDDEN), (source, blobs) -> app_.getMainFrame().getSlideshowFrame().show(blobs)
     );
     editImageTagsAction_ = new EntityAction<>(
-      new ActionAppearance(ICON_TAG_13, EditImageTagsDialog.ICON, "Edit Image Tags", "Edit Tags of this Image"),
+      new ActionAppearance(ICON_TAG_SIMPLE_13, EditImageTagsDialog.ICON, "Edit Image Tags", "Edit Tags of this Image"),
       Blob.class, new SingleEntityFilter<>(HIDDEN),
       new SingleEntityActionAdapter<>((source, blob) -> blob.ifPresent(this::editTags))
     );
     addImagesTagsAction_ = new EntityAction<>(
-      new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_PLUS_10, SE)), AddImagesTagsDialog.ICON, "Add Image Tags", "Add Tags to several Images at once"),
+      new ActionAppearance(new OverlayIcon(ICON_TAG_SIMPLE_13, new Overlay(ICON_PLUS_10, SE)), AddImagesTagsDialog.ICON, "Add Image Tags", "Add Tags to several Images at once"),
       Blob.class, atLeastOneFilter(HIDDEN), (source, blobs) -> addTags(blobs)
     );
     final EntityAction<Blob> deleteImageAction = new EntityAction<>(
