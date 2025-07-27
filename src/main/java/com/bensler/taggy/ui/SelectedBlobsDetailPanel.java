@@ -120,6 +120,10 @@ public class SelectedBlobsDetailPanel {
     return splitpane_;
   }
 
+  public EntityTree<Tag> getTagTree() {
+    return tagTree_;
+  }
+
   private void setDividerLocation(int location) {
     if (isPropertiesTableHidden()) {
       lastSplitpaneDividerLocation = location;

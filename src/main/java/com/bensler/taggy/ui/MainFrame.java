@@ -104,11 +104,11 @@ public class MainFrame {
       "3dlu, f:p, 3dlu, f:p:g, 3dlu, f:p, 3dlu"
     ));
     final EntityAction<Tag> editTagAction = new EntityAction<>(
-      new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_EDIT_13, SE)), null, "Edit Tag", "Edit currently selected Tag"),
+      new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_EDIT_13, SE)), TagDialog.Edit.ICON, "Edit Tag", "Edit currently selected Tag"),
       Tag.class, TagUi.TAG_FILTER, new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(this::editTagUi))
     );
     final EntityAction<Tag> newTagAction = new EntityAction<>(
-      new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_PLUS_10, SE)), null, "Create Tag", "Creates a new Tag under the currently selected Tag"),
+      new ActionAppearance(new OverlayIcon(ICON_TAG_13, new Overlay(ICON_PLUS_10, SE)), TagDialog.Create.ICON, "Create Tag", "Creates a new Tag under the currently selected Tag"),
       Tag.class, TagUi.TAG_FILTER, new SingleEntityActionAdapter<>((source, tag) -> createTagUi(tag))
     );
     final EntityAction<Tag> newTimelineTagAction = new EntityAction<>(
@@ -151,9 +151,10 @@ public class MainFrame {
 
     mainPanel.add((actionCtrl_ = new FocusedComponentActionController(new ActionGroup(
       new ActionGroup(app_.getImportCtrl().getImportAction()),
-      new ActionGroup(thumbnails_.getSlideshowAction()),
-      thumbnails_.getToolbarActions()
-    ), List.of(tagTree_, thumbnails_))).createToolbar(), new CellConstraints(2, 2));
+      new ActionGroup(newTagAction, editTagAction),
+      thumbnails_.getToolbarActions(),
+      new ActionGroup(thumbnails_.getSlideshowAction())
+    ), List.of(tagTree_, thumbnails_, selectionTagPanel.getTagTree()))).createToolbar(), new CellConstraints(2, 2));
 
     mainPanel.setPreferredSize(new Dimension(750, 750));
     frame_.setContentPane(mainPanel);
