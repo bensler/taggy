@@ -46,11 +46,12 @@ public class AllTagsTreeFiltered {
   private void filterChanged(String filterStr) {
     final String matchStr = filterStr.toLowerCase().trim();
     final boolean filtering = !matchStr.isEmpty();
+    final Hierarchy<Tag> allTags = new Hierarchy<>(allTags_);
     final Hierarchy<Tag> filteredTags = new Hierarchy<>(allTags_.stream()
       .filter(tag -> tag.getName().toLowerCase().contains(matchStr))
+      .flatMap(tag -> allTags.getSubHierarchyMembers(tag).stream())
       .flatMap(tag -> Hierarchical.toPath(tag).stream())
-      .distinct()
-      .collect(Collectors.toSet())
+      .distinct().collect(Collectors.toSet())
     );
 
     tagTree_.setData(filteredTags);
