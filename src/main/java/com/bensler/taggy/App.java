@@ -153,14 +153,14 @@ public class App {
   }
 
   public <E extends Entity> E storeEntity(E entity) {
-    final boolean isNew = !entity.hasId();
-
-    entity = dbAccess_.storeObject(entity);
-    if (isNew) {
-      entityCreated(entity);
-    } else {
-      entityChanged(entity);
-    }
+//    final boolean isNew = !entity.hasId();
+//
+//    entity = dbAccess_.storeObject(entity);
+//    if (isNew) {
+//      entityCreated(entity);
+//    } else {
+//      entityChanged(entity);
+//    }
     return entity;
   }
 
