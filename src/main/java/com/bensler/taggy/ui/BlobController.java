@@ -161,7 +161,7 @@ public class BlobController {
     final String blobSha256sum = blob.getSha256sum();
     final String thumbnailSha = blob.getThumbnailSha();
 
-    try (AutoCloseableTxn act = new AutoCloseableTxn(db.startTxn())) {
+    try (AutoCloseableTxn act = db.startTxn()) {
       db.removeNoTxn(blob);
       tags.stream()
       .map(forEachMapper(tag -> tag.removeBlob(blob)))
