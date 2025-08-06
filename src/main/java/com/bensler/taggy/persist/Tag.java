@@ -40,7 +40,7 @@ public class Tag extends AbstractEntity<Tag> implements Hierarchical<Tag>, Named
 
   @Override
   public Tag getParent() {
-    return parent_.resolve();
+    return ((parent_ != null) ? parent_.resolve() : null);
   }
 
   @Override
@@ -59,7 +59,7 @@ public class Tag extends AbstractEntity<Tag> implements Hierarchical<Tag>, Named
   }
 
   public boolean removeBlob(Blob blob) {
-    return blobs_.remove(blob);
+    return blobs_.remove(new EntityReference<>(blob));
   }
 
   public String getProperty(TagProperty key) {
