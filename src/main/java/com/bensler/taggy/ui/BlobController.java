@@ -48,6 +48,7 @@ import com.bensler.taggy.App;
 import com.bensler.taggy.persist.AutoCloseableTxn;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.DbAccess;
+import com.bensler.taggy.persist.EntityReference;
 import com.bensler.taggy.persist.Tag;
 
 
@@ -274,7 +275,7 @@ public class BlobController {
       .ifPresent(tags::add);
     Optional.ofNullable(initialTag).ifPresent(tags::add);
 //    metaData.put(PROPERTY_FILENAME, file.getName());
-    return app.storeEntity(new Blob(fileSha, thumbSha, type, metaData, tags));
+    return app.storeEntity(new Blob(fileSha, thumbSha, type, metaData, EntityReference.createCollection(tags, new HashSet<>())));
   }
 
   private Optional<JpegImageMetadata> getMetaData(File srcFile) throws ImageReadException, IOException {

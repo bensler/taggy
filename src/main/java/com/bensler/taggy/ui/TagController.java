@@ -40,7 +40,7 @@ public class TagController {
   public TagController(App app) {
     app_ = app;
     allTags_ = new Hierarchy<>();
-    dateTags_ = app_.getDbAccess().loadAllTags().stream()
+    dateTags_ = app_.getDbAccess().loadAll(Tag.class).stream()
       .map(forEachMapper(allTags_::add))
       .map(tag -> new Pair<>(tag.getProperty(REPRESENTED_DATE), tag))
       .filter(pair -> (pair.getLeft() != null))

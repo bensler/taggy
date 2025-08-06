@@ -1,5 +1,7 @@
 package com.bensler.taggy.persist;
 
+import static com.bensler.decaf.util.function.ForEachMapperAdapter.forEachMapper;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Collection;
@@ -15,15 +17,23 @@ public class DbAccess {
 
   private final Connection session_;
 
-  private final Map<EntityReference<?>, ?> entityCache_;
+  private final Map<EntityReference<?>, Entity<?>> entityCache_;
+  private final Map<Class<?>, DbMapper<?>> mapper_;
 
   public DbAccess(Connection session) throws SQLException {
     (session_ = session).setAutoCommit(false);
     entityCache_ = new HashMap<>();
+    mapper_ = Map.of(
+      Tag.class, new TagDbMapper(),
+      Blob.class, new BlobDbMapper()
+    );
   }
 
-  public List<Tag> loadAllTags() {
-    return new TagDbMapper().loadAll(session_);
+  public <E extends Entity<E>> List<E> loadAll(Class<E> clazz) {
+    return mapper_.get(clazz).loadAll(session_).stream()
+      .map(clazz::cast)
+      .map(forEachMapper(entity -> entityCache_.put(new EntityReference<>(entity), entity)))
+      .toList();
   }
 
   public Transaction startTxn() {
@@ -72,16 +82,28 @@ public class DbAccess {
 //    .getResultList().isEmpty();
   }
 
-  public <E extends Entity<E>> E load(EntityReference<E> entityRef) {
+  public <E extends Entity<E>> E load(EntityReference<E> reference) {
+    final Class<E> entityClass = reference.getEntityClass();
+    final List<?> entities = mapper_.get(entityClass).loadAll(session_, List.of(reference.getId()));
 
-    return null;
+    return (!entities.isEmpty() ? entityClass.cast(entities.get(0)) : null);
   }
 
   public <ENTITY extends Entity<ENTITY>, CIN extends Collection<EntityReference<ENTITY>>, COUT extends Collection<ENTITY>> COUT resolve(
-    CIN entities, COUT collector
+    CIN references, COUT collector
   ) {
-//    entities.stream().forEach(entity -> collector.add(new EntityReference<>(entity)));
+    if (!references.isEmpty()) {
+      loadAll(references.iterator().next().getEntityClass(), references, collector);
+    }
     return collector;
+  }
+
+  public <ENTITY extends Entity<ENTITY>, CIN extends Collection<EntityReference<ENTITY>>, COUT extends Collection<ENTITY>> void loadAll(
+    Class<ENTITY> entityClass, CIN references, COUT collector
+  ) {
+    collector.addAll(mapper_.get(entityClass).loadAll(
+      session_, references.stream().map(EntityReference::getId).toList()
+    ).stream().map(entityClass::cast).toList());
   }
 
   public <E extends Entity<E>> E resolve(EntityReference<E> entityRef) {

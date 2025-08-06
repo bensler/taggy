@@ -1,5 +1,7 @@
 package com.bensler.taggy.persist;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.Collection;
 import java.util.Objects;
 
@@ -20,12 +22,35 @@ public class EntityReference<E extends Entity<E>> {
   }
 
   public EntityReference(Class<E> entityClass, Integer id) {
-    entityClass_ = entityClass;
-    id_ = id;
+    entityClass_ = requireNonNull(entityClass);
+    id_ = requireNonNull(id);
+  }
+
+  public Integer getId() {
+    return id_;
+  }
+
+  public Class<E> getEntityClass() {
+    return entityClass_;
   }
 
   public E resolve() {
     return DbAccess.INSTANCE.get().resolve(this);
   }
+
+  @Override
+  public int hashCode() {
+    return id_.hashCode();
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    return (
+      (obj instanceof EntityReference otherRef)
+      && (entityClass_.equals(otherRef.entityClass_))
+      && (id_.equals(otherRef.id_))
+    );
+  }
+
 
 }

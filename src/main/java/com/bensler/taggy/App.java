@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.WeakHashMap;
 import java.util.function.Consumer;
 
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
 import com.bensler.decaf.util.prefs.PrefKey;
@@ -72,7 +73,7 @@ public class App {
     entityChangeListeners_ = new HashMap<>();
     db_ = new SqliteDbConnector(dataDir, "taggy.sqlite.db");
     db_.performFlywayMigration();
-    dbAccess_ = new DbAccess(db_.getSession());
+    DbAccess.INSTANCE.set(dbAccess_ = new DbAccess(db_.getSession()));
     prefs_ = new Prefs(new File(getBaseDir(), "prefs.xml"));
     blobCtrl_ = new BlobController(dataDir, FOLDER_PATTERN);
     tagCtrl_ = new TagController(this);
@@ -111,6 +112,7 @@ public class App {
 
   public void run() {
     mainFrame_.show();
+    SwingUtilities.invokeLater(() -> DbAccess.INSTANCE.set(dbAccess_));
   }
 
   public <E> void addEntityChangeListener(EntityChangeListener<E> listener, Class<E> clazz) {

@@ -18,7 +18,7 @@ public class Blob extends AbstractEntity<Blob> {
   private final String thumbnailSha_;
   private final String type_;
 
-  private Set<Tag> tags_;
+  private Set<EntityReference<Tag>> tags_;
   private Map<String, String> properties_;
 
   /** Hibernate needs this empty constructor */
@@ -26,8 +26,12 @@ public class Blob extends AbstractEntity<Blob> {
     this(null, null, null, Map.of(), Set.of());
   }
 
-  public Blob(String shaSum, String thumbnailSha, String type, Map<String, String> metaData, Set<Tag> tags) {
-    super(Blob.class, null);
+  public Blob(String shaSum, String thumbnailSha, String type, Map<String, String> metaData, Set<EntityReference<Tag>> tags) {
+    this(null, shaSum, thumbnailSha, type, metaData, tags);
+  }
+
+  public Blob(Integer id, String shaSum, String thumbnailSha, String type, Map<String, String> metaData, Set<EntityReference<Tag>> tags) {
+    super(Blob.class, id);
     sha256sum_ = shaSum;
     thumbnailSha_ = thumbnailSha;
     type_ = type;
@@ -48,7 +52,7 @@ public class Blob extends AbstractEntity<Blob> {
   }
 
   public Set<Tag> getTags() {
-    return Set.copyOf(tags_);
+    return DbAccess.INSTANCE.get().resolve(tags_, new HashSet<>());
   }
 
   public boolean isUntagged() {
@@ -56,17 +60,17 @@ public class Blob extends AbstractEntity<Blob> {
   }
 
   public void setTags(Set<Tag> tags) {
-    tags_ = new HashSet<>(tags);
+    tags_ = EntityReference.createCollection(tags, new HashSet<>());
   }
 
   public boolean removeTag(Tag tag) {
-    return tags_.remove(tag);
+    return tags_.remove(new EntityReference<>(tag));
   }
 
   public Hierarchy<Tag> getTagHierarchy() {
     final Hierarchy<Tag> tagHierarchy = new Hierarchy<>();
 
-    tags_.stream().forEach(tag -> {
+    getTags().stream().forEach(tag -> {
       Tag aTag = tag;
       do {
         tagHierarchy.add(aTag);

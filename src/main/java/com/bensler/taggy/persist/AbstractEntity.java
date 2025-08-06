@@ -32,11 +32,11 @@ public abstract class AbstractEntity<E extends Entity<E>> implements Entity<E> {
 
   @Override
   public boolean equals(Object obj) {
+    return (obj instanceof Entity entity) && equals(entity);
+  }
 
-
-
-    return (obj instanceof Blob blob)
-    && (id_.equals(blob.id_));
+  protected boolean equals(Entity<?> entity) {
+    return clazz_.equals(entity.getEntityClass()) && id_.equals(entity.getId());
   }
 
 }
