@@ -9,12 +9,11 @@ import java.util.List;
 
 import javax.swing.Icon;
 
-import org.hibernate.internal.util.compare.ComparableComparator;
-
 import com.bensler.decaf.swing.action.SingleEntityFilter;
 import com.bensler.decaf.swing.view.EntityPropertyComparator;
 import com.bensler.decaf.swing.view.PropertyViewImpl;
 import com.bensler.decaf.swing.view.SimpleCellRenderer;
+import com.bensler.decaf.util.cmp.ComparableComparator;
 import com.bensler.decaf.util.cmp.ComparatorChain;
 import com.bensler.taggy.persist.Tag;
 import com.bensler.taggy.persist.TagProperty;

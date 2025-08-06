@@ -9,8 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hibernate.Transaction;
-
 public class DbAccess {
 
   public final static ThreadLocal<DbAccess> INSTANCE = new ThreadLocal<>();
@@ -36,8 +34,8 @@ public class DbAccess {
       .toList();
   }
 
-  public Transaction startTxn() {
-    return null; //session_.beginTransaction();
+  public AutoCloseableTxn startTxn() {
+    return new AutoCloseableTxn(session_);
   }
 
   public void removeNoTxn(Object obj) {

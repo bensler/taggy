@@ -1,13 +1,21 @@
 package com.bensler.taggy.persist;
 
-import org.hibernate.Transaction;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 import com.bensler.decaf.util.io.AutoCloseableAdapter;
 
-public class AutoCloseableTxn extends AutoCloseableAdapter<Transaction> {
+public class AutoCloseableTxn extends AutoCloseableAdapter<Connection> {
 
-  public AutoCloseableTxn(Transaction txn) {
-    super(txn, aTxn -> aTxn.commit());
+  public AutoCloseableTxn(Connection con) {
+    super(con, aCon -> {
+      try {
+        aCon.commit();
+      } catch (SQLException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+    });
   }
 
 }

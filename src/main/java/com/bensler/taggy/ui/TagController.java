@@ -93,7 +93,7 @@ public class TagController {
     final Set<Blob> blobs = tag.getBlobs();
     final DbAccess db = app_.getDbAccess();
 
-    try (AutoCloseableTxn act = new AutoCloseableTxn(db.startTxn())) {
+    try (AutoCloseableTxn act = db.startTxn()) {
       db.removeNoTxn(tag);
       blobs.stream()
       .map(forEachMapper(blob -> blob.removeTag(tag)))
