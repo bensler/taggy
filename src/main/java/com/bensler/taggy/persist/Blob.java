@@ -52,7 +52,7 @@ public class Blob extends AbstractEntity<Blob> {
   }
 
   public Set<Tag> getTags() {
-    return DbAccess.INSTANCE.get().resolve(tags_, new HashSet<>());
+    return DbAccess.INSTANCE.get().resolveAll(tags_, new HashSet<>());
   }
 
   public boolean isUntagged() {
