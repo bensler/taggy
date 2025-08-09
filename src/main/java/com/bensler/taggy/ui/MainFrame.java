@@ -256,8 +256,7 @@ public class MainFrame {
     if (tag == null) {
       thumbnails_.clear();
     } else {
-      app_.getDbAccess().refresh(tag);
-      thumbnails_.setData(List.copyOf(tag.getBlobs()));
+      thumbnails_.setData(List.copyOf(app_.getDbAccess().refresh(tag).getBlobs()));
     }
   }
 

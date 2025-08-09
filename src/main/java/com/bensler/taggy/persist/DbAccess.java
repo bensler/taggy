@@ -3,11 +3,14 @@ package com.bensler.taggy.persist;
 import static com.bensler.decaf.util.function.ForEachMapperAdapter.forEachMapper;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class DbAccess {
 
@@ -34,24 +37,33 @@ public class DbAccess {
       .toList();
   }
 
-  public AutoCloseableTxn startTxn() {
-    return new AutoCloseableTxn(session_);
+  public void deleteNoTxn(Entity<?> entity) {
+    try {
+      mapper_.get(entity.getEntityClass()).remove(session_, entity.getId());
+    } catch (SQLException sqle) {
+      throw new RuntimeException(sqle);
+    }
   }
 
-  public void removeNoTxn(Object obj) {
-//    session_.remove(obj);
+  public <E extends Entity<E>> E refresh(E entity) {
+    final EntityReference<E> reference = new EntityReference<>(entity);
+
+    entityCache_.remove(reference);
+    return resolve(reference);
   }
 
-  public void refresh(Object obj) {
-//    session_.refresh(obj);
-  }
+  public <E extends Entity<E>> Set<E> refreshAll(Collection<E> entities) {
+    final Set<E> result = new HashSet<>();
 
-  public <E extends Entity<E>> E merge(E obj) {
-    return obj; // session_.merge(obj);
+    if (!entities.isEmpty()) {
+      resolveAll(entities.stream().map(entity -> new EntityReference<>(entity)).toList(), result);
+    }
+    return result ;
   }
 
   public <E extends Entity<E>> E storeObject(E obj) {
     return obj;
+    // TODO
 //    try (AutoCloseableTxn act = new AutoCloseableTxn(startTxn())) {
 //      if (obj.getId() == null) {
 //        session_.persist(obj);
@@ -73,11 +85,11 @@ public class DbAccess {
     return List.of();
   }
 
-  public boolean doesBlobExist(String shaHash) {
-    return false;
-//    return !session_.createQuery("FROM Blob AS blob WHERE blob.sha256sum_ = :sha256sum", Blob.class)
-//    .setParameter("sha256sum", shaHash)
-//    .getResultList().isEmpty();
+  public boolean doesBlobExist(String shaHash) throws SQLException {
+    try (PreparedStatement stmt = session_.prepareStatement("SELECT * FROM blob AS b WHERE b.sha256sum=? LIMIT 1")) {
+      stmt.setString(1, shaHash);
+      return stmt.executeQuery().next();
+    }
   }
 
   public <E extends Entity<E>> E load(EntityReference<E> reference) {
@@ -87,7 +99,7 @@ public class DbAccess {
     return (!entities.isEmpty() ? entityClass.cast(entities.get(0)) : null);
   }
 
-  public <ENTITY extends Entity<ENTITY>, CIN extends Collection<EntityReference<ENTITY>>, COUT extends Collection<ENTITY>> COUT resolve(
+  public <ENTITY extends Entity<ENTITY>, CIN extends Collection<EntityReference<ENTITY>>, COUT extends Collection<ENTITY>> COUT resolveAll(
     CIN references, COUT collector
   ) {
     if (!references.isEmpty()) {
@@ -108,6 +120,18 @@ public class DbAccess {
     final E entity = (E)entityCache_.get(entityRef);
 
     return (entity != null) ? entity : load(entityRef);
+  }
+
+  public void commit() throws SQLException {
+    session_.commit();
+  }
+
+  public void rollback() {
+    try {
+      session_.rollback();
+    } catch (SQLException sqle) {
+      throw new RuntimeException(sqle);
+    }
   }
 
 }

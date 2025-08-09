@@ -55,7 +55,7 @@ public class Tag extends AbstractEntity<Tag> implements Hierarchical<Tag>, Named
   }
 
   public Set<Blob> getBlobs() {
-    return DbAccess.INSTANCE.get().resolve(blobs_, new HashSet<>());
+    return DbAccess.INSTANCE.get().resolveAll(blobs_, new HashSet<>());
   }
 
   public boolean removeBlob(Blob blob) {

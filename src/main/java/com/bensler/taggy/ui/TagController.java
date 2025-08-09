@@ -3,6 +3,7 @@ package com.bensler.taggy.ui;
 import static com.bensler.decaf.util.function.ForEachMapperAdapter.forEachMapper;
 import static com.bensler.taggy.persist.TagProperty.REPRESENTED_DATE;
 
+import java.sql.SQLException;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.ConcurrentModificationException;
@@ -17,7 +18,6 @@ import com.bensler.decaf.util.Pair;
 import com.bensler.decaf.util.stream.Collectors;
 import com.bensler.decaf.util.tree.Hierarchy;
 import com.bensler.taggy.App;
-import com.bensler.taggy.persist.AutoCloseableTxn;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.persist.Tag;
@@ -90,19 +90,25 @@ public class TagController {
   }
 
   void deleteTag(Tag tag) {
-    final Set<Blob> blobs = tag.getBlobs();
+    final Set<Blob> blobs;
     final DbAccess db = app_.getDbAccess();
 
-    try (AutoCloseableTxn act = db.startTxn()) {
-      db.removeNoTxn(tag);
-      blobs.stream()
-      .map(forEachMapper(blob -> blob.removeTag(tag)))
-      .forEach(db::merge);
+    try {
+      try {
+        db.deleteNoTxn(tag);
+        blobs = db.refreshAll(tag.getBlobs());
+        db.commit();
+      } catch (SQLException sqle) {
+        db.rollback();
+        throw new RuntimeException(sqle);
+      }
+      app_.entityRemoved(tag);
+      app_.entitiesChanged(blobs);
+      allTags_.removeNode(tag);
+      Optional.ofNullable(tag.getProperty(REPRESENTED_DATE)).ifPresent(dateTags_::remove);
+    } catch (Exception e) {
+      e.printStackTrace(); // TODO
     }
-    app_.entityRemoved(tag);
-    app_.entitiesChanged(blobs);
-    allTags_.removeNode(tag);
-    Optional.ofNullable(tag.getProperty(REPRESENTED_DATE)).ifPresent(dateTags_::remove);
   }
 
   Tag resolveTag(Tag tag) {

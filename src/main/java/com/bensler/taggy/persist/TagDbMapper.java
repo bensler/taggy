@@ -88,4 +88,12 @@ public class TagDbMapper implements DbMapper<Tag> {
     return stmt;
   }
 
+  @Override
+  public void remove(Connection con, Integer id) throws SQLException {
+    try (PreparedStatement stmt = con.prepareStatement("DELETE FROM tag WHERE id=?")) {
+      stmt.setInt(1, id);
+      stmt.execute();
+    }
+  }
+
 }
