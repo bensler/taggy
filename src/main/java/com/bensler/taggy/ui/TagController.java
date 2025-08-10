@@ -111,10 +111,6 @@ public class TagController {
     }
   }
 
-  Tag resolveTag(Tag tag) {
-    return allTags_.resolve(tag);
-  }
-
   Tag persistNewTag(Tag newTag) {
     final Tag createdTag = app_.storeEntity(newTag);
 

@@ -32,6 +32,7 @@ public class DbAccess {
       Tag.class, new TagDbMapper(),
       Blob.class, new BlobDbMapper()
     );
+    INSTANCE.set(this);
   }
 
   public <E extends Entity<E>> List<E> loadAll(Class<E> clazz) {

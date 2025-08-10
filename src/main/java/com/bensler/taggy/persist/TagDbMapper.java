@@ -96,6 +96,13 @@ public class TagDbMapper implements DbMapper<Tag> {
     }
   }
 
+  private void setParentId(Tag tag, PreparedStatement stmt, int index) throws SQLException {
+    final Integer parentId = Tag.getProperty(tag.getParent(), Tag::getId);
+
+    if (parentId != null) {
+      stmt.setInt(index, Tag.getProperty(tag.getParent(), Tag::getId));
+    }
+  }
 
   @Override
   public void update(Connection con, Tag tag) throws SQLException {
@@ -103,7 +110,7 @@ public class TagDbMapper implements DbMapper<Tag> {
 
     try (PreparedStatement stmt = con.prepareStatement("UPDATE tag SET (name,parent_id)=(?,?) WHERE id=?")) {
       stmt.setString(1, tag.getName());
-      stmt.setInt(2, Tag.getProperty(tag.getParent(), Tag::getId));
+      setParentId(tag, stmt, 2);
       stmt.setInt(3, tagId);
       stmt.execute();
     }
@@ -145,12 +152,8 @@ public class TagDbMapper implements DbMapper<Tag> {
     final Integer newId;
 
     try (PreparedStatement stmt = con.prepareStatement("INSERT INTO tag (name,parent_id) VALUES (?,?)")) {
-      final Integer parentId = Tag.getProperty(tag.getParent(), Tag::getId);
-
       stmt.setString(1, tag.getName());
-      if (parentId != null) {
-        stmt.setInt(2, Tag.getProperty(tag.getParent(), Tag::getId));
-      }
+      setParentId(tag, stmt, 2);
       stmt.execute();
       try (ResultSet ids = stmt.getGeneratedKeys()) {
         ids.next();

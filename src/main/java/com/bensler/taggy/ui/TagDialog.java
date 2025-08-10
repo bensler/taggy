@@ -5,6 +5,7 @@ import static com.bensler.taggy.ui.MainFrame.ICON_EDIT_30;
 import static com.bensler.taggy.ui.MainFrame.ICON_PLUS_30;
 import static com.bensler.taggy.ui.MainFrame.ICON_TAG_48;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -22,6 +23,7 @@ import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.decaf.util.tree.Hierarchy;
 import com.bensler.taggy.App;
+import com.bensler.taggy.persist.EntityReference;
 import com.bensler.taggy.persist.Tag;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -126,10 +128,10 @@ public abstract class TagDialog<IN> extends BasicContentPanel<IN, Tag> {
 
     @Override
     public Tag getData() {
-      final Tag changedTag = new Tag(inData_.getId());
-
-      changedTag.setProperties(parentTag_.getSingleSelection(), getNewName(), inData_.getBlobs());
-      return changedTag;
+      return new Tag(
+        inData_.getId(), Tag.getProperty(parentTag_.getSingleSelection(), EntityReference::new), getNewName(),
+        inData_.getProperties(), EntityReference.createCollection(inData_.getBlobs(), new HashSet<>())
+      );
     }
 
   }

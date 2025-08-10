@@ -24,10 +24,6 @@ public class Tag extends AbstractEntity<Tag> implements Hierarchical<Tag>, Named
   private Set<EntityReference<Blob>> blobs_;
   private Map<TagProperty, String> properties_;
 
-  public Tag(Integer id) {
-    super(Tag.class, id);
-  }
-
   public Tag(Tag parent, String name, Map<TagProperty, String> properties) {
     this(null, getProperty(parent, EntityReference::new), name, properties, Set.of());
   }
@@ -54,12 +50,6 @@ public class Tag extends AbstractEntity<Tag> implements Hierarchical<Tag>, Named
     return name_;
   }
 
-  public void setProperties(Tag parent, String name, Set<Blob> blobs) {
-    parent_ = new EntityReference<>(parent);
-    name_ = name;
-    blobs_ = EntityReference.createCollection(blobs, new HashSet<>());
-  }
-
   public Set<Blob> getBlobs() {
     return DbAccess.INSTANCE.get().resolveAll(blobs_, new HashSet<>());
   }
@@ -78,6 +68,10 @@ public class Tag extends AbstractEntity<Tag> implements Hierarchical<Tag>, Named
 
   public boolean containsProperty(TagProperty key) {
     return properties_.containsKey(key);
+  }
+
+  public Map<TagProperty, String> getProperties() {
+    return Map.copyOf(properties_);
   }
 
 }
