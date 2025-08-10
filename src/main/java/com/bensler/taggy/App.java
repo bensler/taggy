@@ -154,15 +154,15 @@ public class App {
     fireEvent(entity, listener -> listener.entityRemoved(entity));
   }
 
-  public <E extends Entity> E storeEntity(E entity) {
-//    final boolean isNew = !entity.hasId();
-//
-//    entity = dbAccess_.storeObject(entity);
-//    if (isNew) {
-//      entityCreated(entity);
-//    } else {
-//      entityChanged(entity);
-//    }
+  public <E extends Entity<E>> E storeEntity(E entity) {
+    final boolean isNew = !entity.hasId();
+
+    entity = dbAccess_.storeObject(entity);
+    if (isNew) {
+      entityCreated(entity);
+    } else {
+      entityChanged(entity);
+    }
     return entity;
   }
 

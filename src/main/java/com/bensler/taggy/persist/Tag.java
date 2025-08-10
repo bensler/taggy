@@ -66,7 +66,11 @@ public class Tag extends AbstractEntity<Tag> implements Hierarchical<Tag>, Named
     return properties_.get(key);
   }
 
-  public boolean conatainsProperty(TagProperty key) {
+  public Set<TagProperty> getPropertyKeys() {
+    return Set.copyOf(properties_.keySet());
+  }
+
+  public boolean containsProperty(TagProperty key) {
     return properties_.containsKey(key);
   }
 

@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -94,6 +95,71 @@ public class TagDbMapper implements DbMapper<Tag> {
       stmt.setInt(1, id);
       stmt.execute();
     }
+  }
+
+  private Integer getParentId(Tag tag) {
+    return Optional.ofNullable(tag.getParent()).map(Tag::getId).orElse(null);
+  }
+
+  @Override
+  public void update(Connection con, Tag tag) throws SQLException {
+    final Integer tagId = tag.getId();
+
+    try (PreparedStatement stmt = con.prepareStatement("UPDATE tag SET (name,parent_id)=(?,?) WHERE id=?")) {
+      stmt.setString(1, tag.getName());
+      stmt.setInt(2, getParentId(tag));
+      stmt.setInt(3, tagId);
+      stmt.execute();
+    }
+    try (PreparedStatement stmt = con.prepareStatement("DELETE FROM tag_property WHERE tag_id=?")) {
+      stmt.setInt(1, tagId);
+    }
+    insertProperties(con, tag);
+    try (PreparedStatement stmt = con.prepareStatement("DELETE FROM blob_tag_xref WHERE tag_id=?")) {
+      stmt.setInt(1, tagId);
+    }
+    insertBlobs(con, tagId, tag.getBlobs());
+  }
+
+  private void insertProperties(Connection con, Tag tag) throws SQLException {
+    try (PreparedStatement stmt = con.prepareStatement("INSERT INTO tag_property (tag_id,name,value) VALUES (?,?,?)")) {
+      for (TagProperty property : tag.getPropertyKeys()) {
+        stmt.setInt(1, tag.getId());
+        stmt.setString(2, property.name());
+        stmt.setString(3, tag.getProperty(property));
+        stmt.addBatch();
+      }
+      stmt.executeBatch();
+    }
+  }
+
+  private void insertBlobs(Connection con, Integer tagId, Collection<Blob> blobs) throws SQLException {
+    try (PreparedStatement stmt = con.prepareStatement("INSERT INTO blob_tag_xref (blob_id,tag_id) VALUES (?,?)")) {
+      for (Blob blob : blobs) {
+        stmt.setInt(1, blob.getId());
+        stmt.setInt(2, tagId);
+        stmt.addBatch();
+      }
+      stmt.executeBatch();
+    }
+  }
+
+  @Override
+  public Integer insert(Connection con, Tag tag) throws SQLException {
+    final Integer newId;
+
+    try (PreparedStatement stmt = con.prepareStatement("INSERT INTO tag (name,parent_id) VALUES (?,?)")) {
+      stmt.setString(1, tag.getName());
+      stmt.setInt(2, getParentId(tag));
+      stmt.execute();
+      try (ResultSet ids = stmt.getGeneratedKeys()) {
+        ids.next();
+        newId = ids.getInt(1);
+      }
+    }
+    insertProperties(con, tag);
+    insertBlobs(con, newId, tag.getBlobs());
+    return newId;
   }
 
 }

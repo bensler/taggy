@@ -13,4 +13,8 @@ public interface DbMapper<E extends Entity<E>> {
 
   void remove(Connection con, Integer id) throws SQLException;
 
+  void update(Connection con, E entity) throws SQLException;
+
+  Integer insert(Connection con, E entity) throws SQLException;
+
 }

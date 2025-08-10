@@ -4,7 +4,9 @@ import static com.bensler.decaf.util.function.ForEachMapperAdapter.forEachMapper
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -61,28 +63,34 @@ public class DbAccess {
     return result ;
   }
 
-  public <E extends Entity<E>> E storeObject(E obj) {
-    return obj;
-    // TODO
-//    try (AutoCloseableTxn act = new AutoCloseableTxn(startTxn())) {
-//      if (obj.getId() == null) {
-//        session_.persist(obj);
-//        return obj;
-//      } else {
-//        return session_.merge(obj);
-//      }
-//    }
+  public <E extends Entity<E>> E storeObject(E entity) throws SQLException {
+    final Class<E> entityClass = entity.getEntityClass();
+    final DbMapper<E> mapper = (DbMapper<E>) mapper_.get(entityClass);
+    final EntityReference<E> ref;
+
+    if (entity.hasId()) {
+      mapper.update(session_, entity);
+      ref = new EntityReference<>(entity);
+    } else {
+      ref = new EntityReference<>(entityClass, mapper.insert(session_, entity));
+    }
+    return resolve(ref);
   }
 
-  public List<Blob> findOrphanBlobs() {
-//    TODO
-//    return session_.createQuery(
-//      "FROM Blob AS blob " +
-//      "LEFT JOIN FETCH blob.tags_ AS tags " +
-//      "GROUP BY blob " +
-//      "HAVING COUNT(tags) < 1", Blob.class
-//    ).getResultList();
-    return List.of();
+  public List<Integer> findOrphanBlobs() throws SQLException {
+    final List<Integer> ids = new ArrayList<>();
+
+    try (PreparedStatement stmt = session_.prepareStatement("SELECT b.id FROM Blob AS b "
+      + "LEFT JOIN blob_tag_xref btx ON btx.blob_id = b.id "
+      + "GROUP BY b.id "
+      + "HAVING COUNT(btx.tag_id) < 1");
+      ResultSet result = stmt.executeQuery()
+    ) {
+      while (result.next()) {
+        ids.add(result.getInt(1));
+      }
+    }
+    return ids;
   }
 
   public boolean doesBlobExist(String shaHash) throws SQLException {

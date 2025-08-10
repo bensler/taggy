@@ -11,8 +11,8 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
-import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.decaf.util.prefs.PrefKey;
+import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.taggy.App;
 import com.bensler.taggy.EntityChangeListener;
 import com.bensler.taggy.persist.Blob;
@@ -24,6 +24,7 @@ public class OrphanDialog extends JDialog implements EntityChangeListener<Blob> 
 
   private final ThumbnailOverview thumbViewer_;
   private final PrefPersisterImpl prefs_;
+  private final BlobController blobCtrl_;
 
   public OrphanDialog(App app) {
     super(app.getMainFrame().getFrame(), "Uncategorized Files");
@@ -32,6 +33,7 @@ public class OrphanDialog extends JDialog implements EntityChangeListener<Blob> 
       "3dlu, f:p:g, 3dlu, f:p, 3dlu"
     ));
 
+    blobCtrl_ = app.getBlobCtrl();
     thumbViewer_ = new ThumbnailOverview(app);
     mainPanel.add(thumbViewer_.getScrollPane(), new CellConstraints(2, 2));
 
@@ -57,7 +59,8 @@ public class OrphanDialog extends JDialog implements EntityChangeListener<Blob> 
   }
 
   public void show(DbAccess dbAccess) {
-    SwingUtilities.invokeLater(() -> thumbViewer_.setData(dbAccess.findOrphanBlobs()));
+
+    SwingUtilities.invokeLater(() -> thumbViewer_.setData(blobCtrl_.findOrphanBlobs()));
     setVisible(true);
   }
 

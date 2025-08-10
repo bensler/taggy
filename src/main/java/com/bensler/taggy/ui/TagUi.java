@@ -31,7 +31,7 @@ public final class TagUi {
   );
 
   public static final SingleEntityFilter<Tag> TIMELINE_TAG_FILTER = new SingleEntityFilter<>(
-    HIDDEN, tag -> (tag.conatainsProperty(TagProperty.REPRESENTED_DATE) ? ENABLED : HIDDEN)
+    HIDDEN, tag -> (tag.containsProperty(TagProperty.REPRESENTED_DATE) ? ENABLED : HIDDEN)
   );
 
   public static final SingleEntityFilter<Tag> TAG_FILTER = new SingleEntityFilter<>(

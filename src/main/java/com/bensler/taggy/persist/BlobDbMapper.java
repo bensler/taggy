@@ -94,4 +94,67 @@ public class BlobDbMapper implements DbMapper<Blob> {
     }
   }
 
+  @Override
+  public void update(Connection con, Blob blob) throws SQLException {
+    final Integer blobId = blob.getId();
+
+    try (PreparedStatement stmt = con.prepareStatement("UPDATE blob SET (sha256sum,thumbnail_sha,type)=(?,?,?) WHERE id=?")) {
+      stmt.setString(1, blob.getSha256sum());
+      stmt.setString(2, blob.getThumbnailSha());
+      stmt.setString(3, blob.getType());
+      stmt.setInt(4, blobId);
+      stmt.execute();
+    }
+    try (PreparedStatement stmt = con.prepareStatement("DELETE FROM blob_property WHERE blob_id=?")) {
+      stmt.setInt(1, blobId);
+    }
+    insertProperties(con, blob);
+    try (PreparedStatement stmt = con.prepareStatement("DELETE FROM blob_tag_xref WHERE blob_id=?")) {
+      stmt.setInt(1, blobId);
+    }
+    insertTags(con, blobId, blob.getTags());
+  }
+
+  private void insertProperties(Connection con, Blob blob) throws SQLException {
+    try (PreparedStatement stmt = con.prepareStatement("INSERT INTO blob_property (blob_id,name,value) VALUES (?,?,?)")) {
+      for (String propName : blob.getPropertyNames()) {
+        stmt.setInt(1, blob.getId());
+        stmt.setString(2, propName);
+        stmt.setString(3, blob.getProperty(propName));
+        stmt.addBatch();
+      }
+      stmt.executeBatch();
+    }
+  }
+
+  private void insertTags(Connection con, Integer blobId, Collection<Tag> tags) throws SQLException {
+    try (PreparedStatement stmt = con.prepareStatement("INSERT INTO blob_tag_xref (blob_id,tag_id) VALUES (?,?)")) {
+      for (Tag tag : tags) {
+        stmt.setInt(1, blobId);
+        stmt.setInt(2, tag.getId());
+        stmt.addBatch();
+      }
+      stmt.executeBatch();
+    }
+  }
+
+  @Override
+  public Integer insert(Connection con, Blob blob) throws SQLException {
+    final Integer newId;
+
+    try (PreparedStatement stmt = con.prepareStatement("INSERT INTO blob (sha256sum,thumbnail_sha,type) VALUES (?,?,?)")) {
+      stmt.setString(1, blob.getSha256sum());
+      stmt.setString(2, blob.getThumbnailSha());
+      stmt.setString(3, blob.getType());
+      stmt.execute();
+      try (ResultSet ids = stmt.getGeneratedKeys()) {
+        ids.next();
+        newId = ids.getInt(1);
+      }
+    }
+    insertProperties(con, blob);
+    insertTags(con, newId, blob.getTags());
+    return newId;
+  }
+
 }
