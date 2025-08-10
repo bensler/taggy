@@ -32,7 +32,7 @@ public abstract class AbstractEntity<E extends Entity<E>> implements Entity<E> {
 
   @Override
   public boolean equals(Object obj) {
-    return (obj instanceof Entity entity) && equals(entity);
+    return ((obj == this) || (obj instanceof Entity entity) && equals(entity));
   }
 
   protected boolean equals(Entity<?> entity) {

@@ -214,7 +214,6 @@ public class MainFrame {
   void editTagUi(Tag tag) {
     new OkCancelDialog<>(frame_, new TagDialog.Edit(tagTree_.getData())).show(
       tag, newTag -> {
-        tagTree_.removeTree(tag);
         tagTree_.select(tagCtrl_.updateTag(tag, newTag));
       }
     );

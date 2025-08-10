@@ -68,13 +68,14 @@ public class DbAccess {
 
   public <E extends Entity<E>> E storeObject(E entity) throws SQLException {
     final Class<E> entityClass = entity.getEntityClass();
-    final DbMapper<E> mapper = (DbMapper<E>) mapper_.get(entityClass);
+    final DbMapper<E> mapper = (DbMapper<E>)mapper_.get(entityClass);
     final EntityReference<E> ref;
 
     try {
       if (entity.hasId()) {
         mapper.update(session_, entity);
         ref = new EntityReference<>(entity);
+        entityCache_.remove(ref);
       } else {
         ref = new EntityReference<>(entityClass, mapper.insert(session_, entity));
       }

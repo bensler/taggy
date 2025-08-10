@@ -26,7 +26,7 @@ public class EntityChangeListenerTreeAdapter<H extends Hierarchical<H>> implemen
 
   @Override
   public void entityChanged(H entity) {
-    model_.contains(entity).ifPresent(model_::addNode);
+    model_.contains(entity).ifPresent(lEntity -> model_.addNode(entity));
   }
 
   @Override
