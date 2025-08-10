@@ -3,7 +3,9 @@ package com.bensler.taggy.persist;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
 import com.bensler.decaf.util.Named;
 import com.bensler.decaf.util.tree.Hierarchical;
@@ -12,6 +14,10 @@ import com.bensler.decaf.util.tree.Hierarchical;
  * Sample of an entity or business class having hierarchical nature.
  */
 public class Tag extends AbstractEntity<Tag> implements Hierarchical<Tag>, Named {
+
+  public static <R> R getProperty(Tag tag, Function<Tag, R> resultProvider) {
+    return Optional.ofNullable(tag).map(resultProvider).orElse(null);
+  }
 
   private EntityReference<Tag> parent_;
   private String name_;
@@ -23,7 +29,7 @@ public class Tag extends AbstractEntity<Tag> implements Hierarchical<Tag>, Named
   }
 
   public Tag(Tag parent, String name, Map<TagProperty, String> properties) {
-    this(null, new EntityReference<>(Tag.class, parent.getId()), name, properties, Set.of());
+    this(null, getProperty(parent, EntityReference::new), name, properties, Set.of());
   }
 
   public Tag(

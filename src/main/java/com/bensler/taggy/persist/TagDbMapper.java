@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -97,9 +96,6 @@ public class TagDbMapper implements DbMapper<Tag> {
     }
   }
 
-  private Integer getParentId(Tag tag) {
-    return Optional.ofNullable(tag.getParent()).map(Tag::getId).orElse(null);
-  }
 
   @Override
   public void update(Connection con, Tag tag) throws SQLException {
@@ -107,24 +103,24 @@ public class TagDbMapper implements DbMapper<Tag> {
 
     try (PreparedStatement stmt = con.prepareStatement("UPDATE tag SET (name,parent_id)=(?,?) WHERE id=?")) {
       stmt.setString(1, tag.getName());
-      stmt.setInt(2, getParentId(tag));
+      stmt.setInt(2, Tag.getProperty(tag.getParent(), Tag::getId));
       stmt.setInt(3, tagId);
       stmt.execute();
     }
     try (PreparedStatement stmt = con.prepareStatement("DELETE FROM tag_property WHERE tag_id=?")) {
       stmt.setInt(1, tagId);
     }
-    insertProperties(con, tag);
+    insertProperties(con, tag, tagId);
     try (PreparedStatement stmt = con.prepareStatement("DELETE FROM blob_tag_xref WHERE tag_id=?")) {
       stmt.setInt(1, tagId);
     }
     insertBlobs(con, tagId, tag.getBlobs());
   }
 
-  private void insertProperties(Connection con, Tag tag) throws SQLException {
+  private void insertProperties(Connection con, Tag tag, Integer tagId) throws SQLException {
     try (PreparedStatement stmt = con.prepareStatement("INSERT INTO tag_property (tag_id,name,value) VALUES (?,?,?)")) {
       for (TagProperty property : tag.getPropertyKeys()) {
-        stmt.setInt(1, tag.getId());
+        stmt.setInt(1, tagId);
         stmt.setString(2, property.name());
         stmt.setString(3, tag.getProperty(property));
         stmt.addBatch();
@@ -149,15 +145,19 @@ public class TagDbMapper implements DbMapper<Tag> {
     final Integer newId;
 
     try (PreparedStatement stmt = con.prepareStatement("INSERT INTO tag (name,parent_id) VALUES (?,?)")) {
+      final Integer parentId = Tag.getProperty(tag.getParent(), Tag::getId);
+
       stmt.setString(1, tag.getName());
-      stmt.setInt(2, getParentId(tag));
+      if (parentId != null) {
+        stmt.setInt(2, Tag.getProperty(tag.getParent(), Tag::getId));
+      }
       stmt.execute();
       try (ResultSet ids = stmt.getGeneratedKeys()) {
         ids.next();
         newId = ids.getInt(1);
       }
     }
-    insertProperties(con, tag);
+    insertProperties(con, tag, newId);
     insertBlobs(con, newId, tag.getBlobs());
     return newId;
   }

@@ -14,9 +14,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.bensler.taggy.App;
+
 public class DbAccess {
 
-  public final static ThreadLocal<DbAccess> INSTANCE = new ThreadLocal<>();
+  public final static ThreadLocal<DbAccess> INSTANCE = ThreadLocal.withInitial(() -> App.getApp().getDbAccess());
 
   private final Connection session_;
 
@@ -68,11 +70,17 @@ public class DbAccess {
     final DbMapper<E> mapper = (DbMapper<E>) mapper_.get(entityClass);
     final EntityReference<E> ref;
 
-    if (entity.hasId()) {
-      mapper.update(session_, entity);
-      ref = new EntityReference<>(entity);
-    } else {
-      ref = new EntityReference<>(entityClass, mapper.insert(session_, entity));
+    try {
+      if (entity.hasId()) {
+        mapper.update(session_, entity);
+        ref = new EntityReference<>(entity);
+      } else {
+        ref = new EntityReference<>(entityClass, mapper.insert(session_, entity));
+      }
+      commit();
+    } catch (SQLException sqle) {
+      rollback();
+      throw sqle;
     }
     return resolve(ref);
   }

@@ -1,6 +1,7 @@
 package com.bensler.taggy;
 
 import java.io.File;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -9,7 +10,6 @@ import java.util.Optional;
 import java.util.WeakHashMap;
 import java.util.function.Consumer;
 
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
 import com.bensler.decaf.util.prefs.PrefKey;
@@ -73,7 +73,7 @@ public class App {
     entityChangeListeners_ = new HashMap<>();
     db_ = new SqliteDbConnector(dataDir, "taggy.sqlite.db");
     db_.performFlywayMigration();
-    DbAccess.INSTANCE.set(dbAccess_ = new DbAccess(db_.getSession()));
+    dbAccess_ = new DbAccess(db_.getSession());
     prefs_ = new Prefs(new File(getBaseDir(), "prefs.xml"));
     blobCtrl_ = new BlobController(dataDir, FOLDER_PATTERN);
     tagCtrl_ = new TagController(this);
@@ -112,7 +112,6 @@ public class App {
 
   public void run() {
     mainFrame_.show();
-    SwingUtilities.invokeLater(() -> DbAccess.INSTANCE.set(dbAccess_));
   }
 
   public <E> void addEntityChangeListener(EntityChangeListener<E> listener, Class<E> clazz) {
@@ -155,15 +154,19 @@ public class App {
   }
 
   public <E extends Entity<E>> E storeEntity(E entity) {
-    final boolean isNew = !entity.hasId();
+    try {
+      final boolean isNew = !entity.hasId();
 
-    entity = dbAccess_.storeObject(entity);
-    if (isNew) {
-      entityCreated(entity);
-    } else {
-      entityChanged(entity);
+      entity = dbAccess_.storeObject(entity);
+      if (isNew) {
+        entityCreated(entity);
+      } else {
+        entityChanged(entity);
+      }
+      return entity;
+    } catch (SQLException sqle) {
+      throw new RuntimeException(sqle);
     }
-    return entity;
   }
 
 }

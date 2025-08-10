@@ -278,7 +278,7 @@ public class BlobController {
       .map(app.getTagCtrl()::getDateTag)
       .ifPresent(tags::add);
     Optional.ofNullable(initialTag).ifPresent(tags::add);
-//    metaData.put(PROPERTY_FILENAME, file.getName());
+    metaData.put(PROPERTY_FILENAME, file.getName());
     return app.storeEntity(new Blob(fileSha, thumbSha, type, metaData, EntityReference.createCollection(tags, new HashSet<>())));
   }
 

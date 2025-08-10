@@ -108,17 +108,17 @@ public class BlobDbMapper implements DbMapper<Blob> {
     try (PreparedStatement stmt = con.prepareStatement("DELETE FROM blob_property WHERE blob_id=?")) {
       stmt.setInt(1, blobId);
     }
-    insertProperties(con, blob);
+    insertProperties(con, blob, blob.getId());
     try (PreparedStatement stmt = con.prepareStatement("DELETE FROM blob_tag_xref WHERE blob_id=?")) {
       stmt.setInt(1, blobId);
     }
     insertTags(con, blobId, blob.getTags());
   }
 
-  private void insertProperties(Connection con, Blob blob) throws SQLException {
+  private void insertProperties(Connection con, Blob blob, Integer blobId) throws SQLException {
     try (PreparedStatement stmt = con.prepareStatement("INSERT INTO blob_property (blob_id,name,value) VALUES (?,?,?)")) {
       for (String propName : blob.getPropertyNames()) {
-        stmt.setInt(1, blob.getId());
+        stmt.setInt(1, blobId);
         stmt.setString(2, propName);
         stmt.setString(3, blob.getProperty(propName));
         stmt.addBatch();
@@ -152,7 +152,7 @@ public class BlobDbMapper implements DbMapper<Blob> {
         newId = ids.getInt(1);
       }
     }
-    insertProperties(con, blob);
+    insertProperties(con, blob, newId);
     insertTags(con, newId, blob.getTags());
     return newId;
   }
