@@ -80,7 +80,8 @@ public class DbAccess {
   public List<Integer> findOrphanBlobs() throws SQLException {
     final List<Integer> ids = new ArrayList<>();
 
-    try (PreparedStatement stmt = session_.prepareStatement("SELECT b.id FROM Blob AS b "
+    try (PreparedStatement stmt = session_.prepareStatement(
+      "SELECT b.id FROM Blob AS b "
       + "LEFT JOIN blob_tag_xref btx ON btx.blob_id = b.id "
       + "GROUP BY b.id "
       + "HAVING COUNT(btx.tag_id) < 1");
