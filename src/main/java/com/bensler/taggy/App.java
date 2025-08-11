@@ -1,6 +1,7 @@
 package com.bensler.taggy;
 
 import java.io.File;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -152,16 +153,20 @@ public class App {
     fireEvent(entity, listener -> listener.entityRemoved(entity));
   }
 
-  public <E extends Entity> E storeEntity(E entity) {
-    final boolean isNew = !entity.hasId();
+  public <E extends Entity<E>> E storeEntity(E entity) {
+    try {
+      final boolean isNew = !entity.hasId();
 
-    entity = dbAccess_.storeObject(entity);
-    if (isNew) {
-      entityCreated(entity);
-    } else {
-      entityChanged(entity);
+      entity = dbAccess_.storeObject(entity);
+      if (isNew) {
+        entityCreated(entity);
+      } else {
+        entityChanged(entity);
+      }
+      return entity;
+    } catch (SQLException sqle) {
+      throw new RuntimeException(sqle);
     }
-    return entity;
   }
 
 }

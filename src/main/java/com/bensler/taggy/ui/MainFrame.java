@@ -29,6 +29,7 @@ import javax.swing.tree.TreePath;
 
 import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.ActionGroup;
+import com.bensler.decaf.swing.action.ActionState;
 import com.bensler.decaf.swing.action.EntityAction;
 import com.bensler.decaf.swing.action.FocusedComponentActionController;
 import com.bensler.decaf.swing.action.SingleEntityActionAdapter;
@@ -107,9 +108,15 @@ public class MainFrame {
       new ActionAppearance(new OverlayIcon(ICON_TAG_SIMPLE_13, new Overlay(ICON_EDIT_13, SE)), TagDialog.Edit.ICON, "Edit Tag", "Edit currently selected Tag"),
       Tag.class, TagUi.TAG_FILTER, new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(this::editTagUi))
     );
+    final SingleEntityFilter<Tag> tagFilter = new SingleEntityFilter<>(HIDDEN, TagUi.TAG_FILTER) {
+      @Override
+      public ActionState getActionState(List<Tag> entities) {
+        return (tagTree_.getSelection().isEmpty() ? ENABLED : super.getActionState(entities));
+      }
+    };
     final EntityAction<Tag> newTagAction = new EntityAction<>(
       new ActionAppearance(new OverlayIcon(ICON_TAG_SIMPLE_13, new Overlay(ICON_PLUS_10, SE)), TagDialog.Create.ICON, "Create Tag", "Creates a new Tag under the currently selected Tag"),
-      Tag.class, TagUi.TAG_FILTER, new SingleEntityActionAdapter<>((source, tag) -> createTagUi(tag))
+      Tag.class, tagFilter, new SingleEntityActionAdapter<>((source, tag) -> createTagUi(tag))
     );
     final EntityAction<Tag> newTimelineTagAction = new EntityAction<>(
       new ActionAppearance(new OverlayIcon(ICON_TIMELINE_13, new Overlay(ICON_PLUS_10, SE)), null, "Create Timeline Tag", "Creates a new Tag representing a calendar date"),
@@ -207,7 +214,6 @@ public class MainFrame {
   void editTagUi(Tag tag) {
     new OkCancelDialog<>(frame_, new TagDialog.Edit(tagTree_.getData())).show(
       tag, newTag -> {
-        tagTree_.removeTree(tag);
         tagTree_.select(tagCtrl_.updateTag(tag, newTag));
       }
     );
@@ -256,8 +262,7 @@ public class MainFrame {
     if (tag == null) {
       thumbnails_.clear();
     } else {
-      app_.getDbAccess().refresh(tag);
-      thumbnails_.setData(List.copyOf(tag.getBlobs()));
+      thumbnails_.setData(List.copyOf(app_.getDbAccess().refresh(tag).getBlobs()));
     }
   }
 

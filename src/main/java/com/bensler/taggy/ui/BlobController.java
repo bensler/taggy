@@ -1,6 +1,5 @@
 package com.bensler.taggy.ui;
 
-import static com.bensler.decaf.util.function.ForEachMapperAdapter.forEachMapper;
 import static com.bensler.taggy.imprt.ImportController.TYPE_BIN_PREFIX;
 import static com.bensler.taggy.imprt.ImportController.TYPE_IMG_PREFIX;
 import static org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants.ORIENTATION_VALUE_ROTATE_270_CW;
@@ -19,6 +18,7 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -45,9 +45,9 @@ import org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants;
 import org.apache.commons.imaging.formats.tiff.taginfos.TagInfoAscii;
 
 import com.bensler.taggy.App;
-import com.bensler.taggy.persist.AutoCloseableTxn;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.DbAccess;
+import com.bensler.taggy.persist.EntityReference;
 import com.bensler.taggy.persist.Tag;
 
 
@@ -154,22 +154,27 @@ public class BlobController {
 
   public void deleteBlob(Blob blob) {
     final App app = App.getApp();
-
     final DbAccess db = app.getDbAccess();
-    final Set<Tag> tags = blob.getTags();
+    final Set<Tag> tags;
     final String blobSha256sum = blob.getSha256sum();
     final String thumbnailSha = blob.getThumbnailSha();
 
-    try (AutoCloseableTxn act = new AutoCloseableTxn(db.startTxn())) {
-      db.removeNoTxn(blob);
-      tags.stream()
-      .map(forEachMapper(tag -> tag.removeBlob(blob)))
-      .forEach(db::merge);
+    try {
+      try {
+        db.deleteNoTxn(blob);
+        tags = db.refreshAll(blob.getTags());
+        db.commit();
+      } catch (SQLException sqle) {
+        db.rollback();
+        throw new RuntimeException(sqle);
+      }
+      Optional.ofNullable(blobSha256sum).ifPresent(this::deleteFile);
+      Optional.ofNullable(thumbnailSha).ifPresent(this::deleteFile);
+      app.entityRemoved(blob);
+      app.entitiesChanged(tags);
+    } catch (Exception e) {
+      e.printStackTrace(); // TODO
     }
-    Optional.ofNullable(blobSha256sum).ifPresent(this::deleteFile);
-    Optional.ofNullable(thumbnailSha).ifPresent(this::deleteFile);
-    app.entityRemoved(blob);
-    app.entitiesChanged(tags);
   }
 
   private void deleteFile(String shasum) {
@@ -273,8 +278,8 @@ public class BlobController {
       .map(app.getTagCtrl()::getDateTag)
       .ifPresent(tags::add);
     Optional.ofNullable(initialTag).ifPresent(tags::add);
-//    metaData.put(PROPERTY_FILENAME, file.getName());
-    return app.storeEntity(new Blob(fileSha, thumbSha, type, metaData, tags));
+    metaData.put(PROPERTY_FILENAME, file.getName());
+    return app.storeEntity(new Blob(fileSha, thumbSha, type, metaData, EntityReference.createCollection(tags, new HashSet<>())));
   }
 
   private Optional<JpegImageMetadata> getMetaData(File srcFile) throws ImageReadException, IOException {
@@ -371,6 +376,17 @@ public class BlobController {
 
   public void addTags(List<Blob> blobs, Set<Tag> tags) {
     blobs.forEach(blob -> setTags(blob, Stream.concat(tags.stream(), blob.getTags().stream()).collect(Collectors.toSet())));
+  }
+
+  public List<Blob> findOrphanBlobs() {
+    final DbAccess dbAccess = App.getApp().getDbAccess();
+
+    try {
+      return dbAccess.resolveAll(dbAccess.findOrphanBlobs().stream().map(id -> new EntityReference<>(Blob.class, id)).toList(), new ArrayList<Blob>());
+    } catch (SQLException sqle) {
+      // TODO Auto-generated catch block
+      throw new RuntimeException(sqle);
+    }
   }
 
 }

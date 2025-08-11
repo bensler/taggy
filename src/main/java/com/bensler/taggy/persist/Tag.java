@@ -3,7 +3,9 @@ package com.bensler.taggy.persist;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
 import com.bensler.decaf.util.Named;
 import com.bensler.decaf.util.tree.Hierarchical;
@@ -11,79 +13,65 @@ import com.bensler.decaf.util.tree.Hierarchical;
 /**
  * Sample of an entity or business class having hierarchical nature.
  */
-public class Tag extends Object implements Hierarchical<Tag>, Named, Entity {
+public class Tag extends AbstractEntity<Tag> implements Hierarchical<Tag>, Named {
 
-    private Integer id_;
-    private Tag parent_;
-    private String name_;
-    private Set<Blob> blobs_;
-    private Map<TagProperty, String> properties_;
+  public static <R> R getProperty(Tag tag, Function<Tag, R> resultProvider) {
+    return Optional.ofNullable(tag).map(resultProvider).orElse(null);
+  }
 
-    Tag() {}
+  private EntityReference<Tag> parent_;
+  private String name_;
+  private Set<EntityReference<Blob>> blobs_;
+  private Map<TagProperty, String> properties_;
 
-    public Tag(Integer id) {
-      id_ = id;
-    }
+  public Tag(Tag parent, String name, Map<TagProperty, String> properties) {
+    this(null, getProperty(parent, EntityReference::new), name, properties, Set.of());
+  }
 
-    public Tag(final Tag parent, final String name, Map<TagProperty, String> properties) {
-      id_ = null;
-      parent_ = parent;
-      name_ = name;
-      blobs_ = new HashSet<>();
-      properties_ = new HashMap<>(properties);
-    }
+  public Tag(
+    Integer id, EntityReference<Tag> parent, String name,
+    Map<TagProperty, String> properties,
+    Set<EntityReference<Blob>> blobs
+  ) {
+    super(Tag.class, id);
+    parent_ = parent;
+    name_ = name;
+    properties_ = new HashMap<>(properties);
+    blobs_ = new HashSet<>(blobs);
+  }
 
-    @Override
-    public Integer getId() {
-      return id_;
-    }
+  @Override
+  public Tag getParent() {
+    return ((parent_ != null) ? parent_.resolve() : null);
+  }
 
-    @Override
-    public Tag getParent() {
-      return parent_;
-    }
+  @Override
+  public String getName() {
+    return name_;
+  }
 
-    @Override
-    public String getName() {
-      return name_;
-    }
+  public Set<Blob> getBlobs() {
+    return DbAccess.INSTANCE.get().resolveAll(blobs_, new HashSet<>());
+  }
 
-    public void setProperties(Tag parent, String name, Set<Blob> blobs) {
-      parent_ = parent;
-      name_ = name;
-      blobs_ = new HashSet<>(blobs);
-    }
+  public boolean removeBlob(Blob blob) {
+    return blobs_.remove(new EntityReference<>(blob));
+  }
 
-    public Set<Blob> getBlobs() {
-      return Set.copyOf(blobs_);
-    }
+  public String getProperty(TagProperty key) {
+    return properties_.get(key);
+  }
 
-    public boolean removeBlob(Blob blob) {
-      return blobs_.remove(blob);
-    }
+  public Set<TagProperty> getPropertyKeys() {
+    return Set.copyOf(properties_.keySet());
+  }
 
-    public String getProperty(TagProperty key) {
-      return properties_.get(key);
-    }
+  public boolean containsProperty(TagProperty key) {
+    return properties_.containsKey(key);
+  }
 
-    public boolean conatainsProperty(TagProperty key) {
-      return properties_.containsKey(key);
-    }
-
-    @Override
-    public String toString() {
-      return name_;
-    }
-
-    @Override
-    public int hashCode() {
-      return id_;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      return (obj instanceof Tag tag)
-      && (id_.equals(tag.id_));
-    }
+  public Map<TagProperty, String> getProperties() {
+    return Map.copyOf(properties_);
+  }
 
 }

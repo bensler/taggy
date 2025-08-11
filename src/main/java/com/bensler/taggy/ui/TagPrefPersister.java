@@ -7,6 +7,8 @@ import java.util.function.Supplier;
 import com.bensler.decaf.util.prefs.DelegatingPrefPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.Prefs;
+import com.bensler.taggy.persist.DbAccess;
+import com.bensler.taggy.persist.EntityReference;
 import com.bensler.taggy.persist.Tag;
 
 public class TagPrefPersister {
@@ -17,7 +19,7 @@ public class TagPrefPersister {
   ) {
     return new DelegatingPrefPersister(prefKey,
       () -> Optional.ofNullable(persist.get()).map(Tag::getId).map(String::valueOf),
-      value -> Prefs.tryParseInt(value).map(Tag::new).map(tagCtrl::resolveTag).ifPresent(apply)
+      value -> Prefs.tryParseInt(value).map(id -> DbAccess.INSTANCE.get().resolve(new EntityReference<>(Tag.class, id))).ifPresent(apply)
     );
   }
 

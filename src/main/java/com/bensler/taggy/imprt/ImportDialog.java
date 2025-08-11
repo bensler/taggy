@@ -8,6 +8,7 @@ import static com.bensler.decaf.util.prefs.DelegatingPrefPersister.createSplitPa
 import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -265,7 +266,7 @@ class ImportDialog extends JDialog {
           } else {
             fileToImport.setImportObstacle(null, null);
           }
-        } catch (IOException e) {
+        } catch (SQLException | IOException e) {
           // TODO Auto-generated catch block
           e.printStackTrace();
         }
