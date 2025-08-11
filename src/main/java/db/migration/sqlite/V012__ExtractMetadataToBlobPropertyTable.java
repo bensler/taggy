@@ -56,7 +56,7 @@ public class V012__ExtractMetadataToBlobPropertyTable extends BaseJavaMigration 
     private final ResultSet result_;
     private final Connection connection_;
 
-    Source(ResultSet pResult, Connection connection) throws SQLException {
+    Source(ResultSet pResult, Connection connection)  {
       result_ = pResult;
       connection_ = connection;
     }
