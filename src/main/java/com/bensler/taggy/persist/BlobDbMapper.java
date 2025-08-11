@@ -165,4 +165,28 @@ public class BlobDbMapper implements DbMapper<Blob> {
     return newId;
   }
 
+  public List<Integer> findOrphanBlobs() throws SQLException {
+    final List<Integer> ids = new ArrayList<>();
+
+    try (PreparedStatement stmt = DbAccess.INSTANCE.get().prepareStatement(
+      "SELECT b.id FROM Blob AS b "
+      + "LEFT JOIN blob_tag_xref btx ON btx.blob_id = b.id "
+      + "GROUP BY b.id "
+      + "HAVING COUNT(btx.tag_id) < 1");
+      ResultSet result = stmt.executeQuery()
+    ) {
+      while (result.next()) {
+        ids.add(result.getInt(1));
+      }
+    }
+    return ids;
+  }
+
+  public boolean doesBlobExist(String shaHash) throws SQLException {
+    try (PreparedStatement stmt = DbAccess.INSTANCE.get().prepareStatement("SELECT * FROM blob AS b WHERE b.sha256sum=? LIMIT 1")) {
+      stmt.setString(1, shaHash);
+      return stmt.executeQuery().next();
+    }
+  }
+
 }

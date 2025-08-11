@@ -261,7 +261,7 @@ class ImportDialog extends JDialog {
             fileToImport.setShaSum(shaSum);
             importController_.putShaSum(file, shaSum);
           }
-          if (db_.doesBlobExist(shaSum)) {
+          if (db_.getBlobDbMapper().doesBlobExist(shaSum)) {
             fileToImport.setImportObstacle(ImportObstacle.DUPLICATE, null);
           } else {
             fileToImport.setImportObstacle(null, null);

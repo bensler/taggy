@@ -382,7 +382,7 @@ public class BlobController {
     final DbAccess dbAccess = App.getApp().getDbAccess();
 
     try {
-      return dbAccess.resolveAll(dbAccess.findOrphanBlobs().stream().map(id -> new EntityReference<>(Blob.class, id)).toList(), new ArrayList<Blob>());
+      return dbAccess.resolveAll(dbAccess.getBlobDbMapper().findOrphanBlobs().stream().map(id -> new EntityReference<>(Blob.class, id)).toList(), new ArrayList<Blob>());
     } catch (SQLException sqle) {
       // TODO Auto-generated catch block
       throw new RuntimeException(sqle);

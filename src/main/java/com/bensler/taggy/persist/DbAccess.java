@@ -4,9 +4,7 @@ import static com.bensler.decaf.util.function.ForEachMapperAdapter.forEachMapper
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,6 +31,10 @@ public class DbAccess {
       Blob.class, new BlobDbMapper()
     );
     INSTANCE.set(this);
+  }
+
+  public BlobDbMapper getBlobDbMapper() {
+    return (BlobDbMapper)mapper_.get(Blob.class);
   }
 
   public <E extends Entity<E>> List<E> loadAll(Class<E> clazz) {
@@ -87,30 +89,6 @@ public class DbAccess {
     return resolve(ref);
   }
 
-  public List<Integer> findOrphanBlobs() throws SQLException {
-    final List<Integer> ids = new ArrayList<>();
-
-    try (PreparedStatement stmt = session_.prepareStatement(
-      "SELECT b.id FROM Blob AS b "
-      + "LEFT JOIN blob_tag_xref btx ON btx.blob_id = b.id "
-      + "GROUP BY b.id "
-      + "HAVING COUNT(btx.tag_id) < 1");
-      ResultSet result = stmt.executeQuery()
-    ) {
-      while (result.next()) {
-        ids.add(result.getInt(1));
-      }
-    }
-    return ids;
-  }
-
-  public boolean doesBlobExist(String shaHash) throws SQLException {
-    try (PreparedStatement stmt = session_.prepareStatement("SELECT * FROM blob AS b WHERE b.sha256sum=? LIMIT 1")) {
-      stmt.setString(1, shaHash);
-      return stmt.executeQuery().next();
-    }
-  }
-
   public <E extends Entity<E>> E load(EntityReference<E> reference) {
     final Class<E> entityClass = reference.getEntityClass();
     final List<?> entities = mapper_.get(entityClass).loadAll(session_, List.of(reference.getId()));
@@ -151,6 +129,10 @@ public class DbAccess {
     } catch (SQLException sqle) {
       throw new RuntimeException(sqle);
     }
+  }
+
+  public PreparedStatement prepareStatement(String sql) throws SQLException {
+    return session_.prepareStatement(sql);
   }
 
 }
