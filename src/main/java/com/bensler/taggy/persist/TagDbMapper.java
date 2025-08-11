@@ -127,25 +127,31 @@ public class TagDbMapper implements DbMapper<Tag> {
   }
 
   private void insertProperties(Connection con, Tag tag, Integer tagId) throws SQLException {
-    try (PreparedStatement stmt = con.prepareStatement("INSERT INTO tag_property (tag_id,name,value) VALUES (?,?,?)")) {
-      for (TagProperty property : tag.getPropertyKeys()) {
-        stmt.setInt(1, tagId);
-        stmt.setString(2, property.name());
-        stmt.setString(3, tag.getProperty(property));
-        stmt.addBatch();
+    final Set<TagProperty> propertyKeys = tag.getPropertyKeys();
+
+    if (!propertyKeys.isEmpty()) {
+      try (PreparedStatement stmt = con.prepareStatement("INSERT INTO tag_property (tag_id,name,value) VALUES (?,?,?)")) {
+        for (TagProperty property : propertyKeys) {
+          stmt.setInt(1, tagId);
+          stmt.setString(2, property.name());
+          stmt.setString(3, tag.getProperty(property));
+          stmt.addBatch();
+        }
+        stmt.executeBatch();
       }
-      stmt.executeBatch();
     }
   }
 
   private void insertBlobs(Connection con, Integer tagId, Collection<Blob> blobs) throws SQLException {
-    try (PreparedStatement stmt = con.prepareStatement("INSERT INTO blob_tag_xref (blob_id,tag_id) VALUES (?,?)")) {
-      for (Blob blob : blobs) {
-        stmt.setInt(1, blob.getId());
-        stmt.setInt(2, tagId);
-        stmt.addBatch();
+    if (!blobs.isEmpty()) {
+      try (PreparedStatement stmt = con.prepareStatement("INSERT INTO blob_tag_xref (blob_id,tag_id) VALUES (?,?)")) {
+        for (Blob blob : blobs) {
+          stmt.setInt(1, blob.getId());
+          stmt.setInt(2, tagId);
+          stmt.addBatch();
+        }
+        stmt.executeBatch();
       }
-      stmt.executeBatch();
     }
   }
 
