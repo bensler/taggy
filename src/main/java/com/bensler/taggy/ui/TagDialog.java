@@ -5,7 +5,6 @@ import static com.bensler.taggy.ui.MainFrame.ICON_EDIT_30;
 import static com.bensler.taggy.ui.MainFrame.ICON_PLUS_30;
 import static com.bensler.taggy.ui.MainFrame.ICON_TAG_48;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -23,12 +22,12 @@ import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.decaf.util.tree.Hierarchy;
 import com.bensler.taggy.App;
-import com.bensler.taggy.persist.EntityReference;
 import com.bensler.taggy.persist.Tag;
+import com.bensler.taggy.persist.TagDbMapper.TagHeadData;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
-public abstract class TagDialog<IN> extends BasicContentPanel<IN, Tag> {
+public abstract class TagDialog<IN, OUT> extends BasicContentPanel<IN, OUT> {
 
   protected final EntityTree<Tag> parentTag_;
   protected final JTextField nameTextfield_;
@@ -89,7 +88,7 @@ public abstract class TagDialog<IN> extends BasicContentPanel<IN, Tag> {
     return nameTextfield_.getText().trim();
   }
 
-  public static class Create extends TagDialog<Optional<Tag>> {
+  public static class Create extends TagDialog<Optional<Tag>, Tag> {
 
     public final static OverlayIcon ICON = new OverlayIcon(ICON_TAG_48, new Overlay(ICON_PLUS_30, SE));
 
@@ -110,7 +109,7 @@ public abstract class TagDialog<IN> extends BasicContentPanel<IN, Tag> {
 
   }
 
-  public static class Edit extends TagDialog<Tag> {
+  public static class Edit extends TagDialog<Tag, TagHeadData> {
 
     public static final OverlayIcon ICON = new OverlayIcon(ICON_TAG_48, new Overlay(ICON_EDIT_30, SE));
 
@@ -127,11 +126,8 @@ public abstract class TagDialog<IN> extends BasicContentPanel<IN, Tag> {
     }
 
     @Override
-    public Tag getData() {
-      return new Tag(
-        inData_.getId(), Tag.getProperty(parentTag_.getSingleSelection(), EntityReference::new), getNewName(),
-        inData_.getProperties(), EntityReference.createCollection(inData_.getBlobs(), new HashSet<>())
-      );
+    public TagHeadData getData() {
+      return new TagHeadData(inData_, parentTag_.getSingleSelection(), getNewName());
     }
 
   }

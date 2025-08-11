@@ -14,28 +14,30 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class BlobDbMapper implements DbMapper<Blob> {
+public class BlobDbMapper extends AbstractDbMapper<Blob> {
 
-  public BlobDbMapper() { }
-
-  @Override
-  public List<Blob> loadAll(Connection con) {
-    return loadAllBlobs(con, Set.of());
+  BlobDbMapper(DbAccess db) {
+    super(db);
   }
 
   @Override
-  public List<Blob> loadAll(Connection con, Collection<Integer> ids) {
-    return ids.isEmpty() ? List.of() : loadAllBlobs(con, ids);
+  public List<Blob> loadAll() {
+    return loadAllBlobs(Set.of());
   }
 
-  private List<Blob> loadAllBlobs(Connection con, Collection<Integer> ids) {
+  @Override
+  public List<Blob> loadAll(Collection<Integer> ids) {
+    return ids.isEmpty() ? List.of() : loadAllBlobs(ids);
+  }
+
+  private List<Blob> loadAllBlobs(Collection<Integer> ids) {
     final Map<Integer, Map<String, String>> properties = new HashMap<>();
     final Map<Integer, Set<EntityReference<Tag>>> tags = new HashMap<>();
     final List<Blob> blobs = new ArrayList<>();
 
     try {
       try (
-        PreparedStatement stmt = prepareStmt(con, "SELECT bp.blob_id, bp.name, bp.value FROM blob_property bp", ids, "bp.blob_id IN (%s)");
+        PreparedStatement stmt = prepareStmt("SELECT bp.blob_id, bp.name, bp.value FROM blob_property bp", ids, "bp.blob_id IN (%s)");
         ResultSet result = stmt.executeQuery()
       ) {
         while (result.next()) {
@@ -43,7 +45,7 @@ public class BlobDbMapper implements DbMapper<Blob> {
         }
       }
       try (
-        PreparedStatement stmt = prepareStmt(con, "SELECT btx.blob_id, btx.tag_id FROM blob_tag_xref btx", ids, "btx.blob_id IN (%s)");
+        PreparedStatement stmt = prepareStmt("SELECT btx.blob_id, btx.tag_id FROM blob_tag_xref btx", ids, "btx.blob_id IN (%s)");
         ResultSet result = stmt.executeQuery()
       ) {
         while (result.next()) {
@@ -51,7 +53,7 @@ public class BlobDbMapper implements DbMapper<Blob> {
         }
       }
       try (
-        PreparedStatement stmt = prepareStmt(con, "SELECT b.id, b.sha256sum, b.thumbnail_sha, b.type FROM blob b", ids, "b.id IN (%s)");
+        PreparedStatement stmt = prepareStmt("SELECT b.id, b.sha256sum, b.thumbnail_sha, b.type FROM blob b", ids, "b.id IN (%s)");
         ResultSet result = stmt.executeQuery()
       ) {
         while (result.next()) {
@@ -70,9 +72,9 @@ public class BlobDbMapper implements DbMapper<Blob> {
     }
   }
 
-  private PreparedStatement prepareStmt(Connection con, String sql, Collection<Integer> ids, String whereClause) throws SQLException {
+  private PreparedStatement prepareStmt(String sql, Collection<Integer> ids, String whereClause) throws SQLException {
     final List<Integer> idList = List.copyOf(ids);
-    final PreparedStatement stmt = con.prepareStatement(sql + (idList.isEmpty() ? "" : " WHERE " + whereClause.formatted(
+    final PreparedStatement stmt = db_.session_.prepareStatement(sql + (idList.isEmpty() ? "" : " WHERE " + whereClause.formatted(
       IntStream.range(0, idList.size()).mapToObj(id -> "?").collect(Collectors.joining(","))
     )));
 
@@ -87,15 +89,16 @@ public class BlobDbMapper implements DbMapper<Blob> {
   }
 
   @Override
-  public void remove(Connection con, Integer id) throws SQLException {
-    try (PreparedStatement stmt = con.prepareStatement("DELETE FROM blob WHERE id=?")) {
+  public void remove(Integer id) throws SQLException {
+    try (PreparedStatement stmt = db_.session_.prepareStatement("DELETE FROM blob WHERE id=?")) {
       stmt.setInt(1, id);
       stmt.execute();
     }
   }
 
   @Override
-  public void update(Connection con, Blob blob) throws SQLException {
+  public void update(Blob blob) throws SQLException {
+    final Connection con = db_.session_;
     final Integer blobId = blob.getId();
 
     try (PreparedStatement stmt = con.prepareStatement("UPDATE blob SET (sha256sum,thumbnail_sha,type)=(?,?,?) WHERE id=?")) {
@@ -109,19 +112,19 @@ public class BlobDbMapper implements DbMapper<Blob> {
       stmt.setInt(1, blobId);
       stmt.execute();
     }
-    insertProperties(con, blob, blob.getId());
+    insertProperties(blob, blob.getId());
     try (PreparedStatement stmt = con.prepareStatement("DELETE FROM blob_tag_xref WHERE blob_id=?")) {
       stmt.setInt(1, blobId);
       stmt.execute();
     }
-    insertTags(con, blobId, blob.getTags());
+    insertTags(blobId, blob.getTags());
   }
 
-  private void insertProperties(Connection con, Blob blob, Integer blobId) throws SQLException {
+  private void insertProperties(Blob blob, Integer blobId) throws SQLException {
     final Set<String> propertyNames = blob.getPropertyNames();
 
     if (!propertyNames.isEmpty()) {
-      try (PreparedStatement stmt = con.prepareStatement("INSERT INTO blob_property (blob_id,name,value) VALUES (?,?,?)")) {
+      try (PreparedStatement stmt = db_.session_.prepareStatement("INSERT INTO blob_property (blob_id,name,value) VALUES (?,?,?)")) {
         for (String propName : propertyNames) {
           stmt.setInt(1, blobId);
           stmt.setString(2, propName);
@@ -133,9 +136,9 @@ public class BlobDbMapper implements DbMapper<Blob> {
     }
   }
 
-  private void insertTags(Connection con, Integer blobId, Collection<Tag> tags) throws SQLException {
+  private void insertTags(Integer blobId, Collection<Tag> tags) throws SQLException {
     if (!tags.isEmpty()) {
-      try (PreparedStatement stmt = con.prepareStatement("INSERT INTO blob_tag_xref (blob_id,tag_id) VALUES (?,?)")) {
+      try (PreparedStatement stmt = db_.session_.prepareStatement("INSERT INTO blob_tag_xref (blob_id,tag_id) VALUES (?,?)")) {
         for (Tag tag : tags) {
           stmt.setInt(1, blobId);
           stmt.setInt(2, tag.getId());
@@ -147,10 +150,10 @@ public class BlobDbMapper implements DbMapper<Blob> {
   }
 
   @Override
-  public Integer insert(Connection con, Blob blob) throws SQLException {
+  public Integer insert(Blob blob) throws SQLException {
     final Integer newId;
 
-    try (PreparedStatement stmt = con.prepareStatement("INSERT INTO blob (sha256sum,thumbnail_sha,type) VALUES (?,?,?)")) {
+    try (PreparedStatement stmt = db_.session_.prepareStatement("INSERT INTO blob (sha256sum,thumbnail_sha,type) VALUES (?,?,?)")) {
       stmt.setString(1, blob.getSha256sum());
       stmt.setString(2, blob.getThumbnailSha());
       stmt.setString(3, blob.getType());
@@ -160,8 +163,8 @@ public class BlobDbMapper implements DbMapper<Blob> {
         newId = ids.getInt(1);
       }
     }
-    insertProperties(con, blob, newId);
-    insertTags(con, newId, blob.getTags());
+    insertProperties(blob, newId);
+    insertTags(newId, blob.getTags());
     return newId;
   }
 

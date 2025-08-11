@@ -18,17 +18,17 @@ public class DbAccess {
 
   public final static ThreadLocal<DbAccess> INSTANCE = ThreadLocal.withInitial(() -> App.getApp().getDbAccess());
 
-  private final Connection session_;
-
   private final Map<EntityReference<?>, Entity<?>> entityCache_;
   private final Map<Class<?>, DbMapper<?>> mapper_;
+
+  final Connection session_;
 
   public DbAccess(Connection session) throws SQLException {
     (session_ = session).setAutoCommit(false);
     entityCache_ = new HashMap<>();
     mapper_ = Map.of(
-      Tag.class, new TagDbMapper(),
-      Blob.class, new BlobDbMapper()
+      Tag.class, new TagDbMapper(this),
+      Blob.class, new BlobDbMapper(this)
     );
     INSTANCE.set(this);
   }
@@ -37,8 +37,12 @@ public class DbAccess {
     return (BlobDbMapper)mapper_.get(Blob.class);
   }
 
+  public TagDbMapper getTagDbMapper() {
+    return (TagDbMapper)mapper_.get(Tag.class);
+  }
+
   public <E extends Entity<E>> List<E> loadAll(Class<E> clazz) {
-    return mapper_.get(clazz).loadAll(session_).stream()
+    return mapper_.get(clazz).loadAll().stream()
       .map(clazz::cast)
       .map(forEachMapper(entity -> entityCache_.put(new EntityReference<>(entity), entity)))
       .toList();
@@ -46,7 +50,7 @@ public class DbAccess {
 
   public void deleteNoTxn(Entity<?> entity) {
     try {
-      mapper_.get(entity.getEntityClass()).remove(session_, entity.getId());
+      mapper_.get(entity.getEntityClass()).remove(entity.getId());
     } catch (SQLException sqle) {
       throw new RuntimeException(sqle);
     }
@@ -75,11 +79,11 @@ public class DbAccess {
 
     try {
       if (entity.hasId()) {
-        mapper.update(session_, entity);
+        mapper.update(entity);
         ref = new EntityReference<>(entity);
         entityCache_.remove(ref);
       } else {
-        ref = new EntityReference<>(entityClass, mapper.insert(session_, entity));
+        ref = new EntityReference<>(entityClass, mapper.insert(entity));
       }
       commit();
     } catch (SQLException sqle) {
@@ -91,7 +95,7 @@ public class DbAccess {
 
   public <E extends Entity<E>> E load(EntityReference<E> reference) {
     final Class<E> entityClass = reference.getEntityClass();
-    final List<?> entities = mapper_.get(entityClass).loadAll(session_, List.of(reference.getId()));
+    final List<?> entities = mapper_.get(entityClass).loadAll(List.of(reference.getId()));
 
     return (!entities.isEmpty() ? entityClass.cast(entities.get(0)) : null);
   }
@@ -109,7 +113,7 @@ public class DbAccess {
     Class<ENTITY> entityClass, CIN references, COUT collector
   ) {
     collector.addAll(mapper_.get(entityClass).loadAll(
-      session_, references.stream().map(EntityReference::getId).toList()
+      references.stream().map(EntityReference::getId).toList()
     ).stream().map(entityClass::cast).toList());
   }
 

@@ -14,28 +14,43 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class TagDbMapper implements DbMapper<Tag> {
+public class TagDbMapper extends AbstractDbMapper<Tag> {
 
-  public TagDbMapper() { }
+  public static class TagHeadData {
 
-  @Override
-  public List<Tag> loadAll(Connection con) {
-    return loadAllTags(con, Set.of());
+    final Tag subject_;
+    final Tag parent_;
+    final String name_;
+
+    public TagHeadData(Tag subject, Tag parent, String name) {
+      subject_ = subject;
+      parent_ = parent;
+      name_ = name;
+    }
+  }
+
+  TagDbMapper(DbAccess db) {
+    super(db);
   }
 
   @Override
-  public List<Tag> loadAll(Connection con, Collection<Integer> ids) {
-    return ids.isEmpty() ? List.of() : loadAllTags(con, ids);
+  public List<Tag> loadAll() {
+    return loadAllTags(Set.of());
   }
 
-  private List<Tag> loadAllTags(Connection con, Collection<Integer> ids) {
+  @Override
+  public List<Tag> loadAll(Collection<Integer> ids) {
+    return ids.isEmpty() ? List.of() : loadAllTags(ids);
+  }
+
+  private List<Tag> loadAllTags(Collection<Integer> ids) {
     final Map<Integer, Map<TagProperty, String>> properties = new HashMap<>();
     final Map<Integer, Set<EntityReference<Blob>>> blobs = new HashMap<>();
     final List<Tag> tags = new ArrayList<>();
 
     try {
       try (
-        PreparedStatement stmt = prepareStmt(con, "SELECT tp.tag_id, tp.name, tp.value FROM tag_property tp", ids, "tp.tag_id IN (%s)");
+        PreparedStatement stmt = prepareStmt("SELECT tp.tag_id, tp.name, tp.value FROM tag_property tp", ids, "tp.tag_id IN (%s)");
         ResultSet result = stmt.executeQuery()
       ) {
         while (result.next()) {
@@ -43,7 +58,7 @@ public class TagDbMapper implements DbMapper<Tag> {
         }
       }
       try (
-        PreparedStatement stmt = prepareStmt(con, "SELECT btx.tag_id, btx.blob_id FROM blob_tag_xref btx", ids, "btx.tag_id IN (%s)");
+        PreparedStatement stmt = prepareStmt("SELECT btx.tag_id, btx.blob_id FROM blob_tag_xref btx", ids, "btx.tag_id IN (%s)");
         ResultSet result = stmt.executeQuery()
       ) {
         while (result.next()) {
@@ -51,7 +66,7 @@ public class TagDbMapper implements DbMapper<Tag> {
         }
       }
       try (
-        PreparedStatement stmt = prepareStmt(con, "SELECT t.id, t.name, t.parent_id FROM tag t", ids, "t.id IN (%s)");
+        PreparedStatement stmt = prepareStmt("SELECT t.id, t.name, t.parent_id FROM tag t", ids, "t.id IN (%s)");
         ResultSet result = stmt.executeQuery()
       ) {
         while (result.next()) {
@@ -72,9 +87,9 @@ public class TagDbMapper implements DbMapper<Tag> {
     }
   }
 
-  private PreparedStatement prepareStmt(Connection con, String sql, Collection<Integer> ids, String whereClause) throws SQLException {
+  private PreparedStatement prepareStmt(String sql, Collection<Integer> ids, String whereClause) throws SQLException {
     final List<Integer> idList = List.copyOf(ids);
-    final PreparedStatement stmt = con.prepareStatement(sql + (idList.isEmpty() ? "" : " WHERE " + whereClause.formatted(
+    final PreparedStatement stmt = db_.session_.prepareStatement(sql + (idList.isEmpty() ? "" : " WHERE " + whereClause.formatted(
       IntStream.range(0, idList.size()).mapToObj(id -> "?").collect(Collectors.joining(","))
     )));
 
@@ -89,48 +104,58 @@ public class TagDbMapper implements DbMapper<Tag> {
   }
 
   @Override
-  public void remove(Connection con, Integer id) throws SQLException {
-    try (PreparedStatement stmt = con.prepareStatement("DELETE FROM tag WHERE id=?")) {
+  public void remove(Integer id) throws SQLException {
+    try (PreparedStatement stmt = db_.session_.prepareStatement("DELETE FROM tag WHERE id=?")) {
       stmt.setInt(1, id);
       stmt.execute();
     }
   }
 
-  private void setParentId(Tag tag, PreparedStatement stmt, int index) throws SQLException {
-    final Integer parentId = Tag.getProperty(tag.getParent(), Tag::getId);
+  private void setParentId(Tag parentTag, PreparedStatement stmt, int index) throws SQLException {
+    final Integer parentId = Tag.getProperty(parentTag, Tag::getId);
 
     if (parentId != null) {
-      stmt.setInt(index, Tag.getProperty(tag.getParent(), Tag::getId));
+      stmt.setInt(index, parentId);
+    }
+  }
+
+  public Tag updateHeadData(TagHeadData tagHeadData) throws SQLException {
+    updateHeadData(tagHeadData.subject_.getId(), tagHeadData.parent_, tagHeadData.name_);
+    return db_.refresh(tagHeadData.subject_);
+  }
+
+  private void updateHeadData(Integer tagId, Tag parent, String name) throws SQLException {
+    try (PreparedStatement stmt = db_.session_.prepareStatement("UPDATE tag SET (name,parent_id)=(?,?) WHERE id=?")) {
+      stmt.setString(1, name);
+      setParentId(parent, stmt, 2);
+      stmt.setInt(3, tagId);
+      stmt.execute();
     }
   }
 
   @Override
-  public void update(Connection con, Tag tag) throws SQLException {
+  public void update(Tag tag) throws SQLException {
+    final Connection con = db_.session_;
     final Integer tagId = tag.getId();
 
-    try (PreparedStatement stmt = con.prepareStatement("UPDATE tag SET (name,parent_id)=(?,?) WHERE id=?")) {
-      stmt.setString(1, tag.getName());
-      setParentId(tag, stmt, 2);
-      stmt.setInt(3, tagId);
-      stmt.execute();
-    }
+    updateHeadData(tagId, tag.getParent(), tag.getName());
     try (PreparedStatement stmt = con.prepareStatement("DELETE FROM tag_property WHERE tag_id=?")) {
       stmt.setInt(1, tagId);
       stmt.execute();
     }
-    insertProperties(con, tag, tagId);
+    insertProperties(tag, tagId);
     try (PreparedStatement stmt = con.prepareStatement("DELETE FROM blob_tag_xref WHERE tag_id=?")) {
       stmt.setInt(1, tagId);
       stmt.execute();
     }
-    insertBlobs(con, tagId, tag.getBlobs());
+    insertBlobs(tagId, tag.getBlobs());
   }
 
-  private void insertProperties(Connection con, Tag tag, Integer tagId) throws SQLException {
+  private void insertProperties(Tag tag, Integer tagId) throws SQLException {
     final Set<TagProperty> propertyKeys = tag.getPropertyKeys();
 
     if (!propertyKeys.isEmpty()) {
-      try (PreparedStatement stmt = con.prepareStatement("INSERT INTO tag_property (tag_id,name,value) VALUES (?,?,?)")) {
+      try (PreparedStatement stmt = db_.session_.prepareStatement("INSERT INTO tag_property (tag_id,name,value) VALUES (?,?,?)")) {
         for (TagProperty property : propertyKeys) {
           stmt.setInt(1, tagId);
           stmt.setString(2, property.name());
@@ -142,9 +167,9 @@ public class TagDbMapper implements DbMapper<Tag> {
     }
   }
 
-  private void insertBlobs(Connection con, Integer tagId, Collection<Blob> blobs) throws SQLException {
+  private void insertBlobs(Integer tagId, Collection<Blob> blobs) throws SQLException {
     if (!blobs.isEmpty()) {
-      try (PreparedStatement stmt = con.prepareStatement("INSERT INTO blob_tag_xref (blob_id,tag_id) VALUES (?,?)")) {
+      try (PreparedStatement stmt = db_.session_.prepareStatement("INSERT INTO blob_tag_xref (blob_id,tag_id) VALUES (?,?)")) {
         for (Blob blob : blobs) {
           stmt.setInt(1, blob.getId());
           stmt.setInt(2, tagId);
@@ -156,20 +181,20 @@ public class TagDbMapper implements DbMapper<Tag> {
   }
 
   @Override
-  public Integer insert(Connection con, Tag tag) throws SQLException {
+  public Integer insert(Tag tag) throws SQLException {
     final Integer newId;
 
-    try (PreparedStatement stmt = con.prepareStatement("INSERT INTO tag (name,parent_id) VALUES (?,?)")) {
+    try (PreparedStatement stmt = db_.session_.prepareStatement("INSERT INTO tag (name,parent_id) VALUES (?,?)")) {
       stmt.setString(1, tag.getName());
-      setParentId(tag, stmt, 2);
+      setParentId(tag.getParent(), stmt, 2);
       stmt.execute();
       try (ResultSet ids = stmt.getGeneratedKeys()) {
         ids.next();
         newId = ids.getInt(1);
       }
     }
-    insertProperties(con, tag, newId);
-    insertBlobs(con, newId, tag.getBlobs());
+    insertProperties(tag, newId);
+    insertBlobs(newId, tag.getBlobs());
     return newId;
   }
 

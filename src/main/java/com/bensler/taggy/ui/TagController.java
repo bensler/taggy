@@ -21,6 +21,7 @@ import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.persist.Tag;
+import com.bensler.taggy.persist.TagDbMapper.TagHeadData;
 
 public class TagController {
 
@@ -119,13 +120,17 @@ public class TagController {
     return createdTag;
   }
 
-  Tag updateTag(Tag tag, Tag updatedTag) {
-    final Tag editedTag;
+  Tag updateTag(TagHeadData tagHeadData) {
+    try {
+      final Tag editedTag = app_.getDbAccess().getTagDbMapper().updateHeadData(tagHeadData);
 
-    allTags_.removeNode(tag);
-    editedTag = app_.storeEntity(updatedTag);
-    allTags_.add(editedTag);
-    return editedTag;
+      allTags_.add(editedTag);
+      app_.entityChanged(editedTag);
+      allTags_.add(editedTag);
+      return editedTag;
+    } catch (SQLException sqle) {
+      throw new RuntimeException(sqle);
+    }
   }
 
   boolean isLeaf(Tag tag) {
