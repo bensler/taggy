@@ -116,10 +116,12 @@ public class TagDbMapper implements DbMapper<Tag> {
     }
     try (PreparedStatement stmt = con.prepareStatement("DELETE FROM tag_property WHERE tag_id=?")) {
       stmt.setInt(1, tagId);
+      stmt.execute();
     }
     insertProperties(con, tag, tagId);
     try (PreparedStatement stmt = con.prepareStatement("DELETE FROM blob_tag_xref WHERE tag_id=?")) {
       stmt.setInt(1, tagId);
+      stmt.execute();
     }
     insertBlobs(con, tagId, tag.getBlobs());
   }

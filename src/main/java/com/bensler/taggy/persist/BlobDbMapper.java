@@ -107,10 +107,12 @@ public class BlobDbMapper implements DbMapper<Blob> {
     }
     try (PreparedStatement stmt = con.prepareStatement("DELETE FROM blob_property WHERE blob_id=?")) {
       stmt.setInt(1, blobId);
+      stmt.execute();
     }
     insertProperties(con, blob, blob.getId());
     try (PreparedStatement stmt = con.prepareStatement("DELETE FROM blob_tag_xref WHERE blob_id=?")) {
       stmt.setInt(1, blobId);
+      stmt.execute();
     }
     insertTags(con, blobId, blob.getTags());
   }
