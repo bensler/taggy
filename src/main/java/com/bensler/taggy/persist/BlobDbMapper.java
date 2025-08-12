@@ -58,12 +58,14 @@ public class BlobDbMapper extends AbstractDbMapper<Blob> {
       ) {
         while (result.next()) {
           final Integer blobId = result.getInt(1);
-
-          blobs.add(new Blob(
+          final Blob blob = new Blob(
             blobId, result.getString(2), result.getString(3), result.getString(4),
             properties.computeIfAbsent(blobId, lBlobId -> Map.of()),
             tags.computeIfAbsent(blobId, lBlobId -> Set.of())
-          ));
+          );
+
+          db_.addToCache(blob);
+          blobs.add(blob);
         }
         return blobs;
       }

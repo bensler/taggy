@@ -72,13 +72,15 @@ public class TagDbMapper extends AbstractDbMapper<Tag> {
         while (result.next()) {
           final Integer tagId = result.getInt(1);
           final Integer parentId = (Integer)result.getObject(3);
-
-          tags.add(new Tag(
+          final Tag tag = new Tag(
             tagId, ((parentId != null) ? new EntityReference<>(Tag.class, parentId) : null),
             result.getString(2),
             properties.computeIfAbsent(tagId, lTagId -> Map.of()),
             blobs.computeIfAbsent(tagId, lTagId -> Set.of())
-          ));
+          );
+
+          db_.addToCache(tag);
+          tags.add(tag);
         }
         return tags;
       }

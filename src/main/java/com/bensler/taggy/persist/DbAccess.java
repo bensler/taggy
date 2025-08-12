@@ -48,6 +48,10 @@ public class DbAccess {
       .toList();
   }
 
+  public <E extends Entity<E>> void addToCache(E entity) {
+    entityCache_.put(new EntityReference<>(entity), entity);
+  }
+
   public void deleteNoTxn(Entity<?> entity) {
     try {
       mapper_.get(entity.getEntityClass()).remove(entity.getId());
