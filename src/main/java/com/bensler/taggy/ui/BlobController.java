@@ -279,7 +279,7 @@ public class BlobController {
       .ifPresent(tags::add);
     Optional.ofNullable(initialTag).ifPresent(tags::add);
     metaData.put(PROPERTY_FILENAME, file.getName());
-    return app.storeEntity(new Blob(fileSha, thumbSha, type, metaData, EntityReference.createCollection(tags, new HashSet<>())));
+    return app.storeEntity(new Blob(null, fileSha, thumbSha, type, metaData, EntityReference.createCollection(tags, new HashSet<>())));
   }
 
   private Optional<JpegImageMetadata> getMetaData(File srcFile) throws ImageReadException, IOException {

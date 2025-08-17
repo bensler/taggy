@@ -19,10 +19,10 @@ public class Tag extends AbstractEntity<Tag> implements Hierarchical<Tag>, Named
     return Optional.ofNullable(tag).map(resultProvider).orElse(null);
   }
 
-  private EntityReference<Tag> parent_;
-  private String name_;
-  private Set<EntityReference<Blob>> blobs_;
-  private Map<TagProperty, String> properties_;
+  private final EntityReference<Tag> parent_;
+  private final String name_;
+  private final Set<EntityReference<Blob>> blobs_;
+  private final Map<TagProperty, String> properties_;
 
   public Tag(Tag parent, String name, Map<TagProperty, String> properties) {
     this(null, getProperty(parent, EntityReference::new), name, properties, Set.of());
@@ -52,10 +52,6 @@ public class Tag extends AbstractEntity<Tag> implements Hierarchical<Tag>, Named
 
   public Set<Blob> getBlobs() {
     return DbAccess.INSTANCE.get().resolveAll(blobs_, new HashSet<>());
-  }
-
-  public boolean removeBlob(Blob blob) {
-    return blobs_.remove(new EntityReference<>(blob));
   }
 
   public String getProperty(TagProperty key) {

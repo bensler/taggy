@@ -18,17 +18,8 @@ public class Blob extends AbstractEntity<Blob> {
   private final String thumbnailSha_;
   private final String type_;
 
+  private final Map<String, String> properties_;
   private Set<EntityReference<Tag>> tags_;
-  private Map<String, String> properties_;
-
-  /** Hibernate needs this empty constructor */
-  Blob() {
-    this(null, null, null, Map.of(), Set.of());
-  }
-
-  public Blob(String shaSum, String thumbnailSha, String type, Map<String, String> metaData, Set<EntityReference<Tag>> tags) {
-    this(null, shaSum, thumbnailSha, type, metaData, tags);
-  }
 
   public Blob(Integer id, String shaSum, String thumbnailSha, String type, Map<String, String> metaData, Set<EntityReference<Tag>> tags) {
     super(Blob.class, id);
@@ -63,10 +54,6 @@ public class Blob extends AbstractEntity<Blob> {
     tags_ = EntityReference.createCollection(tags, new HashSet<>());
   }
 
-  public boolean removeTag(Tag tag) {
-    return tags_.remove(new EntityReference<>(tag));
-  }
-
   public Hierarchy<Tag> getTagHierarchy() {
     final Hierarchy<Tag> tagHierarchy = new Hierarchy<>();
 
@@ -94,10 +81,6 @@ public class Blob extends AbstractEntity<Blob> {
 
   public String getProperty(String name) {
     return properties_.get(name);
-  }
-
-  public void removeProperty(String name) {
-    properties_.remove(name);
   }
 
   public void addProperty(String name, String value) {
