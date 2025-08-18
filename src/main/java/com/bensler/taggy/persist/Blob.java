@@ -19,7 +19,7 @@ public class Blob extends AbstractEntity<Blob> {
   private final String type_;
 
   private final Map<String, String> properties_;
-  private Set<EntityReference<Tag>> tags_;
+  private final Set<EntityReference<Tag>> tags_;
 
   public Blob(Integer id, String shaSum, String thumbnailSha, String type, Map<String, String> metaData, Set<EntityReference<Tag>> tags) {
     super(Blob.class, id);
@@ -48,10 +48,6 @@ public class Blob extends AbstractEntity<Blob> {
 
   public boolean isUntagged() {
     return tags_.isEmpty();
-  }
-
-  public void setTags(Set<Tag> tags) {
-    tags_ = EntityReference.createCollection(tags, new HashSet<>());
   }
 
   public Hierarchy<Tag> getTagHierarchy() {

@@ -16,12 +16,12 @@ public class TagDbMapper extends AbstractDbMapper<Tag> {
 
   public static class TagHeadData {
 
-    final Tag subject_;
+    final EntityReference<Tag> subject_;
     final Tag parent_;
     final String name_;
 
     public TagHeadData(Tag subject, Tag parent, String name) {
-      subject_ = subject;
+      subject_ = new EntityReference<>(subject);
       parent_ = parent;
       name_ = name;
     }

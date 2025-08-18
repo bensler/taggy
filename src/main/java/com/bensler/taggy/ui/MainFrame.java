@@ -48,6 +48,7 @@ import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
+import com.bensler.taggy.persist.EntityReference;
 import com.bensler.taggy.persist.Tag;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -254,13 +255,13 @@ public class MainFrame {
     return slideshowFrame_;
   }
 
-  public void displayThumbnailsOfSelectedTag() {
+  void displayThumbnailsOfSelectedTag() {
     final Tag tag = tagTree_.getSingleSelection();
 
     if (tag == null) {
       thumbnails_.clear();
     } else {
-      thumbnails_.setData(List.copyOf(app_.getDbAccess().refresh(tag).getBlobs()));
+      thumbnails_.setData(List.copyOf(app_.getDbAccess().refresh(new EntityReference<>(tag)).getBlobs()));
     }
   }
 

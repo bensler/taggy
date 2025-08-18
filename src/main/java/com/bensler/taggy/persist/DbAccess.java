@@ -60,18 +60,16 @@ public class DbAccess {
     }
   }
 
-  public <E extends Entity<E>> E refresh(E entity) {
-    final EntityReference<E> reference = new EntityReference<>(entity);
-
-    entityCache_.remove(reference);
-    return resolve(reference);
+  public <E extends Entity<E>> E refresh(EntityReference<E> entityRef) {
+    entityCache_.remove(entityRef);
+    return resolve(entityRef);
   }
 
   public <E extends Entity<E>> Set<E> refreshAll(Collection<E> entities) {
     final Set<E> result = new HashSet<>();
 
     if (!entities.isEmpty()) {
-      resolveAll(entities.stream().map(entity -> new EntityReference<>(entity)).toList(), result);
+      loadAll(entities.stream().map(entity -> new EntityReference<>(entity)).toList(), result);
     }
     return result ;
   }
@@ -107,13 +105,28 @@ public class DbAccess {
   public <ENTITY extends Entity<ENTITY>, CIN extends Collection<EntityReference<ENTITY>>, COUT extends Collection<ENTITY>> COUT resolveAll(
     CIN references, COUT collector
   ) {
+    final Set<EntityReference<ENTITY>> toLoad = new HashSet<>();
+
+    for (EntityReference<ENTITY> ref : references) {
+      if (entityCache_.containsKey(ref)) {
+        collector.add(ref.getEntityClass().cast(entityCache_.get(ref)));
+      } else {
+        toLoad.add(ref);
+      }
+    };
+    return loadAll(toLoad, collector);
+  }
+
+  public <ENTITY extends Entity<ENTITY>, CIN extends Collection<EntityReference<ENTITY>>, COUT extends Collection<ENTITY>> COUT loadAll(
+    CIN references, COUT collector
+  ) {
     if (!references.isEmpty()) {
       loadAll(references.iterator().next().getEntityClass(), references, collector);
     }
     return collector;
   }
 
-  public <ENTITY extends Entity<ENTITY>, CIN extends Collection<EntityReference<ENTITY>>, COUT extends Collection<ENTITY>> void loadAll(
+  <ENTITY extends Entity<ENTITY>, CIN extends Collection<EntityReference<ENTITY>>, COUT extends Collection<ENTITY>> void loadAll(
     Class<ENTITY> entityClass, CIN references, COUT collector
   ) {
     collector.addAll(mapper_.get(entityClass).loadAll(

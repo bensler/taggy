@@ -366,12 +366,23 @@ public class BlobController {
     }
   }
 
-  public void setTags(Blob blob, Set<Tag> tags) {
+  public void setTags(Blob blob, Set<Tag> newTags) {
     final App app = App.getApp();
+    final DbAccess db = app.getDbAccess();
+    final Set<Tag> oldTags = blob.getTags();
+    final List<Tag> affectedTags = Stream.of(oldTags, newTags).flatMap(Set::stream)
+      .filter(tag -> oldTags.contains(tag) ^ newTags.contains(tag)).toList();
 
-    blob.setTags(tags);
-    app.storeEntity(blob);
-    app.getMainFrame().displayThumbnailsOfSelectedTag();
+    try {
+      final Blob newBlob = db.getBlobDbMapper().setTags(new EntityReference<>(blob), newTags);
+      final Set<Tag> updatedTags = db.refreshAll(affectedTags);
+
+      app.entityChanged(newBlob);
+      app.entitiesChanged(updatedTags);
+    } catch (SQLException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
   }
 
   public void addTags(List<Blob> blobs, Set<Tag> tags) {

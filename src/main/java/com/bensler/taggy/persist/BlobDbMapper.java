@@ -97,11 +97,15 @@ public class BlobDbMapper extends AbstractDbMapper<Blob> {
       stmt.execute();
     }
     insertProperties(blob, blob.getId());
-    try (PreparedStatement stmt = con.prepareStatement("DELETE FROM blob_tag_xref WHERE blob_id=?")) {
+    updateTags(blobId, blob.getTags());
+  }
+
+  private void updateTags(Integer blobId, Set<Tag> tags) throws SQLException {
+    try (PreparedStatement stmt = db_.session_.prepareStatement("DELETE FROM blob_tag_xref WHERE blob_id=?")) {
       stmt.setInt(1, blobId);
       stmt.execute();
     }
-    insertTags(blobId, blob.getTags());
+    insertTags(blobId, tags);
   }
 
   private void insertProperties(Blob blob, Integer blobId) throws SQLException {
@@ -174,6 +178,11 @@ public class BlobDbMapper extends AbstractDbMapper<Blob> {
       stmt.setString(1, shaHash);
       return stmt.executeQuery().next();
     }
+  }
+
+  public Blob setTags(EntityReference<Blob> blobRef, Set<Tag> tags) throws SQLException {
+    updateTags(blobRef.getId(), tags);
+    return db_.refresh(blobRef);
   }
 
 }
