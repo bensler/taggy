@@ -226,7 +226,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     return Optional.empty();
   }
 
-  public void setData(List<Blob> data) {
+  public void setData(Collection<Blob> data) {
     blobs_.clear();
     images_.clear();
     clearSelection();

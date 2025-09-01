@@ -94,18 +94,12 @@ public class TagController {
     final Set<Blob> blobs;
     final DbAccess db = app_.getDbAccess();
 
-    try {
-      db.deleteNoTxn(tag);
-      blobs = db.refreshAll(tag.getBlobs());
-      db.commit();
-      app_.entityRemoved(tag);
-      app_.entitiesChanged(blobs);
-      allTags_.removeNode(tag);
-      Optional.ofNullable(tag.getProperty(REPRESENTED_DATE)).ifPresent(dateTags_::remove);
-    } catch (SQLException sqle) {
-      db.rollback();
-      throw new RuntimeException(sqle);
-    }
+    db.runInTxn(() -> db.deleteNoTxn(tag));
+    blobs = db.refreshAll(tag.getBlobs());
+    app_.entityRemoved(tag);
+    app_.entitiesChanged(blobs);
+    allTags_.removeNode(tag);
+    Optional.ofNullable(tag.getProperty(REPRESENTED_DATE)).ifPresent(dateTags_::remove);
   }
 
   Tag persistNewTag(Tag newTag) {

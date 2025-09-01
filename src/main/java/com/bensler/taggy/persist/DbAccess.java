@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import com.bensler.taggy.App;
 
@@ -52,12 +53,8 @@ public class DbAccess {
     entityCache_.put(new EntityReference<>(entity), entity);
   }
 
-  public void deleteNoTxn(Entity<?> entity) {
-    try {
-      mapper_.get(entity.getEntityClass()).remove(entity.getId());
-    } catch (SQLException sqle) {
-      throw new RuntimeException(sqle);
-    }
+  public void deleteNoTxn(Entity<?> entity) throws SQLException {
+    mapper_.get(entity.getEntityClass()).remove(entity.getId());
   }
 
   public <E extends Entity<E>> E refresh(EntityReference<E> entityRef) {
@@ -74,25 +71,21 @@ public class DbAccess {
     return result ;
   }
 
-  public <E extends Entity<E>> E storeObject(E entity) throws SQLException {
+  public <E extends Entity<E>> E storeObject(E entity) {
     final Class<E> entityClass = entity.getEntityClass();
     final DbMapper<E> mapper = (DbMapper<E>)mapper_.get(entityClass);
-    final EntityReference<E> ref;
+    final AtomicReference<EntityReference<E>> ref = new AtomicReference<>();
 
-    try {
+    runInTxn(() -> {
       if (entity.hasId()) {
         mapper.update(entity);
-        ref = new EntityReference<>(entity);
-        entityCache_.remove(ref);
+        ref.set(new EntityReference<>(entity));
+        entityCache_.remove(ref.get());
       } else {
-        ref = new EntityReference<>(entityClass, mapper.insert(entity));
+        ref.set(new EntityReference<>(entityClass, mapper.insert(entity)));
       }
-      commit();
-    } catch (SQLException sqle) {
-      rollback();
-      throw sqle;
-    }
-    return resolve(ref);
+    });
+    return resolve(ref.get());
   }
 
   public <E extends Entity<E>> E load(EntityReference<E> reference) {
@@ -140,8 +133,15 @@ public class DbAccess {
     return (entity != null) ? entity : load(entityRef);
   }
 
-  public void commit() throws SQLException {
-    session_.commit();
+  public void runInTxn(PersistentWrite write) {
+    try {
+      write.runInTxn();
+      session_.commit();
+    } catch (SQLException sqle) {
+      rollback();
+      throw new RuntimeException(sqle);
+    }
+
   }
 
   public void rollback() {

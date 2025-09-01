@@ -160,14 +160,8 @@ public class BlobController {
     final String thumbnailSha = blob.getThumbnailSha();
 
     try {
-      try {
-        db.deleteNoTxn(blob);
-        tags = db.refreshAll(blob.getTags());
-        db.commit();
-      } catch (SQLException sqle) {
-        db.rollback();
-        throw new RuntimeException(sqle);
-      }
+      db.runInTxn(() -> db.deleteNoTxn(blob));
+      tags = db.refreshAll(blob.getTags());
       Optional.ofNullable(blobSha256sum).ifPresent(this::deleteFile);
       Optional.ofNullable(thumbnailSha).ifPresent(this::deleteFile);
       app.entityRemoved(blob);
@@ -372,17 +366,15 @@ public class BlobController {
     final Set<Tag> oldTags = blob.getTags();
     final List<Tag> affectedTags = Stream.of(oldTags, newTags).flatMap(Set::stream)
       .filter(tag -> oldTags.contains(tag) ^ newTags.contains(tag)).toList();
+    final EntityReference<Blob> blobRef = new EntityReference<>(blob);
+    final Blob newBlob;
+    final Set<Tag> updatedTags;
 
-    try {
-      final Blob newBlob = db.getBlobDbMapper().setTags(new EntityReference<>(blob), newTags);
-      final Set<Tag> updatedTags = db.refreshAll(affectedTags);
-
-      app.entityChanged(newBlob);
-      app.entitiesChanged(updatedTags);
-    } catch (SQLException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
+    db.runInTxn(() -> db.getBlobDbMapper().setTags(blobRef, newTags));
+    newBlob = db.refresh(blobRef);
+    updatedTags = db.refreshAll(affectedTags);
+    app.entityChanged(newBlob);
+    app.entitiesChanged(updatedTags);
   }
 
   public void addTags(List<Blob> blobs, Set<Tag> tags) {

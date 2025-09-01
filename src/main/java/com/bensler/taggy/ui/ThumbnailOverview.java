@@ -166,7 +166,7 @@ public class ThumbnailOverview implements EntityComponent<Blob>, FocusListener {
     return comp_.contains(entity);
   }
 
-  public void setData(List<Blob> blobs) {
+  public void setData(Collection<Blob> blobs) {
     comp_.setData(blobs);
   }
 

@@ -31,4 +31,25 @@ public interface EntityChangeListener<E> {
 
   }
 
+  static class EntityChangedAdapter<E> implements EntityChangeListener<E> {
+
+    private final Consumer<E> entityChangedConsumer_;
+
+    public EntityChangedAdapter(Consumer<E> entityChangedConsumer) {
+      entityChangedConsumer_ = entityChangedConsumer;
+    }
+
+    @Override
+    public void entityCreated(E entity) { /* noop */ }
+
+    @Override
+    public void entityChanged(E entity) {
+      entityChangedConsumer_.accept(entity);
+    }
+
+    @Override
+    public void entityRemoved(E entity) { /* noop */ }
+
+  }
+
 }

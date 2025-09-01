@@ -180,9 +180,8 @@ public class BlobDbMapper extends AbstractDbMapper<Blob> {
     }
   }
 
-  public Blob setTags(EntityReference<Blob> blobRef, Set<Tag> tags) throws SQLException {
+  public void setTags(EntityReference<Blob> blobRef, Set<Tag> tags) throws SQLException {
     updateTags(blobRef.getId(), tags);
-    return db_.refresh(blobRef);
   }
 
 }

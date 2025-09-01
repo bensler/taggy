@@ -1,5 +1,8 @@
 package com.bensler.taggy.ui;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.bensler.decaf.swing.tree.EntityTree;
 import com.bensler.decaf.swing.tree.EntityTreeModel;
 import com.bensler.decaf.util.tree.Hierarchical;
@@ -26,7 +29,16 @@ public class EntityChangeListenerTreeAdapter<H extends Hierarchical<H>> implemen
 
   @Override
   public void entityChanged(H entity) {
+    final List<H> selection = tree_.getSelection();
+
     model_.contains(entity).ifPresent(lEntity -> model_.addNode(entity));
+    if (selection.contains(entity)) {
+      final List<H >newSelection = new ArrayList<>();
+
+      newSelection.addAll(selection);
+      newSelection.add(entity);
+      tree_.select(newSelection);
+    }
   }
 
   @Override

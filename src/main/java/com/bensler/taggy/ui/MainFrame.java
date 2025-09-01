@@ -47,8 +47,9 @@ import com.bensler.decaf.swing.view.SimplePropertyGetter;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.taggy.App;
+import com.bensler.taggy.EntityChangeListener;
+import com.bensler.taggy.EntityChangeListener.EntityChangedAdapter;
 import com.bensler.taggy.persist.Blob;
-import com.bensler.taggy.persist.EntityReference;
 import com.bensler.taggy.persist.Tag;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -93,6 +94,7 @@ public class MainFrame {
   private final ThumbnailOverview thumbnails_;
   private final TagController tagCtrl_;
   private final EntityChangeListenerTreeAdapter<Tag> treeAdapter_; // save it from GC
+  private final EntityChangeListener<Tag> treeSelectionAdapter_; // save it from GC
   private final FocusedComponentActionController actionCtrl_; // save it from GC
   private SlideshowFrame slideshowFrame_;
 
@@ -135,11 +137,12 @@ public class MainFrame {
     thumbnails_.addSelectionListener((source, selection) -> selectionTagPanel.setData(selection));
     tagTree_ = new EntityTree<>(TagUi.NAME_VIEW, Tag.class);
     tagTree_.setVisibleRowCount(20, .5f);
-    tagTree_.addSelectionListener((source, selection) -> displayThumbnailsOfSelectedTag());
+    tagTree_.addSelectionListener((source, selection) -> displayThumbnailsOfSelectedTag(selection));
     tagTree_.setCtxActions(new FocusedComponentActionController(
       new ActionGroup(editTagAction, newTagAction, newTimelineTagAction, deleteTagAction), Set.of(tagTree_)
     ));
     app_.addEntityChangeListener(treeAdapter_ = new EntityChangeListenerTreeAdapter<>(tagTree_), Tag.class);
+    app_.addEntityChangeListener(treeSelectionAdapter_ = new EntityChangedAdapter<>(tag -> tagChanged(tag)), Tag.class);
     frame_.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     tagCtrl_.setAllTags(tagTree_);
     final JSplitPane leftSplitpane = new JSplitPane(HORIZONTAL_SPLIT, true,
@@ -255,13 +258,19 @@ public class MainFrame {
     return slideshowFrame_;
   }
 
-  void displayThumbnailsOfSelectedTag() {
-    final Tag tag = tagTree_.getSingleSelection();
+  void tagChanged(Tag tag) {
+    if (tag.equals(tagTree_.getSingleSelection())) {
+      displayThumbnailsOfSelectedTag(List.of(tag));
+    }
+  }
+
+  void displayThumbnailsOfSelectedTag(List<Tag> selection) {
+    final Tag tag = (selection.isEmpty() ? null : selection.get(0));
 
     if (tag == null) {
       thumbnails_.clear();
     } else {
-      thumbnails_.setData(List.copyOf(app_.getDbAccess().refresh(new EntityReference<>(tag)).getBlobs()));
+      thumbnails_.setData(tag.getBlobs());
     }
   }
 
