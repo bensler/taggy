@@ -39,6 +39,11 @@ public class EntityReference<E extends Entity<E>> {
   }
 
   @Override
+  public String toString() {
+    return "Ref[%s[%s]]".formatted(entityClass_.getSimpleName(), id_);
+  }
+
+  @Override
   public int hashCode() {
     return id_.hashCode();
   }
