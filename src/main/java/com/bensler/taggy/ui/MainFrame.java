@@ -47,8 +47,6 @@ import com.bensler.decaf.swing.view.SimplePropertyGetter;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.taggy.App;
-import com.bensler.taggy.EntityChangeListener;
-import com.bensler.taggy.EntityChangeListener.EntityChangedAdapter;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.Tag;
 import com.jgoodies.forms.layout.CellConstraints;
@@ -93,8 +91,7 @@ public class MainFrame {
   private final EntityTree<Tag> tagTree_;
   private final ThumbnailOverview thumbnails_;
   private final TagController tagCtrl_;
-  private final EntityChangeListenerTreeAdapter<Tag> treeAdapter_; // save it from GC
-  private final EntityChangeListener<Tag> treeSelectionAdapter_; // save it from GC
+  private final EntityChangeListenerTagTreeAdapter treeAdapter_; // save it from GC
   private final FocusedComponentActionController actionCtrl_; // save it from GC
   private SlideshowFrame slideshowFrame_;
 
@@ -141,8 +138,7 @@ public class MainFrame {
     tagTree_.setCtxActions(new FocusedComponentActionController(
       new ActionGroup(editTagAction, newTagAction, newTimelineTagAction, deleteTagAction), Set.of(tagTree_)
     ));
-    app_.addEntityChangeListener(treeAdapter_ = new EntityChangeListenerTreeAdapter<>(tagTree_), Tag.class);
-    app_.addEntityChangeListener(treeSelectionAdapter_ = new EntityChangedAdapter<>(tag -> tagChanged(tag)), Tag.class);
+    app_.addEntityChangeListener(treeAdapter_ = new EntityChangeListenerTagTreeAdapter(tagTree_), Tag.class);
     frame_.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     tagCtrl_.setAllTags(tagTree_);
     final JSplitPane leftSplitpane = new JSplitPane(HORIZONTAL_SPLIT, true,

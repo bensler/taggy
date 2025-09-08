@@ -21,7 +21,7 @@ public class EntityChangeListenerTreeAdapter<H extends Hierarchical<H>> implemen
   public void entityCreated(H entity) {
     final H parent = entity.getParent();
 
-    if ((parent == null) || model_.contains(parent).isPresent()) {
+    if ((parent == null) || tree_.contains(parent).isPresent()) {
       model_.addNode(entity);
       tree_.expandCollapse(entity, true);
     }
@@ -31,7 +31,7 @@ public class EntityChangeListenerTreeAdapter<H extends Hierarchical<H>> implemen
   public void entityChanged(H entity) {
     final List<H> selection = tree_.getSelection();
 
-    model_.contains(entity).ifPresent(lEntity -> model_.addNode(entity));
+    tree_.contains(entity).ifPresent(lEntity -> model_.addNode(entity));
     if (selection.contains(entity)) {
       final List<H >newSelection = new ArrayList<>();
 
@@ -43,7 +43,7 @@ public class EntityChangeListenerTreeAdapter<H extends Hierarchical<H>> implemen
 
   @Override
   public void entityRemoved(H entity) {
-    model_.contains(entity).ifPresent(model_::removeTree);
+    tree_.contains(entity).ifPresent(model_::removeTree);
   }
 
 }
