@@ -128,10 +128,8 @@ public class MainFrame {
       new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(this::deleteTagUi))
     );
 
-    thumbnails_ = new ThumbnailOverview(app_);
-
     final SelectedBlobsDetailPanel selectionTagPanel = new SelectedBlobsDetailPanel(this);
-    thumbnails_.addSelectionListener((source, selection) -> selectionTagPanel.setData(selection));
+    (thumbnails_ = new ThumbnailOverview(app_)).addSelectionListener((source, selection) -> selectionTagPanel.setData(selection));
     tagTree_ = new EntityTree<>(TagUi.NAME_VIEW, Tag.class);
     tagTree_.setVisibleRowCount(20, .5f);
     tagTree_.addSelectionListener((source, selection) -> displayThumbnailsOfSelectedTag(selection));
@@ -153,7 +151,7 @@ public class MainFrame {
     final JPanel buttonPanel = new JPanel(new FormLayout("f:p:g", "f:p:g"));
     mainPanel.add(buttonPanel, new CellConstraints(2, 6, RIGHT, CENTER));
     final JButton testButton = new JButton("Orphan Files");
-    testButton.addActionListener(evt -> new OrphanDialog(app_).show(app_.getDbAccess()));
+    testButton.addActionListener(evt -> new OrphanDialog(app_).showDialog());
     buttonPanel.add(testButton, new CellConstraints(1, 1, FILL, FILL));
 
     mainPanel.add((actionCtrl_ = new FocusedComponentActionController(new ActionGroup(

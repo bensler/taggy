@@ -36,11 +36,10 @@ import com.bensler.decaf.swing.dialog.OkCancelDialog;
 import com.bensler.decaf.swing.selection.EntitySelectionListener;
 import com.bensler.taggy.App;
 import com.bensler.taggy.EntityChangeListener;
-import com.bensler.taggy.EntityChangeListener.EntityRemovedAdapter;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.ui.ThumbnailOverviewPanel.ScrollingPolicy;
 
-public class ThumbnailOverview implements EntityComponent<Blob>, FocusListener {
+public class ThumbnailOverview implements EntityComponent<Blob>, FocusListener, EntityChangeListener<Blob> {
 
   private final App app_;
   private final BlobController blobCtrl_;
@@ -49,8 +48,6 @@ public class ThumbnailOverview implements EntityComponent<Blob>, FocusListener {
   private final EntityAction<Blob> editImageTagsAction_;
   private final EntityAction<Blob> addImagesTagsAction_;
   private final EntityAction<Blob> slideshowAction_;
-  @SuppressWarnings("unused") // keep it referenced as App holds it weakly
-  private final EntityChangeListener<Blob> entityRemoveListener_;
   private final Set<FocusListener> focusListeners_;
 
   public ThumbnailOverview(App app) {
@@ -78,7 +75,7 @@ public class ThumbnailOverview implements EntityComponent<Blob>, FocusListener {
     new FocusedComponentActionController(
       new ActionGroup(slideshowAction_, editImageTagsAction_, addImagesTagsAction_, deleteImageAction), Set.of(this)
     ).attachTo(this, overview -> {}, this::beforeCtxMenuOpen);
-    app_.addEntityChangeListener(entityRemoveListener_ = new EntityRemovedAdapter<>(entity -> contains(entity).ifPresent(this::removeImage)), Blob.class);
+    app_.addEntityChangeListener(this, Blob.class);
     comp_.addFocusListener(this);
   }
 
@@ -185,6 +182,23 @@ public class ThumbnailOverview implements EntityComponent<Blob>, FocusListener {
   @Override
   public void addFocusListener(FocusListener listener) {
     focusListeners_.add(Objects.requireNonNull(listener));
+  }
+
+  @Override
+  public void entityCreated(Blob entity) {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public void entityChanged(Blob entity) {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public void entityRemoved(Blob entity) {
+    contains(entity).ifPresent(this::removeImage);
   }
 
 }

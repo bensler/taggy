@@ -16,7 +16,6 @@ import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.taggy.App;
 import com.bensler.taggy.EntityChangeListener;
 import com.bensler.taggy.persist.Blob;
-import com.bensler.taggy.persist.DbAccess;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
@@ -58,8 +57,7 @@ public class OrphanDialog extends JDialog implements EntityChangeListener<Blob> 
     super.dispose();
   }
 
-  public void show(DbAccess dbAccess) {
-
+  public void showDialog() {
     SwingUtilities.invokeLater(() -> thumbViewer_.setData(blobCtrl_.findOrphanBlobs()));
     setVisible(true);
   }
