@@ -251,6 +251,11 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
   public void addImage(Blob blob) {
     addImageInternally(blob);
     Collections.sort(blobs_, BLOB_COMPARATOR);
+    if (selection_.contains(blob)) {
+      try (SelectionEvent selectionEvent = new SelectionEvent()) {
+        selection_.add(selection_.indexOf(blob), blob);
+      }
+    }
     revalidate();
     repaint();
   }
