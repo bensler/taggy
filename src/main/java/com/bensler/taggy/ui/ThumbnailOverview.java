@@ -39,7 +39,7 @@ import com.bensler.taggy.EntityChangeListener;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.ui.ThumbnailOverviewPanel.ScrollingPolicy;
 
-public class ThumbnailOverview implements EntityComponent<Blob>, FocusListener, EntityChangeListener<Blob> {
+public abstract class ThumbnailOverview implements EntityComponent<Blob>, FocusListener, EntityChangeListener<Blob> {
 
   private final App app_;
   private final BlobController blobCtrl_;
@@ -185,16 +185,16 @@ public class ThumbnailOverview implements EntityComponent<Blob>, FocusListener, 
   }
 
   @Override
-  public void entityCreated(Blob entity) {
-    // TODO Auto-generated method stub
-
+  public void entityCreated(Blob blob) {
+    blobChanged(blob);
   }
 
   @Override
-  public void entityChanged(Blob entity) {
-    // TODO Auto-generated method stub
-
+  public void entityChanged(Blob blob) {
+    blobChanged(blob);
   }
+
+  protected abstract void blobChanged(Blob blob);
 
   @Override
   public void entityRemoved(Blob entity) {

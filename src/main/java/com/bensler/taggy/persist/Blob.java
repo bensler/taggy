@@ -50,6 +50,10 @@ public class Blob extends AbstractEntity<Blob> {
     return tags_.isEmpty();
   }
 
+  public boolean containsTag(Tag tag) {
+    return tags_.contains(tag);
+  }
+
   public Hierarchy<Tag> getTagHierarchy() {
     final Hierarchy<Tag> tagHierarchy = new Hierarchy<>();
 

@@ -89,7 +89,7 @@ public class MainFrame {
   private final JFrame frame_;
   private final PrefPersisterImpl prefs_;
   private final EntityTree<Tag> tagTree_;
-  private final ThumbnailOverview thumbnails_;
+  private final MainThumbnailOverview thumbnails_;
   private final TagController tagCtrl_;
   private final EntityChangeListenerTagTreeAdapter treeAdapter_; // save it from GC
   private final FocusedComponentActionController actionCtrl_; // save it from GC
@@ -129,7 +129,7 @@ public class MainFrame {
     );
 
     final SelectedBlobsDetailPanel selectionTagPanel = new SelectedBlobsDetailPanel(this);
-    (thumbnails_ = new ThumbnailOverview(app_)).addSelectionListener((source, selection) -> selectionTagPanel.setData(selection));
+    (thumbnails_ = new MainThumbnailOverview(app_)).addSelectionListener((source, selection) -> selectionTagPanel.setData(selection));
     tagTree_ = new EntityTree<>(TagUi.NAME_VIEW, Tag.class);
     tagTree_.setVisibleRowCount(20, .5f);
     tagTree_.addSelectionListener((source, selection) -> displayThumbnailsOfSelectedTag(selection));
@@ -259,13 +259,7 @@ public class MainFrame {
   }
 
   void displayThumbnailsOfSelectedTag(List<Tag> selection) {
-    final Tag tag = (selection.isEmpty() ? null : selection.get(0));
-
-    if (tag == null) {
-      thumbnails_.clear();
-    } else {
-      thumbnails_.setData(tag.getBlobs());
-    }
+    thumbnails_.setData(Optional.ofNullable((selection.isEmpty() ? null : selection.get(0))));
   }
 
 }

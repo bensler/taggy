@@ -14,12 +14,11 @@ import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.taggy.App;
-import com.bensler.taggy.EntityChangeListener;
 import com.bensler.taggy.persist.Blob;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class OrphanDialog extends JDialog implements EntityChangeListener<Blob> {
+public class OrphanDialog extends JDialog {
 
   private final ThumbnailOverview thumbViewer_;
   private final PrefPersisterImpl prefs_;
@@ -33,7 +32,16 @@ public class OrphanDialog extends JDialog implements EntityChangeListener<Blob> 
     ));
 
     blobCtrl_ = app.getBlobCtrl();
-    thumbViewer_ = new ThumbnailOverview(app);
+    thumbViewer_ = new ThumbnailOverview(app) {
+      @Override
+      protected void blobChanged(Blob blob) {
+        if (blob.isUntagged()) {
+          thumbViewer_.addImage(blob);
+        } else {
+          thumbViewer_.removeImage(blob);
+        }
+      }
+    };
     mainPanel.add(thumbViewer_.getScrollPane(), new CellConstraints(2, 2));
 
     final JButton closeButton = new JButton("Close");
@@ -48,7 +56,6 @@ public class OrphanDialog extends JDialog implements EntityChangeListener<Blob> 
       app.getPrefs(), new WindowPrefsPersister(new PrefKey(App.PREFS_APP_ROOT, getClass()), this)
     );
     setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-    app.addEntityChangeListener(this, Blob.class);
   }
 
   @Override
@@ -60,27 +67,6 @@ public class OrphanDialog extends JDialog implements EntityChangeListener<Blob> 
   public void showDialog() {
     SwingUtilities.invokeLater(() -> thumbViewer_.setData(blobCtrl_.findOrphanBlobs()));
     setVisible(true);
-  }
-
-  @Override
-  public void entityRemoved(Blob blob) { /* thumbViewer_ listens for rm'ed Blobs on its own */ }
-
-  @Override
-  public void entityChanged(Blob changedBlob) {
-    thumbViewer_.contains(changedBlob).ifPresent(blob -> {
-      if (blob.isUntagged()) {
-        thumbViewer_.addImage(blob);
-      } else {
-        thumbViewer_.removeImage(blob);
-      }
-    });
-  }
-
-  @Override
-  public void entityCreated(Blob blob) {
-    if (blob.isUntagged()) {
-      thumbViewer_.addImage(blob);
-    }
   }
 
 }
