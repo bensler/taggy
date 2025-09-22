@@ -170,7 +170,7 @@ public class MainFrame {
     final PrefKey baseKey = new PrefKey(App.PREFS_APP_ROOT, getClass());
     prefs_ = new PrefPersisterImpl(app_.getPrefs(),
       new WindowPrefsPersister(baseKey, frame_),
-      TagPrefPersister.create(new PrefKey(baseKey, "selectedTag"), tagCtrl_, tagTree_::getSingleSelection, tagTree_::select),
+      TagPrefPersister.create(new PrefKey(baseKey, "selectedTag"), tagTree_::getSingleSelection, tagTree_::select),
       createSplitPanePrefPersister(new PrefKey(baseKey, "splitLeft"), leftSplitpane),
       createSplitPanePrefPersister(new PrefKey(baseKey, "splitRight"), rightSplitpane),
       selectionTagPanel.createPrefPersister(new PrefKey(baseKey, "selectionTagPanel"))

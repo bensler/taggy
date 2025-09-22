@@ -14,8 +14,7 @@ import com.bensler.taggy.persist.Tag;
 public class TagPrefPersister {
 
   public static DelegatingPrefPersister create(
-    PrefKey prefKey, TagController tagCtrl,
-    Supplier<Tag> persist, Consumer<Tag> apply
+    PrefKey prefKey, Supplier<Tag> persist, Consumer<Tag> apply
   ) {
     return new DelegatingPrefPersister(prefKey,
       () -> Optional.ofNullable(persist.get()).map(Tag::getId).map(String::valueOf),

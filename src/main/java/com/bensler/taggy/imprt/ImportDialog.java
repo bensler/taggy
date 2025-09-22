@@ -125,8 +125,7 @@ class ImportDialog extends JDialog {
       new WindowPrefsPersister(baseKey, this),
       createSplitPanePrefPersister(new PrefKey(baseKey, "split"), splitPane),
       TagPrefPersister.create(
-        new PrefKey(baseKey, "initialTag"), app.getTagCtrl(),
-        this::getInitialTag,
+        new PrefKey(baseKey, "initialTag"), this::getInitialTag,
         newInitialTag -> setInitialTag(Optional.of(newInitialTag))
       ),
       new TablePrefPersister(new PrefKey(baseKey, "files"), files_.getComponent())
