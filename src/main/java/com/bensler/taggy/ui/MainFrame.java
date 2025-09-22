@@ -25,6 +25,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
+import javax.swing.SwingUtilities;
 import javax.swing.tree.TreePath;
 
 import com.bensler.decaf.swing.action.ActionAppearance;
@@ -173,7 +174,12 @@ public class MainFrame {
       createSplitPanePrefPersister(new PrefKey(baseKey, "splitLeft"), leftSplitpane),
       createSplitPanePrefPersister(new PrefKey(baseKey, "splitRight"), rightSplitpane),
       selectionTagPanel.createPrefPersister(new PrefKey(baseKey, "selectionTagPanel"))
-    );
+    ) {
+      @Override
+      public void apply() {
+        SwingUtilities.invokeLater(super::apply);
+      }
+    };
   }
 
   private Image createImage() {
