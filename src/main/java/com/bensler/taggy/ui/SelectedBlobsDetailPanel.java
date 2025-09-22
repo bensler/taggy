@@ -6,6 +6,7 @@ import static com.bensler.decaf.swing.view.SimplePropertyGetter.createGetterComp
 import static com.bensler.decaf.util.cmp.CollatorComparator.COLLATOR_COMPARATOR;
 import static javax.swing.JSplitPane.VERTICAL_SPLIT;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -33,12 +34,21 @@ import com.bensler.decaf.util.prefs.PrefPersister;
 import com.bensler.decaf.util.prefs.Prefs;
 import com.bensler.decaf.util.tree.Hierarchical;
 import com.bensler.decaf.util.tree.Hierarchy;
+import com.bensler.taggy.imprt.ImportController;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.Tag;
 
 public class SelectedBlobsDetailPanel {
 
+  public static final String PROPERTY_ID = "id";
+  public static final String PROPERTY_SHA_SUM = ImportController.TYPE_BIN_PREFIX + "shaSum";
+  public static final String PROPERTY_THUMB_SHA_SUM= ImportController.TYPE_BIN_PREFIX + "thumbShaSum";
+
   static class NameValuePair extends Pair<String, String> {
+    NameValuePair(String left, Object right) {
+      this(left, ((right != null) ? right.toString() : "<null>"));
+    }
+
     NameValuePair(String left, String right) {
       super(left, right);
     }
@@ -89,11 +99,7 @@ public class SelectedBlobsDetailPanel {
       final Blob blob = blobs.get(0);
 
       propertiesTable_.clear();
-      propertiesTable_.addOrUpdateData(
-        blob.getPropertyNames().stream()
-        .map(name -> new NameValuePair(name, blob.getProperty(name)))
-        .collect(Collectors.toList())
-      );
+      propertiesTable_.addOrUpdateData(getBlobProperties(blob));
       if (splitpane_.getBottomComponent() == null) {
         splitpane_.setBottomComponent(propertiesTable_.getScrollPane());
         if (lastSplitpaneDividerLocation > 0) {
@@ -104,6 +110,18 @@ public class SelectedBlobsDetailPanel {
       hidePropertiesTable();
     }
   }
+
+  private List<NameValuePair> getBlobProperties(Blob blob) {
+    final List<NameValuePair> properties = new ArrayList<>();
+
+    properties.add(new NameValuePair(PROPERTY_ID, blob.getId()));
+    properties.add(new NameValuePair(PROPERTY_SHA_SUM, blob.getSha256sum()));
+    properties.add(new NameValuePair(PROPERTY_THUMB_SHA_SUM, blob.getThumbnailSha()));
+    blob.getPropertyNames().stream()
+    .forEach(name -> properties.add(new NameValuePair(name, blob.getProperty(name))));
+    return properties;
+  }
+
   private boolean isPropertiesTableHidden() {
     return (splitpane_.getBottomComponent() == null);
   }
