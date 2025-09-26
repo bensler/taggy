@@ -4,6 +4,8 @@ import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 
+import com.bensler.decaf.util.entity.Entity;
+
 public interface DbMapper<E extends Entity<E>> {
 
   List<E> loadAll();

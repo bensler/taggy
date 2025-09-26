@@ -4,11 +4,11 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.decaf.util.prefs.DelegatingPrefPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.Prefs;
 import com.bensler.taggy.persist.DbAccess;
-import com.bensler.taggy.persist.EntityReference;
 import com.bensler.taggy.persist.Tag;
 
 public class TagPrefPersister {

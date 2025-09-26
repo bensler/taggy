@@ -8,6 +8,8 @@ import java.util.Set;
 import java.util.function.Function;
 
 import com.bensler.decaf.util.Named;
+import com.bensler.decaf.util.entity.AbstractEntity;
+import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.decaf.util.tree.Hierarchical;
 
 /**
@@ -42,7 +44,7 @@ public class Tag extends AbstractEntity<Tag> implements Hierarchical<Tag>, Named
 
   @Override
   public Tag getParent() {
-    return ((parent_ != null) ? parent_.resolve() : null);
+    return ((parent_ != null) ? DbAccess.INSTANCE.get().resolve(parent_) : null);
   }
 
   @Override

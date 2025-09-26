@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.bensler.decaf.util.entity.EntityReference;
+
 public class BlobDbMapper extends AbstractDbMapper<Blob> {
 
   BlobDbMapper(DbAccess db) {

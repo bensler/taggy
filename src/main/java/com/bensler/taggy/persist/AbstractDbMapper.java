@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import com.bensler.decaf.util.entity.Entity;
+
 public abstract class AbstractDbMapper<E extends Entity<E>> implements DbMapper<E> {
 
   protected final DbAccess db_;

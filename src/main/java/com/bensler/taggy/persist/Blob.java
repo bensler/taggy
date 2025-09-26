@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import com.bensler.decaf.util.entity.AbstractEntity;
+import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.decaf.util.tree.Hierarchy;
 import com.bensler.taggy.ui.BlobController;
 

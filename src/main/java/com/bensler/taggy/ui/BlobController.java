@@ -44,10 +44,10 @@ import org.apache.commons.imaging.formats.tiff.constants.ExifTagConstants;
 import org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants;
 import org.apache.commons.imaging.formats.tiff.taginfos.TagInfoAscii;
 
+import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.DbAccess;
-import com.bensler.taggy.persist.EntityReference;
 import com.bensler.taggy.persist.Tag;
 
 

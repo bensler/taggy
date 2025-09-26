@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.bensler.decaf.util.entity.Entity;
+import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.taggy.App;
 
 public class DbAccess {
