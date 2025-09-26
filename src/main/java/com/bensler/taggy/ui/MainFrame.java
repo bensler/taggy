@@ -92,7 +92,7 @@ public class MainFrame {
   private final EntityTree<Tag> tagTree_;
   private final MainThumbnailOverview thumbnails_;
   private final TagController tagCtrl_;
-  private final EntityChangeListenerTagTreeAdapter treeAdapter_; // save it from GC
+  private final EntityChangeListenerTreeAdapter treeAdapter_; // save it from GC
   private final FocusedComponentActionController actionCtrl_; // save it from GC
   private SlideshowFrame slideshowFrame_;
 
@@ -137,7 +137,7 @@ public class MainFrame {
     tagTree_.setCtxActions(new FocusedComponentActionController(
       new ActionGroup(editTagAction, newTagAction, newTimelineTagAction, deleteTagAction), Set.of(tagTree_)
     ));
-    app_.addEntityChangeListener(treeAdapter_ = new EntityChangeListenerTagTreeAdapter(tagTree_), Tag.class);
+    app_.addEntityChangeListener(treeAdapter_ = new EntityChangeListenerTreeAdapter(tagTree_), Tag.class);
     frame_.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     tagCtrl_.setAllTags(tagTree_);
     final JSplitPane leftSplitpane = new JSplitPane(HORIZONTAL_SPLIT, true,

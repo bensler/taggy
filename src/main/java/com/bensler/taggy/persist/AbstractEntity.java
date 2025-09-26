@@ -27,7 +27,7 @@ public abstract class AbstractEntity<E extends Entity<E>> implements Entity<E> {
 
   @Override
   public int hashCode() {
-    return id_;
+    return id_.hashCode();
   }
 
   @Override

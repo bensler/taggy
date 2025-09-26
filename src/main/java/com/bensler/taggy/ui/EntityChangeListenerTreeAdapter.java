@@ -4,17 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.bensler.decaf.swing.tree.EntityTree;
-import com.bensler.decaf.swing.tree.EntityTreeModel;
 import com.bensler.decaf.util.tree.Hierarchical;
 import com.bensler.taggy.EntityChangeListener;
 
 public class EntityChangeListenerTreeAdapter<H extends Hierarchical<H>> implements EntityChangeListener<H> {
 
   private final EntityTree<H> tree_;
-  private final EntityTreeModel<H> model_;
 
   public EntityChangeListenerTreeAdapter(EntityTree<H> tree) {
-    model_ = (tree_ = tree).getModel();
+    tree_ = tree;
   }
 
   @Override
@@ -22,8 +20,7 @@ public class EntityChangeListenerTreeAdapter<H extends Hierarchical<H>> implemen
     final H parent = entity.getParent();
 
     if ((parent == null) || tree_.contains(parent).isPresent()) {
-      model_.addNode(entity);
-      tree_.expandCollapse(entity, true);
+      tree_.addData(entity, true);
     }
   }
 
@@ -31,9 +28,9 @@ public class EntityChangeListenerTreeAdapter<H extends Hierarchical<H>> implemen
   public void entityChanged(H entity) {
     final List<H> selection = tree_.getSelection();
 
-    tree_.contains(entity).ifPresent(lEntity -> model_.addNode(entity));
+    tree_.replaceOrAdd(entity);
     if (selection.contains(entity)) {
-      final List<H >newSelection = new ArrayList<>();
+      final List<H> newSelection = new ArrayList<>();
 
       newSelection.addAll(selection);
       newSelection.add(entity);
@@ -43,7 +40,7 @@ public class EntityChangeListenerTreeAdapter<H extends Hierarchical<H>> implemen
 
   @Override
   public void entityRemoved(H entity) {
-    tree_.contains(entity).ifPresent(model_::removeTree);
+    tree_.contains(entity).ifPresent(tree_::removeTree);
   }
 
 }
