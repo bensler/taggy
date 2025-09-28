@@ -237,22 +237,29 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     repaint();
   }
 
-  private void addImageInternally(Blob blob) {
+  /** @return if it was already contained before */
+  private boolean addImageInternally(Blob blob) {
     try {
       images_.put(blob, new ImageIcon(ImageIO.read(blobCtrl_.getFile(blob.getThumbnailSha()))));
     } catch (IOException e) {
       // TODO display error thumb
       e.printStackTrace();
     }
+
+    final int oldIndex = blobs_.indexOf(blob);
+    final boolean containedBefore = (oldIndex >= 0);
+
     blobs_.remove(blob);
-    blobs_.add(blob);
+    blobs_.add((containedBefore ? oldIndex : blobs_.size()), blob);
+    return containedBefore;
   }
 
   public void addImage(Blob blob) {
-    addImageInternally(blob);
+    final boolean containedBefore = addImageInternally(blob);
+
     Collections.sort(blobs_, BLOB_COMPARATOR);
     if (selection_.contains(blob)) {
-      try (SelectionEvent selectionEvent = new SelectionEvent()) {
+      try (SelectionEvent selectionEvent = new SelectionEvent(containedBefore)) {
         selection_.add(selection_.indexOf(blob), blob);
       }
     }
@@ -384,15 +391,21 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
 
   private class SelectionEvent implements AutoCloseable {
 
+    final boolean  fireSelectionEventUnconditionally_;
     final List<Blob> oldSelection_;
 
     SelectionEvent() {
+      this(false);
+    }
+
+    SelectionEvent(boolean fireSelectionEventUnconditionally) {
+      fireSelectionEventUnconditionally_ = fireSelectionEventUnconditionally;
       oldSelection_ = List.copyOf(selection_);
     }
 
     @Override
     public void close() {
-      if (!oldSelection_.equals(selection_)) {
+      if (fireSelectionEventUnconditionally_ || (!oldSelection_.equals(selection_))) {
         // TODO ------------------------------------------- vvvv
         selectionListeners_.forEach(l -> l.selectionChanged(null, selection_));
         repaint();
