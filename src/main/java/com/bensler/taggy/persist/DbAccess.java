@@ -70,7 +70,7 @@ public class DbAccess {
     if (!entities.isEmpty()) {
       loadAll(entities.stream().map(entity -> new EntityReference<>(entity)).toList(), result);
     }
-    return result ;
+    return result;
   }
 
   public <E extends Entity<E>> E storeObject(E entity) {

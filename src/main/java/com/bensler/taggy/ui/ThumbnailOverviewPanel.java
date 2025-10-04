@@ -260,7 +260,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     Collections.sort(blobs_, BLOB_COMPARATOR);
     if (selection_.contains(blob)) {
       try (SelectionEvent selectionEvent = new SelectionEvent(containedBefore)) {
-        selection_.add(selection_.indexOf(blob), blob);
+        selection_.set(selection_.indexOf(blob), blob);
       }
     }
     revalidate();
