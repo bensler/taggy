@@ -73,7 +73,7 @@ public abstract class ThumbnailOverview implements EntityComponent<Blob>, FocusL
       Blob.class, atLeastOneFilter(HIDDEN), (source, blobs) -> deleteImagesConfirm(blobs)
     );
     new FocusedComponentActionController(
-      new ActionGroup(slideshowAction_, editImageTagsAction_, addImagesTagsAction_, deleteImageAction), Set.of(this)
+      new ActionGroup(slideshowAction_, new ActionGroup(editImageTagsAction_, addImagesTagsAction_), deleteImageAction), Set.of(this)
     ).attachTo(this, overview -> {}, this::beforeCtxMenuOpen);
     app_.addEntityChangeListener(this, Blob.class);
     comp_.addFocusListener(this);
