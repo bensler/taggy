@@ -151,13 +151,17 @@ public class MainFrame {
 
     final JPanel buttonPanel = new JPanel(new FormLayout("f:p:g", "f:p:g"));
     mainPanel.add(buttonPanel, new CellConstraints(2, 6, RIGHT, CENTER));
-    final JButton testButton = new JButton("Orphan Files");
-    testButton.addActionListener(evt -> new OrphanDialog(app_).showDialog());
-    buttonPanel.add(testButton, new CellConstraints(1, 1, FILL, FILL));
+    final JButton orphanDialogButton = new JButton("Orphan Files");
+    orphanDialogButton.addActionListener(evt -> new OrphanDialog(app_).showDialog());
+    buttonPanel.add(orphanDialogButton, new CellConstraints(1, 1, FILL, FILL));
 
     mainPanel.add((actionCtrl_ = new FocusedComponentActionController(new ActionGroup(
       new ActionGroup(app_.getImportCtrl().getImportAction()),
       new ActionGroup(newTagAction, editTagAction),
+      new ActionGroup(
+        new ActionAppearance(new OverlayIcon(ICON_IMAGES_48, new Overlay(ICON_EDIT_30, SE)), null, null, "Edit Images"),
+        thumbnails_.getSlideshowAction()
+      ),
       thumbnails_.getToolbarActions(),
       new ActionGroup(thumbnails_.getSlideshowAction())
     ), List.of(tagTree_, thumbnails_, selectionTagPanel.getTagTree()))).createToolbar(), new CellConstraints(2, 2));
