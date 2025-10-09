@@ -45,7 +45,8 @@ public abstract class ThumbnailOverview implements EntityComponent<Blob>, FocusL
   private final BlobController blobCtrl_;
   private final ThumbnailOverviewPanel comp_;
 
-  private final EntityAction<Blob> editImageTagsAction_;
+  // TODO private
+  final EntityAction<Blob> editImageTagsAction_;
   private final EntityAction<Blob> addImagesTagsAction_;
   private final EntityAction<Blob> slideshowAction_;
   private final Set<FocusListener> focusListeners_;

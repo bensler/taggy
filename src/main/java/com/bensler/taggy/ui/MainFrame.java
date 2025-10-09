@@ -160,7 +160,8 @@ public class MainFrame {
       new ActionGroup(newTagAction, editTagAction),
       new ActionGroup(
         new ActionAppearance(new OverlayIcon(ICON_IMAGES_48, new Overlay(ICON_EDIT_30, SE)), null, null, "Edit Images"),
-        thumbnails_.getSlideshowAction()
+        thumbnails_.getSlideshowAction(),
+        thumbnails_.editImageTagsAction_
       ),
       thumbnails_.getToolbarActions(),
       new ActionGroup(thumbnails_.getSlideshowAction())
