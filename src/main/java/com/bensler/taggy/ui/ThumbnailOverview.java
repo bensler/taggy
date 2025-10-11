@@ -1,5 +1,6 @@
 package com.bensler.taggy.ui;
 
+import static com.bensler.decaf.swing.action.ActionState.DISABLED;
 import static com.bensler.decaf.swing.action.ActionState.HIDDEN;
 import static com.bensler.decaf.swing.action.EntityAction.atLeastOneFilter;
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
@@ -62,7 +63,7 @@ public abstract class ThumbnailOverview implements EntityComponent<Blob>, FocusL
     );
     editImageTagsAction_ = new EntityAction<>(
       new ActionAppearance(ICON_TAG_SIMPLE_13, EditImageTagsDialog.ICON, "Edit Image Tags", "Edit Tags of this Image"),
-      Blob.class, new SingleEntityFilter<>(HIDDEN),
+      Blob.class, new SingleEntityFilter<>(DISABLED),
       new SingleEntityActionAdapter<>((source, blob) -> blob.ifPresent(this::editTags))
     );
     addImagesTagsAction_ = new EntityAction<>(
