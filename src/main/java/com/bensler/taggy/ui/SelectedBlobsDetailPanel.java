@@ -16,7 +16,7 @@ import javax.swing.JSplitPane;
 
 import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.ActionGroup;
-import com.bensler.decaf.swing.action.EntityAction;
+import com.bensler.decaf.swing.action.UiAction;
 import com.bensler.decaf.swing.action.FocusedComponentActionController;
 import com.bensler.decaf.swing.action.SingleEntityActionAdapter;
 import com.bensler.decaf.swing.action.SingleEntityFilter;
@@ -63,7 +63,7 @@ public class SelectedBlobsDetailPanel {
   public SelectedBlobsDetailPanel(MainFrame mainFrame) {
     tagTree_ = new EntityTree<>(TagUi.NAME_VIEW, Tag.class);
     tagTree_.setVisibleRowCount(20, .5f);
-    final EntityAction<Tag> focusAction = new EntityAction<>(
+    final UiAction<Tag> focusAction = new UiAction<>(
       new ActionAppearance(null, null, "Focus", null), Tag.class,
       new SingleEntityFilter<>(HIDDEN, tag -> ENABLED),
       new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(mainFrame::selectTag))

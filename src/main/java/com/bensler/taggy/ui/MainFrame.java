@@ -31,7 +31,7 @@ import javax.swing.tree.TreePath;
 import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.ActionGroup;
 import com.bensler.decaf.swing.action.ActionState;
-import com.bensler.decaf.swing.action.EntityAction;
+import com.bensler.decaf.swing.action.UiAction;
 import com.bensler.decaf.swing.action.FocusedComponentActionController;
 import com.bensler.decaf.swing.action.SingleEntityActionAdapter;
 import com.bensler.decaf.swing.action.SingleEntityFilter;
@@ -105,7 +105,7 @@ public class MainFrame {
       "3dlu, f:p:g, 3dlu",
       "3dlu, f:p, 3dlu, f:p:g, 3dlu, f:p, 3dlu"
     ));
-    final EntityAction<Tag> editTagAction = new EntityAction<>(
+    final UiAction<Tag> editTagAction = new UiAction<>(
       new ActionAppearance(new OverlayIcon(ICON_TAG_SIMPLE_13, new Overlay(ICON_EDIT_13, SE)), TagDialog.Edit.ICON, "Edit Tag", "Edit currently selected Tag"),
       Tag.class, TagUi.TAG_FILTER, new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(this::editTagUi))
     );
@@ -115,15 +115,15 @@ public class MainFrame {
         return (tagTree_.getSelection().isEmpty() ? ENABLED : super.getActionState(entities));
       }
     };
-    final EntityAction<Tag> newTagAction = new EntityAction<>(
+    final UiAction<Tag> newTagAction = new UiAction<>(
       new ActionAppearance(new OverlayIcon(ICON_TAG_SIMPLE_13, new Overlay(ICON_PLUS_10, SE)), TagDialog.Create.ICON, "Create Tag", "Creates a new Tag under the currently selected Tag"),
       Tag.class, tagFilter, new SingleEntityActionAdapter<>((source, tag) -> createTagUi(tag))
     );
-    final EntityAction<Tag> newTimelineTagAction = new EntityAction<>(
+    final UiAction<Tag> newTimelineTagAction = new UiAction<>(
       new ActionAppearance(new OverlayIcon(ICON_TIMELINE_13, new Overlay(ICON_PLUS_10, SE)), null, "Create Timeline Tag", "Creates a new Tag representing a calendar date"),
       Tag.class, TagUi.TIMELINE_TAG_FILTER, new SingleEntityActionAdapter<>((source, tag) -> createTimelineUi())
     );
-    final EntityAction<Tag> deleteTagAction = new EntityAction<>(
+    final UiAction<Tag> deleteTagAction = new UiAction<>(
       new ActionAppearance(new OverlayIcon(ICON_TAG_SIMPLE_13, new Overlay(ICON_X_10, SE)), null, "Delete Tag", "Remove currently selected Tag"),
       Tag.class, new SingleEntityFilter<>(HIDDEN, tag -> tagCtrl_.isLeaf(tag) ? ENABLED : DISABLED),
       new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(this::deleteTagUi))

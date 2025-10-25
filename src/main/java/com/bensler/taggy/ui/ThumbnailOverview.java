@@ -2,7 +2,7 @@ package com.bensler.taggy.ui;
 
 import static com.bensler.decaf.swing.action.ActionState.DISABLED;
 import static com.bensler.decaf.swing.action.ActionState.HIDDEN;
-import static com.bensler.decaf.swing.action.EntityAction.atLeastOneFilter;
+import static com.bensler.decaf.swing.action.UiAction.atLeastOneFilter;
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
 import static com.bensler.taggy.ui.MainFrame.ICON_IMAGE_13;
 import static com.bensler.taggy.ui.MainFrame.ICON_PLUS_10;
@@ -27,7 +27,7 @@ import javax.swing.JScrollPane;
 import com.bensler.decaf.swing.EntityComponent;
 import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.ActionGroup;
-import com.bensler.decaf.swing.action.EntityAction;
+import com.bensler.decaf.swing.action.UiAction;
 import com.bensler.decaf.swing.action.FocusedComponentActionController;
 import com.bensler.decaf.swing.action.SingleEntityActionAdapter;
 import com.bensler.decaf.swing.action.SingleEntityFilter;
@@ -47,9 +47,9 @@ public abstract class ThumbnailOverview implements EntityComponent<Blob>, FocusL
   private final ThumbnailOverviewPanel comp_;
 
   // TODO private
-  final EntityAction<Blob> editImageTagsAction_;
-  private final EntityAction<Blob> addImagesTagsAction_;
-  private final EntityAction<Blob> slideshowAction_;
+  final UiAction<Blob> editImageTagsAction_;
+  private final UiAction<Blob> addImagesTagsAction_;
+  private final UiAction<Blob> slideshowAction_;
   private final Set<FocusListener> focusListeners_;
 
   public ThumbnailOverview(App app) {
@@ -57,20 +57,20 @@ public abstract class ThumbnailOverview implements EntityComponent<Blob>, FocusL
     blobCtrl_ = (app_ = app).getBlobCtrl();
     comp_ = new ThumbnailOverviewPanel(app, ScrollingPolicy.SCROLL_VERTICALLY);
     comp_.setFocusable();
-    slideshowAction_ = new EntityAction<>(
+    slideshowAction_ = new UiAction<>(
       new ActionAppearance(ICON_SLIDESHOW_13, ICON_SLIDESHOW_48, "Slide Show", "View Images in full detail"),
       Blob.class, atLeastOneFilter(HIDDEN), (source, blobs) -> app_.getMainFrame().getSlideshowFrame().show(blobs)
     );
-    editImageTagsAction_ = new EntityAction<>(
+    editImageTagsAction_ = new UiAction<>(
       new ActionAppearance(ICON_TAG_SIMPLE_13, EditImageTagsDialog.ICON, "Edit Image Tags", "Edit Tags of this Image"),
       Blob.class, new SingleEntityFilter<>(DISABLED),
       new SingleEntityActionAdapter<>((source, blob) -> blob.ifPresent(this::editTags))
     );
-    addImagesTagsAction_ = new EntityAction<>(
+    addImagesTagsAction_ = new UiAction<>(
       new ActionAppearance(new OverlayIcon(ICON_TAG_SIMPLE_13, new Overlay(ICON_PLUS_10, SE)), AddImagesTagsDialog.ICON, "Add Image Tags", "Add Tags to several Images at once"),
       Blob.class, atLeastOneFilter(HIDDEN), (source, blobs) -> addTags(blobs)
     );
-    final EntityAction<Blob> deleteImageAction = new EntityAction<>(
+    final UiAction<Blob> deleteImageAction = new UiAction<>(
       new ActionAppearance(new OverlayIcon(ICON_IMAGE_13, new Overlay(ICON_X_10, SE)), null, "Delete Image(s)", "Remove currently selected Image(s)"),
       Blob.class, atLeastOneFilter(HIDDEN), (source, blobs) -> deleteImagesConfirm(blobs)
     );
@@ -103,7 +103,7 @@ public abstract class ThumbnailOverview implements EntityComponent<Blob>, FocusL
     return Blob.class;
   }
 
-  public EntityAction<Blob> getSlideshowAction() {
+  public UiAction<Blob> getSlideshowAction() {
     return slideshowAction_;
   }
 
