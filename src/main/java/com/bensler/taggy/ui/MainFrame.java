@@ -31,10 +31,11 @@ import javax.swing.tree.TreePath;
 import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.ActionGroup;
 import com.bensler.decaf.swing.action.ActionState;
-import com.bensler.decaf.swing.action.UiAction;
+import com.bensler.decaf.swing.action.FilteredAction;
 import com.bensler.decaf.swing.action.FocusedComponentActionController;
 import com.bensler.decaf.swing.action.SingleEntityActionAdapter;
 import com.bensler.decaf.swing.action.SingleEntityFilter;
+import com.bensler.decaf.swing.action.UiAction;
 import com.bensler.decaf.swing.awt.OverlayIcon;
 import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
 import com.bensler.decaf.swing.dialog.ConfirmationDialog;
@@ -92,7 +93,7 @@ public class MainFrame {
   private final EntityTree<Tag> tagTree_;
   private final MainThumbnailOverview thumbnails_;
   private final TagController tagCtrl_;
-  private final EntityChangeListenerTreeAdapter treeAdapter_; // save it from GC
+  private final EntityChangeListenerTreeAdapter<Tag> treeAdapter_; // save it from GC
   private final FocusedComponentActionController actionCtrl_; // save it from GC
   private SlideshowFrame slideshowFrame_;
 
@@ -105,9 +106,9 @@ public class MainFrame {
       "3dlu, f:p:g, 3dlu",
       "3dlu, f:p, 3dlu, f:p:g, 3dlu, f:p, 3dlu"
     ));
-    final UiAction<Tag> editTagAction = new UiAction<>(
+    final UiAction editTagAction = new UiAction(
       new ActionAppearance(new OverlayIcon(ICON_TAG_SIMPLE_13, new Overlay(ICON_EDIT_13, SE)), TagDialog.Edit.ICON, "Edit Tag", "Edit currently selected Tag"),
-      Tag.class, TagUi.TAG_FILTER, new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(this::editTagUi))
+      new FilteredAction<>(Tag.class, TagUi.TAG_FILTER, new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(this::editTagUi)))
     );
     final SingleEntityFilter<Tag> tagFilter = new SingleEntityFilter<>(HIDDEN, TagUi.TAG_FILTER) {
       @Override
@@ -115,18 +116,17 @@ public class MainFrame {
         return (tagTree_.getSelection().isEmpty() ? ENABLED : super.getActionState(entities));
       }
     };
-    final UiAction<Tag> newTagAction = new UiAction<>(
+    final UiAction newTagAction = new UiAction(
       new ActionAppearance(new OverlayIcon(ICON_TAG_SIMPLE_13, new Overlay(ICON_PLUS_10, SE)), TagDialog.Create.ICON, "Create Tag", "Creates a new Tag under the currently selected Tag"),
-      Tag.class, tagFilter, new SingleEntityActionAdapter<>((source, tag) -> createTagUi(tag))
+      new FilteredAction<>(Tag.class, tagFilter, new SingleEntityActionAdapter<>((source, tag) -> createTagUi(tag)))
     );
-    final UiAction<Tag> newTimelineTagAction = new UiAction<>(
+    final UiAction newTimelineTagAction = new UiAction(
       new ActionAppearance(new OverlayIcon(ICON_TIMELINE_13, new Overlay(ICON_PLUS_10, SE)), null, "Create Timeline Tag", "Creates a new Tag representing a calendar date"),
-      Tag.class, TagUi.TIMELINE_TAG_FILTER, new SingleEntityActionAdapter<>((source, tag) -> createTimelineUi())
+      new FilteredAction<>(Tag.class, TagUi.TIMELINE_TAG_FILTER, new SingleEntityActionAdapter<>((source, tag) -> createTimelineUi()))
     );
-    final UiAction<Tag> deleteTagAction = new UiAction<>(
+    final UiAction deleteTagAction = new UiAction(
       new ActionAppearance(new OverlayIcon(ICON_TAG_SIMPLE_13, new Overlay(ICON_X_10, SE)), null, "Delete Tag", "Remove currently selected Tag"),
-      Tag.class, new SingleEntityFilter<>(HIDDEN, tag -> tagCtrl_.isLeaf(tag) ? ENABLED : DISABLED),
-      new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(this::deleteTagUi))
+      new FilteredAction<>(Tag.class, new SingleEntityFilter<>(HIDDEN, tag -> tagCtrl_.isLeaf(tag) ? ENABLED : DISABLED), new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(this::deleteTagUi)))
     );
 
     final SelectedBlobsDetailPanel selectionTagPanel = new SelectedBlobsDetailPanel(this);
@@ -137,7 +137,7 @@ public class MainFrame {
     tagTree_.setCtxActions(new FocusedComponentActionController(
       new ActionGroup(editTagAction, newTagAction, newTimelineTagAction, deleteTagAction), Set.of(tagTree_)
     ));
-    app_.addEntityChangeListener(treeAdapter_ = new EntityChangeListenerTreeAdapter(tagTree_), Tag.class);
+    app_.addEntityChangeListener(treeAdapter_ = new EntityChangeListenerTreeAdapter<>(tagTree_), Tag.class);
     frame_.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     tagCtrl_.setAllTags(tagTree_);
     final JSplitPane leftSplitpane = new JSplitPane(HORIZONTAL_SPLIT, true,

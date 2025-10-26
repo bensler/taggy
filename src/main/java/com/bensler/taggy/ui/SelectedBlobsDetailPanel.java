@@ -16,10 +16,11 @@ import javax.swing.JSplitPane;
 
 import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.ActionGroup;
-import com.bensler.decaf.swing.action.UiAction;
+import com.bensler.decaf.swing.action.FilteredAction;
 import com.bensler.decaf.swing.action.FocusedComponentActionController;
 import com.bensler.decaf.swing.action.SingleEntityActionAdapter;
 import com.bensler.decaf.swing.action.SingleEntityFilter;
+import com.bensler.decaf.swing.action.UiAction;
 import com.bensler.decaf.swing.table.EntityTable;
 import com.bensler.decaf.swing.table.TablePrefPersister;
 import com.bensler.decaf.swing.table.TablePropertyView;
@@ -63,10 +64,9 @@ public class SelectedBlobsDetailPanel {
   public SelectedBlobsDetailPanel(MainFrame mainFrame) {
     tagTree_ = new EntityTree<>(TagUi.NAME_VIEW, Tag.class);
     tagTree_.setVisibleRowCount(20, .5f);
-    final UiAction<Tag> focusAction = new UiAction<>(
-      new ActionAppearance(null, null, "Focus", null), Tag.class,
-      new SingleEntityFilter<>(HIDDEN, tag -> ENABLED),
-      new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(mainFrame::selectTag))
+    final UiAction focusAction = new UiAction(
+      new ActionAppearance(null, null, "Focus", null),
+      new FilteredAction<>(Tag.class, new SingleEntityFilter<>(HIDDEN, tag -> ENABLED), new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(mainFrame::selectTag)))
     );
     tagTree_.setCtxActions(new FocusedComponentActionController(new ActionGroup(focusAction), Set.of(tagTree_)));
     final TablePropertyView<NameValuePair, String> propertyKeyColumn;

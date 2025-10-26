@@ -20,6 +20,7 @@ import java.util.stream.Stream;
 import org.apache.commons.imaging.ImageReadException;
 
 import com.bensler.decaf.swing.action.ActionAppearance;
+import com.bensler.decaf.swing.action.FilteredAction;
 import com.bensler.decaf.swing.action.UiAction;
 import com.bensler.decaf.swing.awt.OverlayIcon;
 import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
@@ -52,20 +53,20 @@ public class ImportController {
 
   private final App app_;
   private final File importDir_;
-  private final UiAction<Void> actionImport_;
+  private final UiAction actionImport_;
   private final Map<File, String> fileShaMap_;
 
   public ImportController(App app, File dataDir) {
     app_ = app;
     importDir_ = new File(dataDir, IMPORT_DIR);
     importDir_.mkdirs();
-    actionImport_ = new UiAction<>(
-      IMPORT_ACTION_APPEARANCE, Void.class, null, (source, entities) -> showImportDialog()
+    actionImport_ = new UiAction(
+      IMPORT_ACTION_APPEARANCE, new FilteredAction<>(Void.class, null, (source, entities) -> showImportDialog())
     );
     fileShaMap_ = new HashMap<>();
   }
 
-  public UiAction<?> getImportAction() {
+  public UiAction getImportAction() {
     return actionImport_;
   }
 
