@@ -66,7 +66,7 @@ public class SelectedBlobsDetailPanel {
     tagTree_.setVisibleRowCount(20, .5f);
     final UiAction focusAction = new UiAction(
       new ActionAppearance(null, null, "Focus", null),
-      new FilteredAction<>(Tag.class, new SingleEntityFilter<>(HIDDEN, tag -> ENABLED), new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(mainFrame::selectTag)))
+      new FilteredAction<>(Tag.class, new SingleEntityFilter<>(HIDDEN, tag -> ENABLED), new SingleEntityActionAdapter<>(tag -> tag.ifPresent(mainFrame::selectTag)))
     );
     tagTree_.setCtxActions(new FocusedComponentActionController(new ActionGroup(focusAction), Set.of(tagTree_)));
     final TablePropertyView<NameValuePair, String> propertyKeyColumn;

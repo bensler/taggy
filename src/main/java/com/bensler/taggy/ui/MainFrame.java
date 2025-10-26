@@ -108,7 +108,7 @@ public class MainFrame {
     ));
     final UiAction editTagAction = new UiAction(
       new ActionAppearance(new OverlayIcon(ICON_TAG_SIMPLE_13, new Overlay(ICON_EDIT_13, SE)), TagDialog.Edit.ICON, "Edit Tag", "Edit currently selected Tag"),
-      new FilteredAction<>(Tag.class, TagUi.TAG_FILTER, new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(this::editTagUi)))
+      new FilteredAction<>(Tag.class, TagUi.TAG_FILTER, new SingleEntityActionAdapter<>(tag -> tag.ifPresent(this::editTagUi)))
     );
     final SingleEntityFilter<Tag> tagFilter = new SingleEntityFilter<>(HIDDEN, TagUi.TAG_FILTER) {
       @Override
@@ -118,15 +118,15 @@ public class MainFrame {
     };
     final UiAction newTagAction = new UiAction(
       new ActionAppearance(new OverlayIcon(ICON_TAG_SIMPLE_13, new Overlay(ICON_PLUS_10, SE)), TagDialog.Create.ICON, "Create Tag", "Creates a new Tag under the currently selected Tag"),
-      new FilteredAction<>(Tag.class, tagFilter, new SingleEntityActionAdapter<>((source, tag) -> createTagUi(tag)))
+      new FilteredAction<>(Tag.class, tagFilter, new SingleEntityActionAdapter<>(tag -> createTagUi(tag)))
     );
     final UiAction newTimelineTagAction = new UiAction(
       new ActionAppearance(new OverlayIcon(ICON_TIMELINE_13, new Overlay(ICON_PLUS_10, SE)), null, "Create Timeline Tag", "Creates a new Tag representing a calendar date"),
-      new FilteredAction<>(Tag.class, TagUi.TIMELINE_TAG_FILTER, new SingleEntityActionAdapter<>((source, tag) -> createTimelineUi()))
+      new FilteredAction<>(Tag.class, TagUi.TIMELINE_TAG_FILTER, new SingleEntityActionAdapter<>(tag -> createTimelineUi()))
     );
     final UiAction deleteTagAction = new UiAction(
       new ActionAppearance(new OverlayIcon(ICON_TAG_SIMPLE_13, new Overlay(ICON_X_10, SE)), null, "Delete Tag", "Remove currently selected Tag"),
-      new FilteredAction<>(Tag.class, new SingleEntityFilter<>(HIDDEN, tag -> tagCtrl_.isLeaf(tag) ? ENABLED : DISABLED), new SingleEntityActionAdapter<>((source, tag) -> tag.ifPresent(this::deleteTagUi)))
+      new FilteredAction<>(Tag.class, new SingleEntityFilter<>(HIDDEN, tag -> tagCtrl_.isLeaf(tag) ? ENABLED : DISABLED), new SingleEntityActionAdapter<>(tag -> tag.ifPresent(this::deleteTagUi)))
     );
 
     final SelectedBlobsDetailPanel selectionTagPanel = new SelectedBlobsDetailPanel(this);

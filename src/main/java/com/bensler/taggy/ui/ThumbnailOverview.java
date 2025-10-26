@@ -60,19 +60,19 @@ public abstract class ThumbnailOverview implements EntityComponent<Blob>, FocusL
     comp_.setFocusable();
     slideshowAction_ = new UiAction(
       new ActionAppearance(ICON_SLIDESHOW_13, ICON_SLIDESHOW_48, "Slide Show", "View Images in full detail"),
-      new FilteredAction<>(Blob.class, atLeastOneFilter(HIDDEN), (source, blobs) -> app_.getMainFrame().getSlideshowFrame().show(blobs))
+      new FilteredAction<>(Blob.class, atLeastOneFilter(HIDDEN), blobs -> app_.getMainFrame().getSlideshowFrame().show(blobs))
     );
     editImageTagsAction_ = new UiAction(
       new ActionAppearance(ICON_TAG_SIMPLE_13, EditImageTagsDialog.ICON, "Edit Image Tags", "Edit Tags of this Image"),
-      new FilteredAction<>(Blob.class, new SingleEntityFilter<>(DISABLED), new SingleEntityActionAdapter<>((source, blob) -> blob.ifPresent(this::editTags)))
+      new FilteredAction<>(Blob.class, new SingleEntityFilter<>(DISABLED), new SingleEntityActionAdapter<>(blob -> blob.ifPresent(this::editTags)))
     );
     addImagesTagsAction_ = new UiAction(
       new ActionAppearance(new OverlayIcon(ICON_TAG_SIMPLE_13, new Overlay(ICON_PLUS_10, SE)), AddImagesTagsDialog.ICON, "Add Image Tags", "Add Tags to several Images at once"),
-      new FilteredAction<>(Blob.class, atLeastOneFilter(HIDDEN), (source, blobs) -> addTags(blobs))
+      new FilteredAction<>(Blob.class, atLeastOneFilter(HIDDEN), blobs -> addTags(blobs))
     );
     final UiAction deleteImageAction = new UiAction(
       new ActionAppearance(new OverlayIcon(ICON_IMAGE_13, new Overlay(ICON_X_10, SE)), null, "Delete Image(s)", "Remove currently selected Image(s)"),
-      new FilteredAction<>(Blob.class, atLeastOneFilter(HIDDEN), (source, blobs) -> deleteImagesConfirm(blobs))
+      new FilteredAction<>(Blob.class, atLeastOneFilter(HIDDEN), blobs -> deleteImagesConfirm(blobs))
     );
     new FocusedComponentActionController(
       new ActionGroup(slideshowAction_, new ActionGroup(editImageTagsAction_, addImagesTagsAction_), deleteImageAction), Set.of(this)
