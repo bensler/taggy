@@ -2,7 +2,6 @@ package com.bensler.taggy.ui;
 
 import static com.bensler.decaf.swing.action.ActionState.DISABLED;
 import static com.bensler.decaf.swing.action.ActionState.ENABLED;
-import static com.bensler.decaf.swing.action.ActionState.HIDDEN;
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
 import static com.bensler.decaf.util.prefs.DelegatingPrefPersister.createSplitPanePrefPersister;
 import static com.jgoodies.forms.layout.CellConstraints.CENTER;
@@ -110,7 +109,7 @@ public class MainFrame {
       new ActionAppearance(new OverlayIcon(ICON_TAG_SIMPLE_13, new Overlay(ICON_EDIT_13, SE)), TagDialog.Edit.ICON, "Edit Tag", "Edit currently selected Tag"),
       new FilteredAction<>(Tag.class, TagUi.TAG_FILTER, new SingleEntityActionAdapter<>(tag -> tag.ifPresent(this::editTagUi)))
     );
-    final SingleEntityFilter<Tag> tagFilter = new SingleEntityFilter<>(HIDDEN, TagUi.TAG_FILTER) {
+    final SingleEntityFilter<Tag> tagFilter = new SingleEntityFilter<>(TagUi.TAG_FILTER) {
       @Override
       public ActionState getActionState(List<Tag> entities) {
         return (tagTree_.getSelection().isEmpty() ? ENABLED : super.getActionState(entities));
@@ -126,7 +125,7 @@ public class MainFrame {
     );
     final UiAction deleteTagAction = new UiAction(
       new ActionAppearance(new OverlayIcon(ICON_TAG_SIMPLE_13, new Overlay(ICON_X_10, SE)), null, "Delete Tag", "Remove currently selected Tag"),
-      new FilteredAction<>(Tag.class, new SingleEntityFilter<>(HIDDEN, tag -> tagCtrl_.isLeaf(tag) ? ENABLED : DISABLED), new SingleEntityActionAdapter<>(tag -> tag.ifPresent(this::deleteTagUi)))
+      new FilteredAction<>(Tag.class, new SingleEntityFilter<>(tag -> tagCtrl_.isLeaf(tag) ? ENABLED : DISABLED), new SingleEntityActionAdapter<>(tag -> tag.ifPresent(this::deleteTagUi)))
     );
 
     final SelectedBlobsDetailPanel selectionTagPanel = new SelectedBlobsDetailPanel(this);
@@ -161,7 +160,7 @@ public class MainFrame {
       new ActionGroup(
         new ActionAppearance(new OverlayIcon(ICON_IMAGES_48, new Overlay(ICON_EDIT_30, SE)), null, null, "Edit Images"),
         thumbnails_.getSlideshowAction(),
-        thumbnails_.editImageTagsAction_
+        thumbnails_.getEditImageTagsAction()
       ),
       thumbnails_.getToolbarActions(),
       new ActionGroup(thumbnails_.getSlideshowAction())

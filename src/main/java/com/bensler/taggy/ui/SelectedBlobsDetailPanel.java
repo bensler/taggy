@@ -1,7 +1,6 @@
 package com.bensler.taggy.ui;
 
 import static com.bensler.decaf.swing.action.ActionState.ENABLED;
-import static com.bensler.decaf.swing.action.ActionState.HIDDEN;
 import static com.bensler.decaf.swing.view.SimplePropertyGetter.createGetterComparator;
 import static com.bensler.decaf.util.cmp.CollatorComparator.COLLATOR_COMPARATOR;
 import static javax.swing.JSplitPane.VERTICAL_SPLIT;
@@ -66,7 +65,7 @@ public class SelectedBlobsDetailPanel {
     tagTree_.setVisibleRowCount(20, .5f);
     final UiAction focusAction = new UiAction(
       new ActionAppearance(null, null, "Focus", null),
-      new FilteredAction<>(Tag.class, new SingleEntityFilter<>(HIDDEN, tag -> ENABLED), new SingleEntityActionAdapter<>(tag -> tag.ifPresent(mainFrame::selectTag)))
+      new FilteredAction<>(Tag.class, new SingleEntityFilter<>(tag -> ENABLED), new SingleEntityActionAdapter<>(tag -> tag.ifPresent(mainFrame::selectTag)))
     );
     tagTree_.setCtxActions(new FocusedComponentActionController(new ActionGroup(focusAction), Set.of(tagTree_)));
     final TablePropertyView<NameValuePair, String> propertyKeyColumn;
