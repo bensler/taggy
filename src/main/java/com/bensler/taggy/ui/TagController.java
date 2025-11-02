@@ -103,9 +103,10 @@ public class TagController {
   }
 
   Tag persistNewTag(Tag newTag) {
-    final Tag createdTag = app_.storeEntity(newTag);
+    final Tag createdTag = app_.getDbAccess().storeObject(newTag);
 
     allTags_.add(createdTag);
+    app_.entityCreated(createdTag);
     Optional.ofNullable(createdTag.getProperty(REPRESENTED_DATE)).ifPresent(dateStr -> dateTags_.put(dateStr, createdTag));
     return createdTag;
   }
