@@ -61,7 +61,7 @@ public class ImportController {
     importDir_ = new File(dataDir, IMPORT_DIR);
     importDir_.mkdirs();
     actionImport_ = new UiAction(
-      IMPORT_ACTION_APPEARANCE, new FilteredAction<>(Void.class, null, entities -> showImportDialog())
+      IMPORT_ACTION_APPEARANCE, new FilteredAction<>(Void.class, FilteredAction.allwaysOnFilter(), entities -> showImportDialog())
     );
     fileShaMap_ = new HashMap<>();
   }

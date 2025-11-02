@@ -1,7 +1,5 @@
 package com.bensler.taggy.ui;
 
-import static com.bensler.decaf.swing.action.ActionState.DISABLED;
-import static com.bensler.decaf.swing.action.ActionState.ENABLED;
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
 import static com.bensler.decaf.util.prefs.DelegatingPrefPersister.createSplitPanePrefPersister;
 import static com.jgoodies.forms.layout.CellConstraints.CENTER;
@@ -29,7 +27,6 @@ import javax.swing.tree.TreePath;
 
 import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.ActionGroup;
-import com.bensler.decaf.swing.action.ActionState;
 import com.bensler.decaf.swing.action.FilteredAction;
 import com.bensler.decaf.swing.action.FocusedComponentActionController;
 import com.bensler.decaf.swing.action.SingleEntityActionAdapter;
@@ -111,8 +108,8 @@ public class MainFrame {
     );
     final SingleEntityFilter<Tag> tagFilter = new SingleEntityFilter<>(TagUi.TAG_FILTER) {
       @Override
-      public ActionState getActionState(List<Tag> entities) {
-        return (tagTree_.getSelection().isEmpty() ? ENABLED : super.getActionState(entities));
+      public boolean match(List<Tag> entities) {
+        return (tagTree_.getSelection().isEmpty() || super.match(entities));
       }
     };
     final UiAction newTagAction = new UiAction(
@@ -125,7 +122,7 @@ public class MainFrame {
     );
     final UiAction deleteTagAction = new UiAction(
       new ActionAppearance(new OverlayIcon(ICON_TAG_SIMPLE_13, new Overlay(ICON_X_10, SE)), null, "Delete Tag", "Remove currently selected Tag"),
-      new FilteredAction<>(Tag.class, new SingleEntityFilter<>(tag -> tagCtrl_.isLeaf(tag) ? ENABLED : DISABLED), new SingleEntityActionAdapter<>(tag -> tag.ifPresent(this::deleteTagUi)))
+      new FilteredAction<>(Tag.class, new SingleEntityFilter<>(tag -> tagCtrl_.isLeaf(tag)), new SingleEntityActionAdapter<>(tag -> tag.ifPresent(this::deleteTagUi)))
     );
 
     final SelectedBlobsDetailPanel selectionTagPanel = new SelectedBlobsDetailPanel(this);

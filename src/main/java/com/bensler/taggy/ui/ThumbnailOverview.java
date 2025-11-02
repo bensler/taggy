@@ -1,7 +1,6 @@
 package com.bensler.taggy.ui;
 
-import static com.bensler.decaf.swing.action.ActionState.DISABLED;
-import static com.bensler.decaf.swing.action.UiAction.atLeastOneFilter;
+import static com.bensler.decaf.swing.action.FilteredAction.atLeastOneFilter;
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
 import static com.bensler.taggy.ui.MainFrame.ICON_IMAGE_13;
 import static com.bensler.taggy.ui.MainFrame.ICON_PLUS_10;
@@ -58,7 +57,7 @@ public abstract class ThumbnailOverview implements EntityComponent<Blob>, FocusL
     comp_.setFocusable();
     slideshowAction_ = new UiAction(
       new ActionAppearance(ICON_SLIDESHOW_13, ICON_SLIDESHOW_48, "Slide Show", "View Images in full detail"),
-      new FilteredAction<>(Blob.class, atLeastOneFilter(DISABLED), blobs -> app_.getMainFrame().getSlideshowFrame().show(blobs))
+      new FilteredAction<>(Blob.class, atLeastOneFilter(), blobs -> app_.getMainFrame().getSlideshowFrame().show(blobs))
     );
     editImageTagsAction_ = new UiAction(
       new ActionAppearance(ICON_TAG_SIMPLE_13, EditImageTagsDialog.ICON, "Edit Image Tags", "Edit Tags of this Image"),
@@ -66,11 +65,11 @@ public abstract class ThumbnailOverview implements EntityComponent<Blob>, FocusL
     );
     addImagesTagsAction_ = new UiAction(
       new ActionAppearance(new OverlayIcon(ICON_TAG_SIMPLE_13, new Overlay(ICON_PLUS_10, SE)), AddImagesTagsDialog.ICON, "Add Image Tags", "Add Tags to several Images at once"),
-      new FilteredAction<>(Blob.class, atLeastOneFilter(DISABLED), blobs -> addTags(blobs))
+      new FilteredAction<>(Blob.class, atLeastOneFilter(), blobs -> addTags(blobs))
     );
     final UiAction deleteImageAction = new UiAction(
       new ActionAppearance(new OverlayIcon(ICON_IMAGE_13, new Overlay(ICON_X_10, SE)), null, "Delete Image(s)", "Remove currently selected Image(s)"),
-      new FilteredAction<>(Blob.class, atLeastOneFilter(DISABLED), blobs -> deleteImagesConfirm(blobs))
+      new FilteredAction<>(Blob.class, atLeastOneFilter(), blobs -> deleteImagesConfirm(blobs))
     );
     new FocusedComponentActionController(
       new ActionGroup(slideshowAction_, new ActionGroup(editImageTagsAction_, addImagesTagsAction_), deleteImageAction), Set.of(this)

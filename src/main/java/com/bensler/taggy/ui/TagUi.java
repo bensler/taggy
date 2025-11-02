@@ -1,7 +1,5 @@
 package com.bensler.taggy.ui;
 
-import static com.bensler.decaf.swing.action.ActionState.DISABLED;
-import static com.bensler.decaf.swing.action.ActionState.ENABLED;
 import static com.bensler.decaf.swing.view.SimplePropertyGetter.createGetter;
 import static com.bensler.decaf.util.cmp.CollatorComparator.COLLATOR_COMPARATOR;
 
@@ -31,11 +29,11 @@ public final class TagUi {
   );
 
   public static final SingleEntityFilter<Tag> TIMELINE_TAG_FILTER = new SingleEntityFilter<>(
-    tag -> (tag.containsProperty(TagProperty.REPRESENTED_DATE) ? ENABLED : DISABLED)
+    tag -> tag.containsProperty(TagProperty.REPRESENTED_DATE)
   );
 
   public static final SingleEntityFilter<Tag> TAG_FILTER = new SingleEntityFilter<>(
-    tag -> (TIMELINE_TAG_FILTER.getActionState(tag) == ENABLED ? DISABLED : ENABLED)
+    tag -> (!TIMELINE_TAG_FILTER.matches(tag))
   );
 
   public static final SimpleCellRenderer<Tag, String> CELL_RENDERER = new SimpleCellRenderer<>() {
