@@ -43,7 +43,7 @@ public abstract class ThumbnailOverview implements EntityComponent<Blob>, FocusL
 
   private final App app_;
   private final BlobController blobCtrl_;
-  private final ThumbnailOverviewPanel comp_;
+  protected final ThumbnailOverviewPanel comp_;
 
   private final UiAction editImageTagsAction_;
   private final UiAction addImagesTagsAction_;

@@ -172,6 +172,7 @@ public class MainFrame {
     prefs_ = new PrefPersisterImpl(app_.getPrefs(),
       new WindowPrefsPersister(baseKey, frame_),
       TagPrefPersister.create(new PrefKey(baseKey, "selectedTag"), tagTree_::getSingleSelection, tagTree_::select),
+      thumbnails_.createPrefPersister(new PrefKey(baseKey, "selectedImages")),
       createSplitPanePrefPersister(new PrefKey(baseKey, "splitLeft"), leftSplitpane),
       createSplitPanePrefPersister(new PrefKey(baseKey, "splitRight"), rightSplitpane),
       selectionTagPanel.createPrefPersister(new PrefKey(baseKey, "selectionTagPanel"))
