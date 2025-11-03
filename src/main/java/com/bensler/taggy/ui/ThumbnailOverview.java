@@ -142,12 +142,12 @@ public abstract class ThumbnailOverview implements EntityComponent<Blob>, FocusL
   }
 
   @Override
-  public void select(Collection<Blob> entities) {
+  public void select(Collection<?> entities) {
     comp_.select(entities);
   }
 
   @Override
-  public void select(Blob entity) {
+  public void select(Object entity) {
     comp_.select(entity);
   }
 

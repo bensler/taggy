@@ -42,7 +42,6 @@ import javax.swing.UIManager;
 import com.bensler.decaf.swing.awt.ColorHelper;
 import com.bensler.decaf.swing.selection.EntitySelectionListener;
 import com.bensler.decaf.swing.view.SimplePropertyGetter;
-import com.bensler.decaf.util.entity.AbstractEntity;
 import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
@@ -433,14 +432,14 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     }
   }
 
-  public void select(Collection<? extends AbstractEntity<Blob>> blobs) {
+  public void select(Collection<?> blobs) {
     try (SelectionEvent selectionEvent = new SelectionEvent()) {
       selection_.clear();
       blobs.stream().flatMap(blob -> EntityReference.resolve(blob, images_.keySet()).stream()).forEach(selection_::add);
     }
   }
 
-  public void select(Blob blob) {
+  public void select(Object blob) {
     select(List.of(blob));
   }
 
