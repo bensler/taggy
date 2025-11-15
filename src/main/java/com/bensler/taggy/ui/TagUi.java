@@ -7,7 +7,7 @@ import java.util.List;
 
 import javax.swing.Icon;
 
-import com.bensler.decaf.swing.action.SingleEntityFilter;
+import com.bensler.decaf.swing.action.FilteredAction.FilterOne;
 import com.bensler.decaf.swing.view.EntityPropertyComparator;
 import com.bensler.decaf.swing.view.PropertyViewImpl;
 import com.bensler.decaf.swing.view.SimpleCellRenderer;
@@ -28,13 +28,9 @@ public final class TagUi {
     new TagCellRenderer(), createGetter(Tag::getName, new ComparatorChain<>(List.of(DATE_COMPARATOR, NAME_COMPARATOR)))
   );
 
-  public static final SingleEntityFilter<Tag> TIMELINE_TAG_FILTER = new SingleEntityFilter<>(
-    tag -> tag.containsProperty(TagProperty.REPRESENTED_DATE)
-  );
+  public static final FilterOne<Tag> TIMELINE_TAG_FILTER = tag -> tag.containsProperty(TagProperty.REPRESENTED_DATE);
 
-  public static final SingleEntityFilter<Tag> TAG_FILTER = new SingleEntityFilter<>(
-    tag -> (!TIMELINE_TAG_FILTER.matches(tag))
-  );
+  public static final FilterOne<Tag> TAG_FILTER = tag -> !TIMELINE_TAG_FILTER.matches(tag);
 
   public static final SimpleCellRenderer<Tag, String> CELL_RENDERER = new SimpleCellRenderer<>() {
 

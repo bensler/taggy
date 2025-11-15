@@ -29,8 +29,6 @@ import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.ActionGroup;
 import com.bensler.decaf.swing.action.FilteredAction;
 import com.bensler.decaf.swing.action.FocusedComponentActionController;
-import com.bensler.decaf.swing.action.SingleEntityActionAdapter;
-import com.bensler.decaf.swing.action.SingleEntityFilter;
 import com.bensler.decaf.swing.action.UiAction;
 import com.bensler.decaf.swing.awt.OverlayIcon;
 import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
@@ -89,8 +87,10 @@ public class MainFrame {
   private final EntityTree<Tag> tagTree_;
   private final MainThumbnailOverview thumbnails_;
   private final TagController tagCtrl_;
-  private final EntityChangeListenerTreeAdapter<Tag> treeAdapter_; // save it from GC
-  private final FocusedComponentActionController actionCtrl_; // save it from GC
+  @SuppressWarnings("unused") // save it from GC
+  private final EntityChangeListenerTreeAdapter<Tag> treeAdapter_;
+  @SuppressWarnings("unused") // save it from GC
+  private final FocusedComponentActionController actionCtrl_;
   private SlideshowFrame slideshowFrame_;
 
   public MainFrame(App app) {
@@ -104,25 +104,19 @@ public class MainFrame {
     ));
     final UiAction editTagAction = new UiAction(
       new ActionAppearance(new OverlayIcon(ICON_TAG_SIMPLE_13, new Overlay(ICON_EDIT_13, SE)), TagDialog.Edit.ICON, "Edit Tag", "Edit currently selected Tag"),
-      new FilteredAction<>(Tag.class, TagUi.TAG_FILTER, new SingleEntityActionAdapter<>(tag -> tag.ifPresent(this::editTagUi)))
+      FilteredAction.one(Tag.class, TagUi.TAG_FILTER, this::editTagUi)
     );
-    final SingleEntityFilter<Tag> tagFilter = new SingleEntityFilter<>(TagUi.TAG_FILTER) {
-      @Override
-      public boolean match(List<Tag> entities) {
-        return (tagTree_.getSelection().isEmpty() || super.match(entities));
-      }
-    };
     final UiAction newTagAction = new UiAction(
       new ActionAppearance(new OverlayIcon(ICON_TAG_SIMPLE_13, new Overlay(ICON_PLUS_10, SE)), TagDialog.Create.ICON, "Create Tag", "Creates a new Tag under the currently selected Tag"),
-      new FilteredAction<>(Tag.class, tagFilter, new SingleEntityActionAdapter<>(tag -> createTagUi(tag)))
+      FilteredAction.oneOrNone(Tag.class, TagUi.TAG_FILTER, this::createTagUi)
     );
     final UiAction newTimelineTagAction = new UiAction(
       new ActionAppearance(new OverlayIcon(ICON_TIMELINE_13, new Overlay(ICON_PLUS_10, SE)), null, "Create Timeline Tag", "Creates a new Tag representing a calendar date"),
-      new FilteredAction<>(Tag.class, TagUi.TIMELINE_TAG_FILTER, new SingleEntityActionAdapter<>(tag -> createTimelineUi()))
+      FilteredAction.one(Tag.class, TagUi.TIMELINE_TAG_FILTER, tag -> createTimelineUi())
     );
     final UiAction deleteTagAction = new UiAction(
       new ActionAppearance(new OverlayIcon(ICON_TAG_SIMPLE_13, new Overlay(ICON_X_10, SE)), null, "Delete Tag", "Remove currently selected Tag"),
-      new FilteredAction<>(Tag.class, new SingleEntityFilter<>(tag -> tagCtrl_.isLeaf(tag)), new SingleEntityActionAdapter<>(tag -> tag.ifPresent(this::deleteTagUi)))
+      FilteredAction.one(Tag.class, tagCtrl_::isLeaf, this::deleteTagUi)
     );
 
     final SelectedBlobsDetailPanel selectionTagPanel = new SelectedBlobsDetailPanel(this);
@@ -234,7 +228,7 @@ public class MainFrame {
 
       tagCtrl_.deleteTag(tag);
       if (parentPath.getPathCount() > 1) {
-        tagTree_.select((Tag)parentPath.getLastPathComponent());
+        tagTree_.select(parentPath.getLastPathComponent());
       } else {
         tagTree_.select(List.of());
       }
