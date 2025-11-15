@@ -16,6 +16,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -149,6 +151,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     );
     scrollPane_.getViewport().setBackground(getBackground());
     setPreferredScrollableViewportSize(1, 3);
+
   }
 
   public void scrollToEnd() {
@@ -161,6 +164,17 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
 
   public void setFocusable() {
     setFocusable(true);
+    addFocusListener(new FocusListener() {
+      @Override
+      public void focusGained(FocusEvent e) {
+        repaint();
+      }
+
+      @Override
+      public void focusLost(FocusEvent e) {
+        repaint();
+      }
+    });
     addMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent evt) {
