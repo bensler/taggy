@@ -13,7 +13,7 @@ import javax.swing.UIManager;
 
 import com.bensler.decaf.util.entity.Entity;
 import com.bensler.decaf.util.prefs.PrefKey;
-import com.bensler.decaf.util.prefs.Prefs;
+import com.bensler.decaf.util.prefs.PrefsStorage;
 import com.bensler.taggy.imprt.ImportController;
 import com.bensler.taggy.imprt.Thumbnailer;
 import com.bensler.taggy.persist.DbAccess;
@@ -54,7 +54,7 @@ public class App {
   }
 
   private final DbConnector db_;
-  private final Prefs prefs_;
+  private final PrefsStorage prefs_;
   private final BlobController blobCtrl_;
   private final TagController tagCtrl_;
   private final DbAccess dbAccess_;
@@ -73,7 +73,7 @@ public class App {
     db_ = new SqliteDbConnector(dataDir, "taggy.sqlite.db");
     db_.performFlywayMigration();
     dbAccess_ = new DbAccess(db_.getSession());
-    prefs_ = new Prefs(new File(getBaseDir(), "prefs.xml"));
+    prefs_ = new PrefsStorage(new File(getBaseDir(), "prefs.xml"));
     blobCtrl_ = new BlobController(dataDir, FOLDER_PATTERN);
     tagCtrl_ = new TagController(this);
     importCtrl_ = new ImportController(this, getBaseDir());
@@ -105,7 +105,7 @@ public class App {
     return mainFrame_;
   }
 
-  public Prefs getPrefs() {
+  public PrefsStorage getPrefs() {
     return prefs_;
   }
 

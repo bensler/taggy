@@ -9,7 +9,7 @@ import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.decaf.util.prefs.DelegatingPrefPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefPersister;
-import com.bensler.decaf.util.prefs.Prefs;
+import com.bensler.decaf.util.prefs.PrefsStorage;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.Tag;
@@ -49,7 +49,7 @@ class MainThumbnailOverview extends ThumbnailOverview {
       () -> Optional.of(getSelection().stream().map(blob -> blob.getId().toString()).collect(Collectors.joining(","))),
       prefStr -> trySelect(
         Arrays.stream(prefStr.split(","))
-        .map(Prefs::tryParseInt).flatMap(Optional::stream)
+        .map(PrefsStorage::tryParseInt).flatMap(Optional::stream)
         .map(id -> new EntityReference<>(Blob.class, id))
         .toList()
       )

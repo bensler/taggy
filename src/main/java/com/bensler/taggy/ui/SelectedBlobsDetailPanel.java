@@ -28,7 +28,7 @@ import com.bensler.decaf.util.prefs.BulkPrefPersister;
 import com.bensler.decaf.util.prefs.DelegatingPrefPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefPersister;
-import com.bensler.decaf.util.prefs.Prefs;
+import com.bensler.decaf.util.prefs.PrefsStorage;
 import com.bensler.decaf.util.tree.Hierarchical;
 import com.bensler.decaf.util.tree.Hierarchy;
 import com.bensler.taggy.imprt.ImportController;
@@ -151,7 +151,7 @@ public class SelectedBlobsDetailPanel {
     return new BulkPrefPersister(
       new DelegatingPrefPersister(new PrefKey(prefKey, "split"),
         () -> Optional.of(String.valueOf(getDividerLocation())),
-        value -> Prefs.tryParseInt(value).ifPresent(this::setDividerLocation)
+        value -> PrefsStorage.tryParseInt(value).ifPresent(this::setDividerLocation)
       ),
       new TablePrefPersister(new PrefKey(prefKey, "properties"), propertiesTable_.getComponent())
     );
