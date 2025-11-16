@@ -17,6 +17,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
@@ -410,6 +411,15 @@ public class BlobController {
     final String fileName = dateStr + tagsStr;
 
     return (fileName.isEmpty() ? "image" : fileName) + "." + typeStr.toLowerCase();
+  }
+
+  public void export(Blob blob, File file) {
+    try {
+      Files.copy(getFile(blob.getSha256sum()).toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+    } catch (IOException ioe) {
+      // TODO Auto-generated catch block
+      throw new RuntimeException(ioe);
+    }
   }
 
 }

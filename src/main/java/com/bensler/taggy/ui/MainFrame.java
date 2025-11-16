@@ -229,9 +229,10 @@ public class MainFrame {
 
   void exportBlobUi(Blob blob) {
     final JFileChooser chooser = new JFileChooser();
+    final BlobController blobCtrl = app_.getBlobCtrl();
     File file = new File(
       lastExportFolder_.get(prefs_.getStorage()).orElseGet(() -> System.getProperty("user.home")),
-      app_.getBlobCtrl().getTagString(blob)
+      blobCtrl.getTagString(blob)
     );
 
     chooser.setSelectedFile(file);
@@ -246,7 +247,7 @@ public class MainFrame {
       )
     ) {
       lastExportFolder_.put(prefs_.getStorage(), file.getParent());
-      System.out.println("schreib");
+      blobCtrl.export(blob, file);
     };
   }
 
