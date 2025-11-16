@@ -155,7 +155,7 @@ public class MainFrame {
       new ActionGroup(app_.getImportCtrl().getImportAction()),
       new ActionGroup(newTagAction, editTagAction),
       new ActionGroup(new UiAction(
-        new ActionAppearance(new OverlayIcon(ICON_IMAGES_48, new Overlay(ICON_EXPORT_FOLDER_30, SE)), null, null, "bla"),
+        new ActionAppearance(new OverlayIcon(ICON_IMAGES_48, new Overlay(ICON_EXPORT_FOLDER_30, SE)), null, null, "Export Image"),
         FilteredAction.one(Blob.class, this::exportBlobUi)
       )),
       new ActionGroup(
