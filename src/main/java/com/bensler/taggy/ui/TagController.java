@@ -117,7 +117,6 @@ public class TagController {
 
       allTags_.add(editedTag);
       app_.entityChanged(editedTag);
-      allTags_.add(editedTag);
       return editedTag;
     } catch (SQLException sqle) {
       throw new RuntimeException(sqle);

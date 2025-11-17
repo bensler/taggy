@@ -12,15 +12,14 @@ import static javax.swing.WindowConstants.DISPOSE_ON_CLOSE;
 import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
@@ -42,9 +41,9 @@ import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
 import com.bensler.decaf.swing.tree.EntityTree;
 import com.bensler.decaf.swing.view.PropertyViewImpl;
 import com.bensler.decaf.swing.view.SimplePropertyGetter;
-import com.bensler.decaf.util.prefs.DelegatingPrefPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefPersisterImpl;
+import com.bensler.decaf.util.prefs.PrefsStorage;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.Tag;
@@ -73,6 +72,7 @@ public class MainFrame {
   public static final ImageIcon ICON_EDIT_13 = new ImageIcon(MainFrame.class.getResource("edit_13x13.png"));
   public static final ImageIcon ICON_EDIT_30 = new ImageIcon(MainFrame.class.getResource("edit_30x30.png"));
 
+  public static final ImageIcon ICON_EXPORT_FOLDER_13 = new ImageIcon(MainFrame.class.getResource("export_folder_13x13.png"));
   public static final ImageIcon ICON_EXPORT_FOLDER_30 = new ImageIcon(MainFrame.class.getResource("export_folder_30x30.png"));
 
   public static final ImageIcon ICON_PLUS_10 = new ImageIcon(MainFrame.class.getResource("plus_10x10.png"));
@@ -89,7 +89,6 @@ public class MainFrame {
   private final App app_;
   private final JFrame frame_;
   private final PrefPersisterImpl prefs_;
-  private final DelegatingPrefPersister lastExportFolder_;
   private final EntityTree<Tag> tagTree_;
   private final MainThumbnailOverview thumbnails_;
   private final TagController tagCtrl_;
@@ -100,6 +99,7 @@ public class MainFrame {
   private SlideshowFrame slideshowFrame_;
 
   public MainFrame(App app) {
+    final PrefKey baseKey = new PrefKey(App.PREFS_APP_ROOT, getClass());
     app_ = app;
     tagCtrl_ = app_.getTagCtrl();
     frame_ = new JFrame("Taggy");
@@ -126,7 +126,7 @@ public class MainFrame {
     );
 
     final SelectedBlobsDetailPanel selectionTagPanel = new SelectedBlobsDetailPanel(this);
-    (thumbnails_ = new MainThumbnailOverview(app_)).addSelectionListener((source, selection) -> selectionTagPanel.setData(selection));
+    (thumbnails_ = new MainThumbnailOverview(app_, baseKey)).addSelectionListener((source, selection) -> selectionTagPanel.setData(selection));
     tagTree_ = new EntityTree<>(TagUi.NAME_VIEW, Tag.class);
     tagTree_.setVisibleRowCount(20, .5f);
     tagTree_.addSelectionListener((source, selection) -> displayThumbnailsOfSelectedTag(selection));
@@ -152,12 +152,11 @@ public class MainFrame {
     buttonPanel.add(orphanDialogButton, new CellConstraints(1, 1, FILL, FILL));
 
     mainPanel.add((actionCtrl_ = new FocusedComponentActionController(new ActionGroup(
-      new ActionGroup(app_.getImportCtrl().getImportAction()),
       new ActionGroup(newTagAction, editTagAction),
-      new ActionGroup(new UiAction(
-        new ActionAppearance(new OverlayIcon(ICON_IMAGES_48, new Overlay(ICON_EXPORT_FOLDER_30, SE)), null, null, "Export Image"),
-        FilteredAction.one(Blob.class, this::exportBlobUi)
-      )),
+      new ActionGroup(
+        app_.getImportCtrl().getImportAction(),
+        thumbnails_.getExportImageAction()
+      ),
       new ActionGroup(
         new ActionAppearance(new OverlayIcon(ICON_IMAGES_48, new Overlay(ICON_EDIT_30, SE)), null, null, "Edit Images"),
         thumbnails_.getSlideshowAction(),
@@ -171,16 +170,15 @@ public class MainFrame {
     frame_.setContentPane(mainPanel);
     frame_.pack();
     new WindowClosingTrigger(frame_, evt -> frameClosing());
-    final PrefKey baseKey = new PrefKey(App.PREFS_APP_ROOT, getClass());
-    prefs_ = new PrefPersisterImpl(app_.getPrefs(),
-      new WindowPrefsPersister(baseKey, frame_),
-      TagPrefPersister.create(new PrefKey(baseKey, "selectedTag"), tagTree_::getSingleSelection, tagTree_::select),
-      thumbnails_.createPrefPersister(new PrefKey(baseKey, "selectedImages")),
-      createSplitPanePrefPersister(new PrefKey(baseKey, "splitLeft"), leftSplitpane),
-      createSplitPanePrefPersister(new PrefKey(baseKey, "splitRight"), rightSplitpane),
-      selectionTagPanel.createPrefPersister(new PrefKey(baseKey, "selectionTagPanel")),
-      lastExportFolder_ = new DelegatingPrefPersister(new PrefKey(baseKey, "lastExportFolder"))
-    ) {
+    prefs_ = new PrefPersisterImpl(app_.getPrefs(), Stream.concat(
+      thumbnails_.getPrefPersisters().stream(), Stream.of(
+        new WindowPrefsPersister(baseKey, frame_),
+        TagPrefPersister.create(new PrefKey(baseKey, "selectedTag"), tagTree_::getSingleSelection, tagTree_::select),
+        createSplitPanePrefPersister(new PrefKey(baseKey, "splitLeft"), leftSplitpane),
+        createSplitPanePrefPersister(new PrefKey(baseKey, "splitRight"), rightSplitpane),
+        selectionTagPanel.createPrefPersister(new PrefKey(baseKey, "selectionTagPanel"))
+      )
+    ).toList()) {
       @Override
       public void apply() {
         SwingUtilities.invokeLater(super::apply);
@@ -227,30 +225,6 @@ public class MainFrame {
     );
   }
 
-  void exportBlobUi(Blob blob) {
-    final JFileChooser chooser = new JFileChooser();
-    final BlobController blobCtrl = app_.getBlobCtrl();
-    File file = new File(
-      lastExportFolder_.get(prefs_.getStorage()).orElseGet(() -> System.getProperty("user.home")),
-      blobCtrl.getTagString(blob)
-    );
-
-    chooser.setSelectedFile(file);
-    if (
-      (chooser.showSaveDialog(frame_) == JFileChooser.APPROVE_OPTION)
-      && (
-        !(file = chooser.getSelectedFile()).exists()
-        || new ConfirmationDialog(new DialogAppearance(
-          new OverlayIcon(ICON_IMAGES_48, new Overlay(ICON_EXPORT_FOLDER_30, SE)), "Confirmation: Overwrite File",
-          "File \"%s\" already exists. Do you really want to overwrite it?".formatted(file.getName())
-        )).show(frame_)
-      )
-    ) {
-      lastExportFolder_.put(prefs_.getStorage(), file.getParent());
-      blobCtrl.export(blob, file);
-    };
-  }
-
   void deleteTagUi(Tag tag) {
     if (new ConfirmationDialog(new DialogAppearance(
       new OverlayIcon(ICON_TAG_48, new Overlay(ICON_X_30, SE)), "Confirmation: Delete Tag",
@@ -279,6 +253,10 @@ public class MainFrame {
 
   public JFrame getFrame() {
     return frame_;
+  }
+
+  public PrefsStorage getPrefStorage() {
+    return prefs_.getStorage();
   }
 
   public SlideshowFrame getSlideshowFrame() {

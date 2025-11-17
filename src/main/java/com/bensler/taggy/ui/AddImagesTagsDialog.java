@@ -67,8 +67,7 @@ public class AddImagesTagsDialog extends BasicContentPanel<List<Blob>, Set<Tag>>
   protected void contextSet(Context ctx) {
     final PrefKey baseKey = new PrefKey(App.PREFS_APP_ROOT, getClass());
 
-    ctx.setPrefs(new PrefPersisterImpl(
-      app_.getPrefs(),
+    ctx.setPrefs(new PrefPersisterImpl(app_.getPrefs(),
       new WindowPrefsPersister(baseKey, ctx_.getDialog()),
       createSplitPanePrefPersister(new PrefKey(baseKey, "verticalSplitpane"), verticalSplitpane_),
       createSplitPanePrefPersister(new PrefKey(baseKey, "horizontalSplitpane"), horizontalSplitpane_)

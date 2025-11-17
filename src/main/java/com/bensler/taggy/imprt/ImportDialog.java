@@ -121,8 +121,7 @@ class ImportDialog extends JDialog {
       .filter(file -> file.hasObstacle(ImportObstacle.SHA_MISSING) || file.hasObstacle(ImportObstacle.DUPLICATE_CHECK_MISSING)).toList());
     pack();
     final PrefKey baseKey = new PrefKey(App.PREFS_APP_ROOT, getClass());
-    final PrefPersisterImpl prefs = new PrefPersisterImpl(app.getPrefs(),
-      new WindowPrefsPersister(baseKey, this),
+    final PrefPersisterImpl prefs = new PrefPersisterImpl(app.getPrefs(), new WindowPrefsPersister(baseKey, this),
       createSplitPanePrefPersister(new PrefKey(baseKey, "split"), splitPane),
       TagPrefPersister.create(
         new PrefKey(baseKey, "initialTag"), this::getInitialTag,
