@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 
 import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.ActionGroup;
@@ -131,26 +132,27 @@ class MainThumbnailOverview extends ThumbnailOverview {
   }
 
   void exportBlobUi(Blob blob) {
-    final MainFrame mainFrame = app_.getMainFrame();
+    final PrefsStorage prefs = app_.getMainFrame().getPrefStorage();
+    final JFrame frame = app_.getMainFrameFrame();
     final JFileChooser chooser = new JFileChooser();
     final BlobController blobCtrl = app_.getBlobCtrl();
     File file = new File(
-      lastExportFolder_.get(mainFrame.getPrefStorage()).orElseGet(() -> System.getProperty("user.home")),
+      lastExportFolder_.get(prefs).orElseGet(() -> System.getProperty("user.home")),
       blobCtrl.getTagString(blob)
     );
 
     chooser.setSelectedFile(file);
     if (
-      (chooser.showSaveDialog(mainFrame.getFrame()) == JFileChooser.APPROVE_OPTION)
+      (chooser.showSaveDialog(frame) == JFileChooser.APPROVE_OPTION)
       && (
         !(file = chooser.getSelectedFile()).exists()
         || new ConfirmationDialog(new DialogAppearance(
           new OverlayIcon(IMAGES_48, new Overlay(EXPORT_FOLDER_30, SE)), "Confirmation: Overwrite File",
           "File \"%s\" already exists. Do you really want to overwrite it?".formatted(file.getName())
-        )).show(mainFrame.getFrame())
+        )).show(frame)
       )
     ) {
-      lastExportFolder_.put(mainFrame.getPrefStorage(), file.getParent());
+      lastExportFolder_.put(prefs, file.getParent());
       blobCtrl.export(blob, file);
     };
   }

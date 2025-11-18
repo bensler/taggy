@@ -66,7 +66,7 @@ class ImportDialog extends JDialog {
   private final FileSizeRenderer fileSizeRenderer_;
 
   ImportDialog(App app) {
-    super(app.getMainFrame().getFrame(), "Import Files", true);
+    super(app.getMainFrameFrame(), "Import Files", true);
     importController_ = app.getImportCtrl();
     blobCtrl_ = app.getBlobCtrl();
     db_ = app.getDbAccess();

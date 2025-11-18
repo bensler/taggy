@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.WeakHashMap;
 import java.util.function.Consumer;
 
+import javax.swing.JFrame;
 import javax.swing.UIManager;
 
 import com.bensler.decaf.util.entity.Entity;
@@ -103,6 +104,10 @@ public class App {
 
   public MainFrame getMainFrame() {
     return mainFrame_;
+  }
+
+  public JFrame getMainFrameFrame() {
+    return mainFrame_.getFrame();
   }
 
   public PrefsStorage getPrefs() {

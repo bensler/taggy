@@ -1,7 +1,15 @@
 package com.bensler.taggy.ui;
 
+import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
 import static com.bensler.decaf.util.function.ForEachMapperAdapter.forEachMapper;
 import static com.bensler.taggy.persist.TagProperty.REPRESENTED_DATE;
+import static com.bensler.taggy.ui.Icons.EDIT_13;
+import static com.bensler.taggy.ui.Icons.PLUS_10;
+import static com.bensler.taggy.ui.Icons.TAG_48;
+import static com.bensler.taggy.ui.Icons.TAG_SIMPLE_13;
+import static com.bensler.taggy.ui.Icons.TIMELINE_13;
+import static com.bensler.taggy.ui.Icons.X_10;
+import static com.bensler.taggy.ui.Icons.X_30;
 
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
@@ -12,6 +20,15 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 
+import com.bensler.decaf.swing.action.ActionAppearance;
+import com.bensler.decaf.swing.action.ActionGroup;
+import com.bensler.decaf.swing.action.FilteredAction;
+import com.bensler.decaf.swing.action.UiAction;
+import com.bensler.decaf.swing.awt.OverlayIcon;
+import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
+import com.bensler.decaf.swing.dialog.ConfirmationDialog;
+import com.bensler.decaf.swing.dialog.DialogAppearance;
+import com.bensler.decaf.swing.dialog.OkCancelDialog;
 import com.bensler.decaf.swing.tree.EntityTree;
 import com.bensler.decaf.util.Pair;
 import com.bensler.decaf.util.stream.Collectors;
@@ -33,9 +50,13 @@ public class TagController {
   public static final String VALUE_DATE_ROOT = "dateRoot";
 
   private final App app_;
-
   private final Hierarchy<Tag> allTags_;
   private final Map<String, Tag> dateTags_;
+
+  private final UiAction editTagAction_;
+  private final UiAction newTagAction_;
+  private final UiAction newTimelineTagAction_;
+  private final UiAction deleteTagAction_;
 
   public TagController(App app) {
     app_ = app;
@@ -45,6 +66,34 @@ public class TagController {
       .map(tag -> new Pair<>(tag.getProperty(REPRESENTED_DATE), tag))
       .filter(pair -> (pair.getLeft() != null))
       .collect(Collectors.toMap(Pair::getLeft, Pair::getRight, HashMap::new));
+    editTagAction_ = new UiAction(
+      new ActionAppearance(new OverlayIcon(TAG_SIMPLE_13, new Overlay(EDIT_13, SE)), TagDialog.Edit.ICON, "Edit Tag", "Edit currently selected Tag"),
+      FilteredAction.one(Tag.class, TagUi.TAG_FILTER, this::editTagUi)
+    );
+    newTagAction_ = new UiAction(
+      new ActionAppearance(new OverlayIcon(TAG_SIMPLE_13, new Overlay(PLUS_10, SE)), TagDialog.Create.ICON, "Create Tag", "Creates a new Tag under the currently selected Tag"),
+      FilteredAction.oneOrNone(Tag.class, TagUi.TAG_FILTER, this::createTagUi)
+    );
+    newTimelineTagAction_ = new UiAction(
+      new ActionAppearance(new OverlayIcon(TIMELINE_13, new Overlay(PLUS_10, SE)), null, "Create Timeline Tag", "Creates a new Tag representing a calendar date"),
+      FilteredAction.one(Tag.class, TagUi.TIMELINE_TAG_FILTER, tag -> createTimelineUi())
+    );
+    deleteTagAction_ = new UiAction(
+      new ActionAppearance(new OverlayIcon(TAG_SIMPLE_13, new Overlay(X_10, SE)), null, "Delete Tag", "Remove currently selected Tag"),
+      FilteredAction.one(Tag.class, this::isLeaf, this::deleteTagUi)
+    );
+  }
+
+  public UiAction getNewTagAction() {
+    return newTagAction_;
+  }
+
+  public UiAction getEditTagAction() {
+    return editTagAction_;
+  }
+
+  public ActionGroup getAllTagActions() {
+    return new ActionGroup(editTagAction_, newTagAction_, newTimelineTagAction_, deleteTagAction_);
   }
 
   Tag getDateTag(String dateStr) {
@@ -55,6 +104,7 @@ public class TagController {
   public boolean containsDateTag(String date) {
     return dateTags_.containsKey(date);
   }
+
   /** had to impl it myself as recursive calls on {@link Map#computeIfAbsent(Object, Function)} fail in a {@link ConcurrentModificationException} */
   private Tag computeIfAbsent(String tagDateKey, Function<String, Tag> tagCreator) {
     Tag tag = dateTags_.get(tagDateKey);
@@ -89,11 +139,11 @@ public class TagController {
     tree.setData(allTags_);
   }
 
-  public Hierarchy<Tag> getAllTags() {
+  private Hierarchy<Tag> getAllTags() {
     return new Hierarchy<>(allTags_.getMembers());
   }
 
-  void deleteTag(Tag tag) {
+  private void deleteTag(Tag tag) {
     final Set<Blob> blobs;
     final DbAccess db = app_.getDbAccess();
 
@@ -105,7 +155,7 @@ public class TagController {
     removeFromDateTags(tag);
   }
 
-  Tag persistNewTag(Tag newTag) {
+  private Tag persistNewTag(Tag newTag) {
     final Tag createdTag = app_.getDbAccess().storeObject(newTag);
 
     allTags_.add(createdTag);
@@ -114,7 +164,7 @@ public class TagController {
     return createdTag;
   }
 
-  Tag updateTag(TagHeadData tagHeadData) {
+  private Tag updateTag(TagHeadData tagHeadData) {
     final DbAccess db = app_.getDbAccess();
     final Tag editedTag;
     final Tag oldTag = db.resolve(tagHeadData.subject_);
@@ -136,8 +186,37 @@ public class TagController {
     Optional.ofNullable(tag.getProperty(REPRESENTED_DATE)).ifPresent(dateStr -> dateTags_.put(dateStr, tag));
   }
 
-  boolean isLeaf(Tag tag) {
+  private boolean isLeaf(Tag tag) {
     return allTags_.isLeaf(tag);
+  }
+
+  private void createTagUi(Optional<Tag> parentTag) {
+    new OkCancelDialog<>(app_.getMainFrameFrame(), new TagDialog.Create(getAllTags())).show(
+      parentTag, this::persistNewTag
+    );
+  }
+
+  private void createTimelineUi() {
+    new OkCancelDialog<>(app_.getMainFrameFrame(), new CreateTimelineTagDialog(this)).show(
+      null, this::persistNewTag
+    );
+  }
+
+  private void editTagUi(Tag tag) {
+    new OkCancelDialog<>(app_.getMainFrameFrame(), new TagDialog.Edit(getAllTags())).show(
+      tag, this::updateTag
+    );
+  }
+
+  private void deleteTagUi(Tag tag) {
+    if (new ConfirmationDialog(new DialogAppearance(
+      new OverlayIcon(TAG_48, new Overlay(X_30, SE)), "Confirmation: Delete Tag",
+      "Do you really want to delete Tag \"%s\" under \"%s\"?".formatted(
+        tag.getName(), Optional.ofNullable(tag.getParent()).map(Tag::getName).orElse("Root")
+      )
+    )).show(app_.getMainFrameFrame())) {
+      deleteTag(tag);
+    }
   }
 
 }

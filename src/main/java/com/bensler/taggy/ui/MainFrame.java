@@ -2,17 +2,10 @@ package com.bensler.taggy.ui;
 
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
 import static com.bensler.decaf.util.prefs.DelegatingPrefPersister.createSplitPanePrefPersister;
-import static com.bensler.taggy.ui.Icons.EDIT_13;
 import static com.bensler.taggy.ui.Icons.EDIT_30;
 import static com.bensler.taggy.ui.Icons.IMAGES_48;
 import static com.bensler.taggy.ui.Icons.IMAGE_48;
-import static com.bensler.taggy.ui.Icons.PLUS_10;
 import static com.bensler.taggy.ui.Icons.TAGS_36;
-import static com.bensler.taggy.ui.Icons.TAG_48;
-import static com.bensler.taggy.ui.Icons.TAG_SIMPLE_13;
-import static com.bensler.taggy.ui.Icons.TIMELINE_13;
-import static com.bensler.taggy.ui.Icons.X_10;
-import static com.bensler.taggy.ui.Icons.X_30;
 import static com.jgoodies.forms.layout.CellConstraints.CENTER;
 import static com.jgoodies.forms.layout.CellConstraints.FILL;
 import static com.jgoodies.forms.layout.CellConstraints.RIGHT;
@@ -37,14 +30,9 @@ import javax.swing.SwingUtilities;
 
 import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.ActionGroup;
-import com.bensler.decaf.swing.action.FilteredAction;
 import com.bensler.decaf.swing.action.FocusedComponentActionController;
-import com.bensler.decaf.swing.action.UiAction;
 import com.bensler.decaf.swing.awt.OverlayIcon;
 import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
-import com.bensler.decaf.swing.dialog.ConfirmationDialog;
-import com.bensler.decaf.swing.dialog.DialogAppearance;
-import com.bensler.decaf.swing.dialog.OkCancelDialog;
 import com.bensler.decaf.swing.dialog.WindowClosingTrigger;
 import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
 import com.bensler.decaf.swing.tree.EntityTree;
@@ -87,31 +75,13 @@ public class MainFrame {
       "3dlu, f:p:g, 3dlu",
       "3dlu, f:p, 3dlu, f:p:g, 3dlu, f:p, 3dlu"
     ));
-    final UiAction editTagAction = new UiAction(
-      new ActionAppearance(new OverlayIcon(TAG_SIMPLE_13, new Overlay(EDIT_13, SE)), TagDialog.Edit.ICON, "Edit Tag", "Edit currently selected Tag"),
-      FilteredAction.one(Tag.class, TagUi.TAG_FILTER, this::editTagUi)
-    );
-    final UiAction newTagAction = new UiAction(
-      new ActionAppearance(new OverlayIcon(TAG_SIMPLE_13, new Overlay(PLUS_10, SE)), TagDialog.Create.ICON, "Create Tag", "Creates a new Tag under the currently selected Tag"),
-      FilteredAction.oneOrNone(Tag.class, TagUi.TAG_FILTER, this::createTagUi)
-    );
-    final UiAction newTimelineTagAction = new UiAction(
-      new ActionAppearance(new OverlayIcon(TIMELINE_13, new Overlay(PLUS_10, SE)), null, "Create Timeline Tag", "Creates a new Tag representing a calendar date"),
-      FilteredAction.one(Tag.class, TagUi.TIMELINE_TAG_FILTER, tag -> createTimelineUi())
-    );
-    final UiAction deleteTagAction = new UiAction(
-      new ActionAppearance(new OverlayIcon(TAG_SIMPLE_13, new Overlay(X_10, SE)), null, "Delete Tag", "Remove currently selected Tag"),
-      FilteredAction.one(Tag.class, tagCtrl_::isLeaf, this::deleteTagUi)
-    );
 
     final SelectedBlobsDetailPanel selectionTagPanel = new SelectedBlobsDetailPanel(this);
     (thumbnails_ = new MainThumbnailOverview(app_, baseKey)).addSelectionListener((source, selection) -> selectionTagPanel.setData(selection));
     tagTree_ = new EntityTree<>(TagUi.NAME_VIEW, Tag.class);
     tagTree_.setVisibleRowCount(20, .5f);
     tagTree_.addSelectionListener((source, selection) -> displayThumbnailsOfSelectedTag(selection));
-    tagTree_.setCtxActions(new FocusedComponentActionController(
-      new ActionGroup(editTagAction, newTagAction, newTimelineTagAction, deleteTagAction), Set.of(tagTree_)
-    ));
+    tagTree_.setCtxActions(new FocusedComponentActionController(tagCtrl_.getAllTagActions(), Set.of(tagTree_)));
     app_.addEntityChangeListener(treeAdapter_ = new EntityChangeListenerTreeAdapter<>(tagTree_), Tag.class);
     frame_.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     tagCtrl_.setAllTags(tagTree_);
@@ -131,7 +101,7 @@ public class MainFrame {
     buttonPanel.add(orphanDialogButton, new CellConstraints(1, 1, FILL, FILL));
 
     mainPanel.add((actionCtrl_ = new FocusedComponentActionController(new ActionGroup(
-      new ActionGroup(newTagAction, editTagAction),
+      new ActionGroup(tagCtrl_.getNewTagAction(), tagCtrl_.getEditTagAction()),
       new ActionGroup(
         app_.getImportCtrl().getImportAction(),
         thumbnails_.getExportImageAction()
@@ -183,42 +153,6 @@ public class MainFrame {
     } catch (Exception e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
-    }
-  }
-
-  void createTagUi(Optional<Tag> parentTag) {
-    new OkCancelDialog<>(frame_, new TagDialog.Create(tagCtrl_.getAllTags())).show(
-      parentTag, newTag -> tagCtrl_.persistNewTag(newTag)
-    );
-  }
-
-  void createTimelineUi() {
-    new OkCancelDialog<>(frame_, new CreateTimelineTagDialog(tagCtrl_)).show(
-      null, newTag -> tagCtrl_.persistNewTag(newTag)
-    );
-  }
-
-  void editTagUi(Tag tag) {
-    new OkCancelDialog<>(frame_, new TagDialog.Edit(tagCtrl_.getAllTags())).show(
-      tag, tagHeadData -> tagCtrl_.updateTag(tagHeadData)
-    );
-  }
-
-  void deleteTagUi(Tag tag) {
-    if (new ConfirmationDialog(new DialogAppearance(
-      new OverlayIcon(TAG_48, new Overlay(X_30, SE)), "Confirmation: Delete Tag",
-      "Do you really want to delete Tag \"%s\" under \"%s\"?".formatted(
-        tag.getName(), Optional.ofNullable(tag.getParent()).map(Tag::getName).orElse("Root")
-      )
-    )).show(frame_)) {
-//      final TreePath parentPath = tagTree_.getModel().getTreePath(tag).getParentPath();
-
-      tagCtrl_.deleteTag(tag);
-//      if (parentPath.getPathCount() > 1) {
-//        tagTree_.select(parentPath.getLastPathComponent());
-//      } else {
-//        tagTree_.select(List.of());
-//      }
     }
   }
 

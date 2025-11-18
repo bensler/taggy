@@ -25,7 +25,7 @@ public class OrphanDialog extends JDialog {
   private final BlobController blobCtrl_;
 
   public OrphanDialog(App app) {
-    super(app.getMainFrame().getFrame(), "Uncategorized Files");
+    super(app.getMainFrameFrame(), "Uncategorized Files");
     final JPanel mainPanel = new JPanel(new FormLayout(
       "3dlu, f:p:g, 3dlu",
       "3dlu, f:p:g, 3dlu, f:p, 3dlu"
