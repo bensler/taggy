@@ -34,7 +34,6 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
-import javax.swing.tree.TreePath;
 
 import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.ActionGroup;
@@ -188,20 +187,20 @@ public class MainFrame {
   }
 
   void createTagUi(Optional<Tag> parentTag) {
-    new OkCancelDialog<>(frame_, new TagDialog.Create(tagTree_.getData())).show(
-      parentTag, newTag -> tagTree_.select(tagCtrl_.persistNewTag(newTag))
+    new OkCancelDialog<>(frame_, new TagDialog.Create(tagCtrl_.getAllTags())).show(
+      parentTag, newTag -> tagCtrl_.persistNewTag(newTag)
     );
   }
 
   void createTimelineUi() {
     new OkCancelDialog<>(frame_, new CreateTimelineTagDialog(tagCtrl_)).show(
-      null, newTag -> tagTree_.select(tagCtrl_.persistNewTag(newTag))
+      null, newTag -> tagCtrl_.persistNewTag(newTag)
     );
   }
 
   void editTagUi(Tag tag) {
-    new OkCancelDialog<>(frame_, new TagDialog.Edit(tagTree_.getData())).show(
-      tag, tagHeadData -> tagTree_.select(tagCtrl_.updateTag(tagHeadData))
+    new OkCancelDialog<>(frame_, new TagDialog.Edit(tagCtrl_.getAllTags())).show(
+      tag, tagHeadData -> tagCtrl_.updateTag(tagHeadData)
     );
   }
 
@@ -212,14 +211,14 @@ public class MainFrame {
         tag.getName(), Optional.ofNullable(tag.getParent()).map(Tag::getName).orElse("Root")
       )
     )).show(frame_)) {
-      final TreePath parentPath = tagTree_.getModel().getTreePath(tag).getParentPath();
+//      final TreePath parentPath = tagTree_.getModel().getTreePath(tag).getParentPath();
 
       tagCtrl_.deleteTag(tag);
-      if (parentPath.getPathCount() > 1) {
-        tagTree_.select(parentPath.getLastPathComponent());
-      } else {
-        tagTree_.select(List.of());
-      }
+//      if (parentPath.getPathCount() > 1) {
+//        tagTree_.select(parentPath.getLastPathComponent());
+//      } else {
+//        tagTree_.select(List.of());
+//      }
     }
   }
 

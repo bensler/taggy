@@ -3,7 +3,6 @@ package com.bensler.taggy.ui;
 import static com.bensler.decaf.util.function.ForEachMapperAdapter.forEachMapper;
 import static com.bensler.taggy.persist.TagProperty.REPRESENTED_DATE;
 
-import java.sql.SQLException;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.ConcurrentModificationException;
@@ -90,6 +89,10 @@ public class TagController {
     tree.setData(allTags_);
   }
 
+  public Hierarchy<Tag> getAllTags() {
+    return new Hierarchy<>(allTags_.getMembers());
+  }
+
   void deleteTag(Tag tag) {
     final Set<Blob> blobs;
     final DbAccess db = app_.getDbAccess();
@@ -112,15 +115,14 @@ public class TagController {
   }
 
   Tag updateTag(TagHeadData tagHeadData) {
-    try {
-      final Tag editedTag = app_.getDbAccess().getTagDbMapper().updateHeadData(tagHeadData);
+    final DbAccess db = app_.getDbAccess();
+    final Tag editedTag;
 
-      allTags_.add(editedTag);
-      app_.entityChanged(editedTag);
-      return editedTag;
-    } catch (SQLException sqle) {
-      throw new RuntimeException(sqle);
-    }
+    db.runInTxn(() -> db.getTagDbMapper().updateHeadData(tagHeadData));
+    editedTag =  db.refresh(tagHeadData.subject_);
+    allTags_.add(editedTag);
+    app_.entityChanged(editedTag);
+    return editedTag;
   }
 
   boolean isLeaf(Tag tag) {

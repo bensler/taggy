@@ -18,9 +18,9 @@ public class TagDbMapper extends AbstractDbMapper<Tag> {
 
   public static class TagHeadData {
 
-    final EntityReference<Tag> subject_;
-    final Tag parent_;
-    final String name_;
+    public final EntityReference<Tag> subject_;
+    public final Tag parent_;
+    public final String name_;
 
     public TagHeadData(Tag subject, Tag parent, String name) {
       subject_ = new EntityReference<>(subject);
@@ -105,9 +105,8 @@ public class TagDbMapper extends AbstractDbMapper<Tag> {
     }
   }
 
-  public Tag updateHeadData(TagHeadData tagHeadData) throws SQLException {
+  public void updateHeadData(TagHeadData tagHeadData) throws SQLException {
     updateHeadData(tagHeadData.subject_.getId(), tagHeadData.parent_, tagHeadData.name_);
-    return db_.refresh(tagHeadData.subject_);
   }
 
   private void updateHeadData(Integer tagId, Tag parent, String name) throws SQLException {
