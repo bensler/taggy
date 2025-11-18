@@ -1,6 +1,7 @@
 package com.bensler.taggy.ui;
 
 import static com.bensler.decaf.util.prefs.DelegatingPrefPersister.createSplitPanePrefPersister;
+import static com.bensler.taggy.ui.Icons.SLIDESHOW_48;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -34,7 +35,7 @@ public class SlideshowFrame extends JFrame {
       "3dlu, f:p:g, 3dlu"
     ));
 
-    setIconImages(List.of(MainFrame.ICON_SLIDESHOW_48.getImage()));
+    setIconImages(List.of(SLIDESHOW_48.getImage()));
     imageComponent_ = new ImageComponent();
     thumbs_ = new ThumbnailOverviewPanel(app, ScrollingPolicy.SCROLL_HORIZONTALLY);
     thumbs_.setFocusable();

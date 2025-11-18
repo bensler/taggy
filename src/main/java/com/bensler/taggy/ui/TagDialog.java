@@ -1,9 +1,9 @@
 package com.bensler.taggy.ui;
 
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
-import static com.bensler.taggy.ui.MainFrame.ICON_EDIT_30;
-import static com.bensler.taggy.ui.MainFrame.ICON_PLUS_30;
-import static com.bensler.taggy.ui.MainFrame.ICON_TAG_48;
+import static com.bensler.taggy.ui.Icons.EDIT_30;
+import static com.bensler.taggy.ui.Icons.PLUS_30;
+import static com.bensler.taggy.ui.Icons.TAG_48;
 
 import java.util.Map;
 import java.util.Optional;
@@ -90,7 +90,7 @@ public abstract class TagDialog<IN, OUT> extends BasicContentPanel<IN, OUT> {
 
   public static class Create extends TagDialog<Optional<Tag>, Tag> {
 
-    public final static OverlayIcon ICON = new OverlayIcon(ICON_TAG_48, new Overlay(ICON_PLUS_30, SE));
+    public final static OverlayIcon ICON = new OverlayIcon(TAG_48, new Overlay(PLUS_30, SE));
 
     public Create(Hierarchy<Tag> allTags) {
       super(allTags, new DialogAppearance(ICON, "Create Tag", "Create a New Tag", true));
@@ -111,7 +111,7 @@ public abstract class TagDialog<IN, OUT> extends BasicContentPanel<IN, OUT> {
 
   public static class Edit extends TagDialog<Tag, TagHeadData> {
 
-    public static final OverlayIcon ICON = new OverlayIcon(ICON_TAG_48, new Overlay(ICON_EDIT_30, SE));
+    public static final OverlayIcon ICON = new OverlayIcon(TAG_48, new Overlay(EDIT_30, SE));
 
     public Edit(Hierarchy<Tag> allTags) {
       super(allTags, new DialogAppearance(ICON, "Edit Tag", "Edit an existing Tag", true));

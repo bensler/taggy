@@ -4,6 +4,9 @@ import static com.bensler.decaf.swing.view.SimplePropertyGetter.createComparable
 import static com.bensler.decaf.swing.view.SimplePropertyGetter.createGetterComparator;
 import static com.bensler.decaf.util.cmp.CollatorComparator.COLLATOR_COMPARATOR;
 import static com.bensler.decaf.util.prefs.DelegatingPrefPersister.createSplitPanePrefPersister;
+import static com.bensler.taggy.ui.Icons.IMAGE_13;
+import static com.bensler.taggy.ui.Icons.PLUS_10;
+import static com.bensler.taggy.ui.Icons.X_10;
 
 import java.awt.Dimension;
 import java.io.File;
@@ -44,7 +47,6 @@ import com.bensler.taggy.imprt.FileToImport.ImportObstacle;
 import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.persist.Tag;
 import com.bensler.taggy.ui.BlobController;
-import com.bensler.taggy.ui.MainFrame;
 import com.bensler.taggy.ui.TagPrefPersister;
 import com.bensler.taggy.ui.TagUi;
 import com.jgoodies.forms.layout.CellConstraints;
@@ -202,7 +204,7 @@ class ImportDialog extends JDialog {
 
   static final class TypeIconRenderer extends SimpleCellRenderer<FileToImport, String> {
     TypeIconRenderer() {
-      super(MainFrame.ICON_IMAGE_13);
+      super(IMAGE_13);
     }
 
     @Override
@@ -214,7 +216,7 @@ class ImportDialog extends JDialog {
   static final class IsNewIconRenderer extends SimpleCellRenderer<FileToImport, Boolean> {
     @Override
     public Icon getIcon(FileToImport entity, Boolean importable) {
-      return Boolean.TRUE.equals(importable) ? MainFrame.ICON_PLUS_10 : MainFrame.ICON_X_10;
+      return Boolean.TRUE.equals(importable) ? PLUS_10 : X_10;
     }
 
     @Override

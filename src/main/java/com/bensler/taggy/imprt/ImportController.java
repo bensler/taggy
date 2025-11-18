@@ -2,8 +2,8 @@ package com.bensler.taggy.imprt;
 
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
 import static com.bensler.decaf.util.function.ForEachMapperAdapter.forEachMapper;
-import static com.bensler.taggy.ui.MainFrame.ICON_IMAGES_48;
-import static com.bensler.taggy.ui.MainFrame.ICON_PLUS_30;
+import static com.bensler.taggy.ui.Icons.IMAGES_48;
+import static com.bensler.taggy.ui.Icons.PLUS_30;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -48,7 +48,7 @@ public class ImportController {
   private static final String IMPORT_DIR = "import";
 
   public static final ActionAppearance IMPORT_ACTION_APPEARANCE =  new ActionAppearance(
-    null, new OverlayIcon(ICON_IMAGES_48, new Overlay(ICON_PLUS_30, SE)), null, "Scan for new Images to import."
+    null, new OverlayIcon(IMAGES_48, new Overlay(PLUS_30, SE)), null, "Scan for new Images to import."
   );
 
   private final App app_;

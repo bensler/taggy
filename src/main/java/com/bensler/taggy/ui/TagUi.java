@@ -37,7 +37,7 @@ public final class TagUi {
     @Override
     protected Icon getIcon(Tag tag, String name) {
       return (tag.getProperty(TagProperty.REPRESENTED_DATE) == null)
-        ? MainFrame.ICON_TAG_SIMPLE_13 : MainFrame.ICON_TIMELINE_13;
+        ? Icons.TAG_SIMPLE_13 : Icons.TIMELINE_13;
     }
 
   };

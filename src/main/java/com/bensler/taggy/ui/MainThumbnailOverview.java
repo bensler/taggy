@@ -2,15 +2,15 @@ package com.bensler.taggy.ui;
 
 import static com.bensler.decaf.swing.action.FilteredAction.atLeastOneFilter;
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
-import static com.bensler.taggy.ui.MainFrame.ICON_EXPORT_FOLDER_13;
-import static com.bensler.taggy.ui.MainFrame.ICON_EXPORT_FOLDER_30;
-import static com.bensler.taggy.ui.MainFrame.ICON_IMAGES_48;
-import static com.bensler.taggy.ui.MainFrame.ICON_IMAGE_13;
-import static com.bensler.taggy.ui.MainFrame.ICON_PLUS_10;
-import static com.bensler.taggy.ui.MainFrame.ICON_SLIDESHOW_13;
-import static com.bensler.taggy.ui.MainFrame.ICON_SLIDESHOW_48;
-import static com.bensler.taggy.ui.MainFrame.ICON_TAG_SIMPLE_13;
-import static com.bensler.taggy.ui.MainFrame.ICON_X_10;
+import static com.bensler.taggy.ui.Icons.EXPORT_FOLDER_13;
+import static com.bensler.taggy.ui.Icons.EXPORT_FOLDER_30;
+import static com.bensler.taggy.ui.Icons.IMAGES_48;
+import static com.bensler.taggy.ui.Icons.IMAGE_13;
+import static com.bensler.taggy.ui.Icons.PLUS_10;
+import static com.bensler.taggy.ui.Icons.SLIDESHOW_13;
+import static com.bensler.taggy.ui.Icons.SLIDESHOW_48;
+import static com.bensler.taggy.ui.Icons.TAG_SIMPLE_13;
+import static com.bensler.taggy.ui.Icons.X_10;
 
 import java.io.File;
 import java.util.Arrays;
@@ -54,24 +54,24 @@ class MainThumbnailOverview extends ThumbnailOverview {
     super(app);
     prefBaseKey_ = prefBaseKey;
     exportImageAction_ = new UiAction(
-      new ActionAppearance(ICON_EXPORT_FOLDER_13, new OverlayIcon(ICON_IMAGES_48, new Overlay(ICON_EXPORT_FOLDER_30, SE)), "Export Image", "Export Image to local filesystem"),
+      new ActionAppearance(EXPORT_FOLDER_13, new OverlayIcon(IMAGES_48, new Overlay(EXPORT_FOLDER_30, SE)), "Export Image", "Export Image to local filesystem"),
       FilteredAction.one(Blob.class, this::exportBlobUi)
     );
     lastExportFolder_ = new DelegatingPrefPersister(new PrefKey(prefBaseKey_, "lastExportFolder"));
     slideshowAction_ = new UiAction(
-      new ActionAppearance(ICON_SLIDESHOW_13, ICON_SLIDESHOW_48, "Slide Show", "View Images in full detail"),
+      new ActionAppearance(SLIDESHOW_13, SLIDESHOW_48, "Slide Show", "View Images in full detail"),
       FilteredAction.many(Blob.class, atLeastOneFilter(), blobs -> app_.getMainFrame().getSlideshowFrame().show(blobs))
     );
     editImageTagsAction_ = new UiAction(
-      new ActionAppearance(ICON_TAG_SIMPLE_13, EditImageTagsDialog.ICON, "Edit Image Tags", "Edit Tags of this Image"),
+      new ActionAppearance(TAG_SIMPLE_13, EditImageTagsDialog.ICON, "Edit Image Tags", "Edit Tags of this Image"),
       FilteredAction.one(Blob.class, this::editTags)
     );
     addImagesTagsAction_ = new UiAction(
-      new ActionAppearance(new OverlayIcon(ICON_TAG_SIMPLE_13, new Overlay(ICON_PLUS_10, SE)), AddImagesTagsDialog.ICON, "Add Image Tags", "Add Tags to several Images at once"),
+      new ActionAppearance(new OverlayIcon(TAG_SIMPLE_13, new Overlay(PLUS_10, SE)), AddImagesTagsDialog.ICON, "Add Image Tags", "Add Tags to several Images at once"),
       FilteredAction.many(Blob.class, atLeastOneFilter(), this::addTags)
     );
     final UiAction deleteImageAction = new UiAction(
-      new ActionAppearance(new OverlayIcon(ICON_IMAGE_13, new Overlay(ICON_X_10, SE)), null, "Delete Image(s)", "Remove currently selected Image(s)"),
+      new ActionAppearance(new OverlayIcon(IMAGE_13, new Overlay(X_10, SE)), null, "Delete Image(s)", "Remove currently selected Image(s)"),
       FilteredAction.many(Blob.class, atLeastOneFilter(), this::deleteImagesConfirm)
     );
     new FocusedComponentActionController(
@@ -145,7 +145,7 @@ class MainThumbnailOverview extends ThumbnailOverview {
       && (
         !(file = chooser.getSelectedFile()).exists()
         || new ConfirmationDialog(new DialogAppearance(
-          new OverlayIcon(ICON_IMAGES_48, new Overlay(ICON_EXPORT_FOLDER_30, SE)), "Confirmation: Overwrite File",
+          new OverlayIcon(IMAGES_48, new Overlay(EXPORT_FOLDER_30, SE)), "Confirmation: Overwrite File",
           "File \"%s\" already exists. Do you really want to overwrite it?".formatted(file.getName())
         )).show(mainFrame.getFrame())
       )

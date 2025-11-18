@@ -1,8 +1,8 @@
 package com.bensler.taggy.imprt;
 
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
-import static com.bensler.taggy.ui.MainFrame.ICON_IMAGE_48;
-import static com.bensler.taggy.ui.MainFrame.ICON_TAGS_36;
+import static com.bensler.taggy.ui.Icons.IMAGE_48;
+import static com.bensler.taggy.ui.Icons.TAGS_36;
 
 import com.bensler.decaf.swing.awt.OverlayIcon;
 import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
@@ -24,7 +24,7 @@ public class ChooseInitialTagDialog extends BasicContentPanel<Tag, Tag> {
 
   public ChooseInitialTagDialog() {
     super(new DialogAppearance(
-      new OverlayIcon(ICON_IMAGE_48, new Overlay(ICON_TAGS_36, SE)),
+      new OverlayIcon(IMAGE_48, new Overlay(TAGS_36, SE)),
       "Choose Initial Tag", "Tag to be assigned automatically on import."
     ), new FormLayout("f:p:g", "f:p:g"));
     allTags_ = new EntityTree<>(TagUi.NAME_VIEW, Tag.class);

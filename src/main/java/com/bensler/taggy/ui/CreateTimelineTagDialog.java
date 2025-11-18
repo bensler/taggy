@@ -1,7 +1,7 @@
 package com.bensler.taggy.ui;
 
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
-import static com.bensler.taggy.ui.MainFrame.ICON_PLUS_30;
+import static com.bensler.taggy.ui.Icons.PLUS_30;
 
 import java.time.format.DateTimeParseException;
 
@@ -27,7 +27,7 @@ public class CreateTimelineTagDialog extends BasicContentPanel<Void, Tag> {
 
   public CreateTimelineTagDialog(TagController tagCtrl) {
     super(new DialogAppearance(
-      new OverlayIcon(MainFrame.ICON_TIMELINE_48, new Overlay(ICON_PLUS_30, SE)),
+      new OverlayIcon(Icons.TIMELINE_48, new Overlay(PLUS_30, SE)),
       "Create Timeline Tag", "Create a New Tag representing a Calendar Date", true
     ), new FormLayout(
       "r:p, 3dlu, f:p:g",

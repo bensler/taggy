@@ -2,9 +2,9 @@ package com.bensler.taggy.ui;
 
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
 import static com.bensler.decaf.util.prefs.DelegatingPrefPersister.createSplitPanePrefPersister;
-import static com.bensler.taggy.ui.MainFrame.ICON_IMAGES_48;
-import static com.bensler.taggy.ui.MainFrame.ICON_PLUS_20;
-import static com.bensler.taggy.ui.MainFrame.ICON_TAGS_36;
+import static com.bensler.taggy.ui.Icons.IMAGES_48;
+import static com.bensler.taggy.ui.Icons.PLUS_20;
+import static com.bensler.taggy.ui.Icons.TAGS_36;
 import static com.bensler.taggy.ui.ThumbnailOverviewPanel.ScrollingPolicy.SCROLL_HORIZONTALLY;
 import static javax.swing.JSplitPane.HORIZONTAL_SPLIT;
 import static javax.swing.JSplitPane.VERTICAL_SPLIT;
@@ -34,7 +34,7 @@ import com.jgoodies.forms.layout.FormLayout;
 
 public class AddImagesTagsDialog extends BasicContentPanel<List<Blob>, Set<Tag>> {
 
-  public static final OverlayIcon ICON = new OverlayIcon(ICON_IMAGES_48, new Overlay(ICON_TAGS_36, SE), new Overlay(ICON_PLUS_20, SE));
+  public static final OverlayIcon ICON = new OverlayIcon(IMAGES_48, new Overlay(TAGS_36, SE), new Overlay(PLUS_20, SE));
 
   private final AllTagsTreeFiltered allTags_;
   private final CheckboxTree<Tag> assignedTags_;
