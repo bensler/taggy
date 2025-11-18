@@ -31,7 +31,7 @@ public final class TagUi {
   public static final SimpleCellRenderer<Tag, String> CELL_RENDERER = new SimpleCellRenderer<>() {
     @Override
     protected Icon getIcon(Tag tag, String name) {
-      return (tag.containsProperty(REPRESENTED_DATE)) ? Icons.TAG_SIMPLE_13 : Icons.TIMELINE_13;
+      return (tag.containsProperty(REPRESENTED_DATE) ? Icons.TIMELINE_13 : Icons.TAG_SIMPLE_13);
     }
   };
 

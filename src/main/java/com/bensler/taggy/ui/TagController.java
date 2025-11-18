@@ -102,7 +102,7 @@ public class TagController {
     app_.entityRemoved(tag);
     app_.entitiesChanged(blobs);
     allTags_.removeNode(tag);
-    Optional.ofNullable(tag.getProperty(REPRESENTED_DATE)).ifPresent(dateTags_::remove);
+    removeFromDateTags(tag);
   }
 
   Tag persistNewTag(Tag newTag) {
@@ -110,19 +110,30 @@ public class TagController {
 
     allTags_.add(createdTag);
     app_.entityCreated(createdTag);
-    Optional.ofNullable(createdTag.getProperty(REPRESENTED_DATE)).ifPresent(dateStr -> dateTags_.put(dateStr, createdTag));
+    addToDateTags(createdTag);
     return createdTag;
   }
 
   Tag updateTag(TagHeadData tagHeadData) {
     final DbAccess db = app_.getDbAccess();
     final Tag editedTag;
+    final Tag oldTag = db.resolve(tagHeadData.subject_);
 
     db.runInTxn(() -> db.getTagDbMapper().updateHeadData(tagHeadData));
     editedTag =  db.refresh(tagHeadData.subject_);
     allTags_.add(editedTag);
+    removeFromDateTags(oldTag);
+    addToDateTags(editedTag);
     app_.entityChanged(editedTag);
     return editedTag;
+  }
+
+  private void removeFromDateTags(Tag tag) {
+    Optional.ofNullable(tag.getProperty(REPRESENTED_DATE)).ifPresent(dateTags_::remove);
+  }
+
+  private void addToDateTags(Tag tag) {
+    Optional.ofNullable(tag.getProperty(REPRESENTED_DATE)).ifPresent(dateStr -> dateTags_.put(dateStr, tag));
   }
 
   boolean isLeaf(Tag tag) {
