@@ -22,15 +22,17 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import javax.swing.Icon;
-import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
 
 import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.ActionGroup;
+import com.bensler.decaf.swing.action.FilteredAction;
 import com.bensler.decaf.swing.action.FocusedComponentActionController;
+import com.bensler.decaf.swing.action.UiAction;
 import com.bensler.decaf.swing.awt.OverlayIcon;
 import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
 import com.bensler.decaf.swing.dialog.WindowClosingTrigger;
@@ -96,14 +98,17 @@ public class MainFrame {
 
     final JPanel buttonPanel = new JPanel(new FormLayout("f:p:g", "f:p:g"));
     mainPanel.add(buttonPanel, new CellConstraints(2, 6, RIGHT, CENTER));
-    final JButton orphanDialogButton = new JButton("Orphan Files");
-    orphanDialogButton.addActionListener(evt -> new OrphanDialog(app_).showDialog());
+    final JLabel orphanDialogButton = new JLabel("TODO display number of images displayed/selected");
     buttonPanel.add(orphanDialogButton, new CellConstraints(1, 1, FILL, FILL));
 
     mainPanel.add((actionCtrl_ = new FocusedComponentActionController(new ActionGroup(
       new ActionGroup(tagCtrl_.getNewTagAction(), tagCtrl_.getEditTagAction()),
       new ActionGroup(
         app_.getImportCtrl().getImportAction(),
+        new UiAction(
+          new ActionAppearance(OrphanDialog.ICON, null, null, "Show Images without any Tags assigned"),
+          FilteredAction.many(Void.class, FilteredAction.allwaysOnFilter(), entities -> new OrphanDialog(app_).showDialog() )
+        ),
         thumbnails_.getExportImageAction()
       ),
       new ActionGroup(

@@ -1,5 +1,8 @@
 package com.bensler.taggy.ui;
 
+import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
+import static com.bensler.taggy.ui.Icons.IMAGE_48;
+import static com.bensler.taggy.ui.Icons.TAGS_MISSING_36;
 import static com.jgoodies.forms.layout.CellConstraints.FILL;
 import static com.jgoodies.forms.layout.CellConstraints.RIGHT;
 
@@ -10,6 +13,8 @@ import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
+import com.bensler.decaf.swing.awt.OverlayIcon;
+import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
 import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefPersisterImpl;
@@ -19,6 +24,8 @@ import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
 public class OrphanDialog extends JDialog {
+
+  public static final OverlayIcon ICON = new OverlayIcon(IMAGE_48, new Overlay(TAGS_MISSING_36, SE));
 
   private final ThumbnailOverview thumbViewer_;
   private final PrefPersisterImpl prefs_;

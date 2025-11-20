@@ -18,6 +18,8 @@ public class Icons {
   public static final ImageIcon TAGS_36 = new ImageIcon(Icons.class.getResource("tags_36x36.png"));
   public static final ImageIcon TAGS_48 = new ImageIcon(Icons.class.getResource("tags_48x48.png"));
 
+  public static final ImageIcon TAGS_MISSING_36 = new ImageIcon(Icons.class.getResource("tags_missing_36x36.png"));
+
   public static final ImageIcon TIMELINE_13 = new ImageIcon(Icons.class.getResource("calendar_13x13.png"));
   public static final ImageIcon TIMELINE_48 = new ImageIcon(Icons.class.getResource("calendar_48x48.png"));
 
