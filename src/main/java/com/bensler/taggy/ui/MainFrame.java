@@ -38,29 +38,24 @@ import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
 import com.bensler.decaf.swing.dialog.WindowClosingTrigger;
 import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
 import com.bensler.decaf.swing.tree.EntityTree;
-import com.bensler.decaf.swing.view.PropertyViewImpl;
-import com.bensler.decaf.swing.view.SimplePropertyGetter;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.decaf.util.prefs.PrefsStorage;
 import com.bensler.taggy.App;
-import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.Tag;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
 public class MainFrame {
 
-  public static final PropertyViewImpl<Blob, Integer> BLOB_ID_VIEW = new PropertyViewImpl<>(
-    SimplePropertyGetter.createComparableGetter(Blob::getId)
-  );
+  public static final PrefKey PREF_BASE_KEY = new PrefKey(App.PREFS_APP_ROOT, MainFrame.class);
 
   private final App app_;
   private final JFrame frame_;
   private final PrefPersisterImpl prefs_;
   private final EntityTree<Tag> tagTree_;
   private final MainThumbnailOverview thumbnails_;
-  private final TagController tagCtrl_;
+  private final TagsUiController tagCtrl_;
   @SuppressWarnings("unused") // save it from GC
   private final EntityChangeListenerTreeAdapter<Tag> treeAdapter_;
   @SuppressWarnings("unused") // save it from GC
@@ -68,7 +63,6 @@ public class MainFrame {
   private SlideshowFrame slideshowFrame_;
 
   public MainFrame(App app) {
-    final PrefKey baseKey = new PrefKey(App.PREFS_APP_ROOT, getClass());
     app_ = app;
     tagCtrl_ = app_.getTagCtrl();
     frame_ = new JFrame("Taggy");
@@ -79,7 +73,7 @@ public class MainFrame {
     ));
 
     final SelectedBlobsDetailPanel selectionTagPanel = new SelectedBlobsDetailPanel(this);
-    (thumbnails_ = new MainThumbnailOverview(app_, baseKey)).addSelectionListener((source, selection) -> selectionTagPanel.setData(selection));
+    (thumbnails_ = new MainThumbnailOverview(app_)).addSelectionListener((source, selection) -> selectionTagPanel.setData(selection));
     tagTree_ = new EntityTree<>(TagUi.NAME_VIEW, Tag.class);
     tagTree_.setVisibleRowCount(20, .5f);
     tagTree_.addSelectionListener((source, selection) -> displayThumbnailsOfSelectedTag(selection));
@@ -114,7 +108,7 @@ public class MainFrame {
       new ActionGroup(
         new ActionAppearance(new OverlayIcon(IMAGES_48, new Overlay(EDIT_30, SE)), null, null, "Edit Images"),
         thumbnails_.getSlideshowAction(),
-        thumbnails_.getEditImageTagsAction()
+        thumbnails_.getExportImageAction()
       ),
       thumbnails_.getToolbarActions(),
       new ActionGroup(thumbnails_.getSlideshowAction())
@@ -125,12 +119,13 @@ public class MainFrame {
     frame_.pack();
     new WindowClosingTrigger(frame_, evt -> frameClosing());
     prefs_ = new PrefPersisterImpl(app_.getPrefs(), Stream.concat(
-      thumbnails_.getPrefPersisters().stream(), Stream.of(
-        new WindowPrefsPersister(baseKey, frame_),
-        TagPrefPersister.create(new PrefKey(baseKey, "selectedTag"), tagTree_::getSingleSelection, tagTree_::select),
-        createSplitPanePrefPersister(new PrefKey(baseKey, "splitLeft"), leftSplitpane),
-        createSplitPanePrefPersister(new PrefKey(baseKey, "splitRight"), rightSplitpane),
-        selectionTagPanel.createPrefPersister(new PrefKey(baseKey, "selectionTagPanel"))
+      thumbnails_.getPrefPersisters().stream(),
+      Stream.of(
+        new WindowPrefsPersister(PREF_BASE_KEY, frame_),
+        TagPrefPersister.create(new PrefKey(PREF_BASE_KEY, "selectedTag"), tagTree_::getSingleSelection, tagTree_::select),
+        createSplitPanePrefPersister(new PrefKey(PREF_BASE_KEY, "splitLeft"), leftSplitpane),
+        createSplitPanePrefPersister(new PrefKey(PREF_BASE_KEY, "splitRight"), rightSplitpane),
+        selectionTagPanel.createPrefPersister(new PrefKey(PREF_BASE_KEY, "selectionTagPanel"))
       )
     ).toList()) {
       @Override

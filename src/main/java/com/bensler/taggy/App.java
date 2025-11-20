@@ -22,7 +22,7 @@ import com.bensler.taggy.persist.DbConnector;
 import com.bensler.taggy.persist.SqliteDbConnector;
 import com.bensler.taggy.ui.BlobController;
 import com.bensler.taggy.ui.MainFrame;
-import com.bensler.taggy.ui.TagController;
+import com.bensler.taggy.ui.TagsUiController;
 import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 import com.jgoodies.looks.plastic.theme.DesertYellow;
 
@@ -57,7 +57,7 @@ public class App {
   private final DbConnector db_;
   private final PrefsStorage prefs_;
   private final BlobController blobCtrl_;
-  private final TagController tagCtrl_;
+  private final TagsUiController tagCtrl_;
   private final DbAccess dbAccess_;
   private final ImportController importCtrl_;
   private final Thumbnailer thumbnailer_;
@@ -76,7 +76,7 @@ public class App {
     dbAccess_ = new DbAccess(db_.getSession());
     prefs_ = new PrefsStorage(new File(getBaseDir(), "prefs.xml"));
     blobCtrl_ = new BlobController(dataDir, FOLDER_PATTERN);
-    tagCtrl_ = new TagController(this);
+    tagCtrl_ = new TagsUiController(this);
     importCtrl_ = new ImportController(this, getBaseDir());
     thumbnailer_ = new Thumbnailer(dataDir);
     mainFrame_ = new MainFrame(this);
@@ -86,7 +86,7 @@ public class App {
     return blobCtrl_;
   }
 
-  public TagController getTagCtrl() {
+  public TagsUiController getTagCtrl() {
     return tagCtrl_;
   }
 

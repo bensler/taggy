@@ -1,37 +1,14 @@
 package com.bensler.taggy.ui;
 
-import static com.bensler.decaf.swing.action.FilteredAction.atLeastOneFilter;
-import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
-import static com.bensler.taggy.ui.Icons.EXPORT_FOLDER_13;
-import static com.bensler.taggy.ui.Icons.EXPORT_FOLDER_30;
-import static com.bensler.taggy.ui.Icons.IMAGES_48;
-import static com.bensler.taggy.ui.Icons.IMAGE_13;
-import static com.bensler.taggy.ui.Icons.PLUS_10;
-import static com.bensler.taggy.ui.Icons.SLIDESHOW_13;
-import static com.bensler.taggy.ui.Icons.SLIDESHOW_48;
-import static com.bensler.taggy.ui.Icons.TAG_SIMPLE_13;
-import static com.bensler.taggy.ui.Icons.X_10;
-
-import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-
-import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.ActionGroup;
-import com.bensler.decaf.swing.action.FilteredAction;
 import com.bensler.decaf.swing.action.FocusedComponentActionController;
 import com.bensler.decaf.swing.action.UiAction;
-import com.bensler.decaf.swing.awt.OverlayIcon;
-import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
-import com.bensler.decaf.swing.dialog.ConfirmationDialog;
-import com.bensler.decaf.swing.dialog.DialogAppearance;
-import com.bensler.decaf.swing.dialog.OkCancelDialog;
 import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.decaf.util.prefs.DelegatingPrefPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
@@ -43,41 +20,21 @@ import com.bensler.taggy.persist.Tag;
 
 class MainThumbnailOverview extends ThumbnailOverview {
 
-  private final PrefKey prefBaseKey_;
-  private final UiAction exportImageAction_;
-  private final DelegatingPrefPersister lastExportFolder_;
-  private final UiAction editImageTagsAction_;
-  private final UiAction addImagesTagsAction_;
-  private final UiAction slideshowAction_;
+  private final ImagesUiController imgUiCtrl_;
   private Optional<Tag> currentTag_;
 
-  MainThumbnailOverview(App app, PrefKey prefBaseKey) {
+  MainThumbnailOverview(App app) {
     super(app);
-    prefBaseKey_ = prefBaseKey;
-    exportImageAction_ = new UiAction(
-      new ActionAppearance(EXPORT_FOLDER_13, new OverlayIcon(IMAGES_48, new Overlay(EXPORT_FOLDER_30, SE)), "Export Image", "Export Image to local filesystem"),
-      FilteredAction.one(Blob.class, this::exportBlobUi)
-    );
-    lastExportFolder_ = new DelegatingPrefPersister(new PrefKey(prefBaseKey_, "lastExportFolder"));
-    slideshowAction_ = new UiAction(
-      new ActionAppearance(SLIDESHOW_13, SLIDESHOW_48, "Slide Show", "View Images in full detail"),
-      FilteredAction.many(Blob.class, atLeastOneFilter(), blobs -> app_.getMainFrame().getSlideshowFrame().show(blobs))
-    );
-    editImageTagsAction_ = new UiAction(
-      new ActionAppearance(TAG_SIMPLE_13, EditImageTagsDialog.ICON, "Edit Image Tags", "Edit Tags of this Image"),
-      FilteredAction.one(Blob.class, this::editTags)
-    );
-    addImagesTagsAction_ = new UiAction(
-      new ActionAppearance(new OverlayIcon(TAG_SIMPLE_13, new Overlay(PLUS_10, SE)), AddImagesTagsDialog.ICON, "Add Image Tags", "Add Tags to several Images at once"),
-      FilteredAction.many(Blob.class, atLeastOneFilter(), this::addTags)
-    );
-    final UiAction deleteImageAction = new UiAction(
-      new ActionAppearance(new OverlayIcon(IMAGE_13, new Overlay(X_10, SE)), null, "Delete Image(s)", "Remove currently selected Image(s)"),
-      FilteredAction.many(Blob.class, atLeastOneFilter(), this::deleteImagesConfirm)
-    );
-    new FocusedComponentActionController(
-      new ActionGroup(slideshowAction_, new ActionGroup(editImageTagsAction_, addImagesTagsAction_), exportImageAction_, deleteImageAction), Set.of(this)
-    ).attachTo(this, overview -> {}, this::beforeCtxMenuOpen);
+    imgUiCtrl_ = new ImagesUiController(app, comp_);
+    new FocusedComponentActionController(new ActionGroup(
+      imgUiCtrl_.getSlideshowAction(),
+      new ActionGroup(
+        imgUiCtrl_.getEditImageTagsAction(),
+        imgUiCtrl_.getAddImagesTagsAction()
+      ),
+      imgUiCtrl_.getExportImageAction(),
+      imgUiCtrl_.getDeleteImageAction()
+    ), Set.of(this)).attachTo(this, overview -> {}, this::beforeCtxMenuOpen);
   }
 
   @Override
@@ -91,33 +48,16 @@ class MainThumbnailOverview extends ThumbnailOverview {
     });
   }
 
-  public UiAction getExportImageAction() {
-    return exportImageAction_;
-  }
-
   public UiAction getSlideshowAction() {
-    return slideshowAction_;
+    return imgUiCtrl_.getSlideshowAction();
   }
 
-  public UiAction getEditImageTagsAction() {
-    return editImageTagsAction_;
+  public UiAction getExportImageAction() {
+    return imgUiCtrl_.getExportImageAction();
   }
 
   public ActionGroup getToolbarActions() {
-    return new ActionGroup(editImageTagsAction_, addImagesTagsAction_);
-  }
-
-  void deleteImagesConfirm(List<Blob> blobs) {
-    new OkCancelDialog<>(comp_, new DeleteImagesConfirmDialog(blobs.size())).show(blobs)
-    .ifPresent(blobsToDelete -> blobsToDelete.stream().flatMap(List::stream).forEach(blobCtrl_::deleteBlob));
-  }
-
-  void addTags(List<Blob> blobs) {
-    new OkCancelDialog<>(comp_, new AddImagesTagsDialog()).show(blobs, tags -> blobCtrl_.addTags(blobs, tags));
-  }
-
-  void editTags(Blob blob) {
-    new OkCancelDialog<>(comp_, new EditImageTagsDialog()).show(blob, tags -> blobCtrl_.setTags(blob, tags));
+    return new ActionGroup(imgUiCtrl_.getEditImageTagsAction(), imgUiCtrl_.getAddImagesTagsAction());
   }
 
   public void setData(Optional<Tag> tag) {
@@ -131,36 +71,10 @@ class MainThumbnailOverview extends ThumbnailOverview {
     }
   }
 
-  void exportBlobUi(Blob blob) {
-    final PrefsStorage prefs = app_.getMainFrame().getPrefStorage();
-    final JFrame frame = app_.getMainFrameFrame();
-    final JFileChooser chooser = new JFileChooser();
-    final BlobController blobCtrl = app_.getBlobCtrl();
-    File file = new File(
-      lastExportFolder_.get(prefs).orElseGet(() -> System.getProperty("user.home")),
-      blobCtrl.getTagString(blob)
-    );
-
-    chooser.setSelectedFile(file);
-    if (
-      (chooser.showSaveDialog(frame) == JFileChooser.APPROVE_OPTION)
-      && (
-        !(file = chooser.getSelectedFile()).exists()
-        || new ConfirmationDialog(new DialogAppearance(
-          new OverlayIcon(IMAGES_48, new Overlay(EXPORT_FOLDER_30, SE)), "Confirmation: Overwrite File",
-          "File \"%s\" already exists. Do you really want to overwrite it?".formatted(file.getName())
-        )).show(frame)
-      )
-    ) {
-      lastExportFolder_.put(prefs, file.getParent());
-      blobCtrl.export(blob, file);
-    };
-  }
-
   public List<PrefPersister> getPrefPersisters() {
     return List.of(
-      lastExportFolder_,
-      new DelegatingPrefPersister(new PrefKey(prefBaseKey_, "selectedImages"),
+      imgUiCtrl_.getExportPrefPersister(),
+      new DelegatingPrefPersister(new PrefKey(MainFrame.PREF_BASE_KEY, "selectedImages"),
         () -> Optional.of(getSelection().stream().map(blob -> blob.getId().toString()).collect(Collectors.joining(","))),
         prefStr -> trySelect(
           Arrays.stream(prefStr.split(","))

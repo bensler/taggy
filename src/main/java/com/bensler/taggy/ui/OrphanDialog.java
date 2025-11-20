@@ -7,12 +7,15 @@ import static com.jgoodies.forms.layout.CellConstraints.FILL;
 import static com.jgoodies.forms.layout.CellConstraints.RIGHT;
 
 import java.awt.Dimension;
+import java.util.Set;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
+import com.bensler.decaf.swing.action.ActionGroup;
+import com.bensler.decaf.swing.action.FocusedComponentActionController;
 import com.bensler.decaf.swing.awt.OverlayIcon;
 import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
 import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
@@ -50,6 +53,16 @@ public class OrphanDialog extends JDialog {
       }
     };
     mainPanel.add(thumbViewer_.getScrollPane(), new CellConstraints(2, 2));
+
+    final ImagesUiController imgUiCtrl_ = new ImagesUiController(app, thumbViewer_.getComponent());
+    new FocusedComponentActionController(new ActionGroup(
+      imgUiCtrl_.getSlideshowAction(),
+      new ActionGroup(
+        imgUiCtrl_.getEditImageTagsAction(),
+        imgUiCtrl_.getAddImagesTagsAction()
+      ),
+      imgUiCtrl_.getExportImageAction()
+    ), Set.of(thumbViewer_)).attachTo(thumbViewer_, overview -> {}, thumbViewer_::beforeCtxMenuOpen);
 
     final JButton closeButton = new JButton("Close");
     closeButton.addActionListener(evt -> dispose());

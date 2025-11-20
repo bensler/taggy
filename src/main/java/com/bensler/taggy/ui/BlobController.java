@@ -358,7 +358,7 @@ public class BlobController {
         .findFirst()
         .map(this::getTiffStringValue).map(META_DATA_DATE_FORMAT::parse).map(LocalDateTime::from).ifPresent(instant -> {
           metaDataSink.put(PROPERTY_DATE_EPOCH_SECONDS, String.valueOf(instant.toEpochSecond(ZoneOffset.UTC)));
-          metaDataSink.put(PROPERTY_DATE_YMD, TagController.YYYY_MM_DD.format(instant));
+          metaDataSink.put(PROPERTY_DATE_YMD, TagsUiController.YYYY_MM_DD.format(instant));
         });
     } catch (RuntimeException rte) { // never trust untrusted date strings
       rte.printStackTrace();

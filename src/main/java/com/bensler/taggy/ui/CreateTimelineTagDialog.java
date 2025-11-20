@@ -23,9 +23,9 @@ import com.jgoodies.forms.layout.FormLayout;
 public class CreateTimelineTagDialog extends BasicContentPanel<Void, Tag> {
 
   private final JTextField textfield_;
-  private final TagController tagCtrl_;
+  private final TagsUiController tagCtrl_;
 
-  public CreateTimelineTagDialog(TagController tagCtrl) {
+  public CreateTimelineTagDialog(TagsUiController tagCtrl) {
     super(new DialogAppearance(
       new OverlayIcon(Icons.TIMELINE_48, new Overlay(PLUS_30, SE)),
       "Create Timeline Tag", "Create a New Tag representing a Calendar Date", true
@@ -55,7 +55,7 @@ public class CreateTimelineTagDialog extends BasicContentPanel<Void, Tag> {
     final String text = textfield_.getText().trim();
 
     try {
-      TagController.YYYY_MM_DD.parse(text);
+      TagsUiController.YYYY_MM_DD.parse(text);
       if (tagCtrl_.containsDateTag(text)) {
         validationCtx.addErrorMsg("There is already a Timeline Tag for that date");
       };

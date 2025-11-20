@@ -11,9 +11,6 @@ import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.decaf.util.tree.Hierarchy;
 import com.bensler.taggy.ui.BlobController;
 
-/**
- * Sample of an entity or business class having hierarchical nature.
- */
 public class Blob extends AbstractEntity<Blob> {
 
   private final String sha256sum_;

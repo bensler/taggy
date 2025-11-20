@@ -39,7 +39,7 @@ import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.persist.Tag;
 import com.bensler.taggy.persist.TagDbMapper.TagHeadData;
 
-public class TagController {
+public class TagsUiController {
 
   public final static DateTimeFormatter YYYY_MM_DD = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
@@ -58,7 +58,7 @@ public class TagController {
   private final UiAction newTimelineTagAction_;
   private final UiAction deleteTagAction_;
 
-  public TagController(App app) {
+  public TagsUiController(App app) {
     app_ = app;
     allTags_ = new Hierarchy<>();
     dateTags_ = app_.getDbAccess().loadAll(Tag.class).stream()
