@@ -244,9 +244,15 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
   public void setData(Collection<Blob> data) {
     blobs_.clear();
     images_.clear();
-    clearSelection();
 
-    data.forEach(this::addImageInternally);
+    try (SelectionEvent selectionEvent = new SelectionEvent(true)) {
+      data.forEach(blob -> {
+        if (addImageInternally(blob) && selection_.contains(blob)) {
+          selection_.set(selection_.indexOf(blob), blob);
+        }
+      });
+      selection_.retainAll(blobs_);
+    }
     Collections.sort(blobs_, BLOB_COMPARATOR);
     revalidate();
     repaint();
@@ -440,8 +446,10 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
   }
 
   public void clearSelection() {
-    try (SelectionEvent selectionEvent = new SelectionEvent()) {
-      selection_.clear();
+    if (!selection_.isEmpty()) {
+      try (SelectionEvent selectionEvent = new SelectionEvent()) {
+        selection_.clear();
+      }
     }
   }
 
