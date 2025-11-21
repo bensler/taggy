@@ -6,9 +6,6 @@ import static com.bensler.taggy.ui.Icons.EDIT_30;
 import static com.bensler.taggy.ui.Icons.IMAGES_48;
 import static com.bensler.taggy.ui.Icons.IMAGE_48;
 import static com.bensler.taggy.ui.Icons.TAGS_36;
-import static com.jgoodies.forms.layout.CellConstraints.CENTER;
-import static com.jgoodies.forms.layout.CellConstraints.FILL;
-import static com.jgoodies.forms.layout.CellConstraints.RIGHT;
 import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 import static javax.swing.JSplitPane.HORIZONTAL_SPLIT;
 import static javax.swing.WindowConstants.DISPOSE_ON_CLOSE;
@@ -23,7 +20,6 @@ import java.util.stream.Stream;
 
 import javax.swing.Icon;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
@@ -54,7 +50,7 @@ public class MainFrame {
   private final JFrame frame_;
   private final PrefPersisterImpl prefs_;
   private final EntityTree<Tag> tagTree_;
-  private final MainThumbnailOverview thumbnails_;
+  private final MainThumbnailPanel thumbnails_;
   private final TagsUiController tagCtrl_;
   @SuppressWarnings("unused") // save it from GC
   private final EntityChangeListenerTreeAdapter<Tag> treeAdapter_;
@@ -69,11 +65,11 @@ public class MainFrame {
     frame_.setIconImages(List.of(createImage()));
     final JPanel mainPanel = new JPanel(new FormLayout(
       "3dlu, f:p:g, 3dlu",
-      "3dlu, f:p, 3dlu, f:p:g, 3dlu, f:p, 3dlu"
+      "3dlu, f:p, 3dlu, f:p:g, 3dlu"
     ));
 
     final SelectedBlobsDetailPanel selectionTagPanel = new SelectedBlobsDetailPanel(this);
-    (thumbnails_ = new MainThumbnailOverview(app_)).addSelectionListener((source, selection) -> selectionTagPanel.setData(selection));
+    (thumbnails_ = new MainThumbnailPanel(app_)).addSelectionListener(selectionTagPanel::setData);
     tagTree_ = new EntityTree<>(TagUi.NAME_VIEW, Tag.class);
     tagTree_.setVisibleRowCount(20, .5f);
     tagTree_.addSelectionListener((source, selection) -> displayThumbnailsOfSelectedTag(selection));
@@ -82,18 +78,13 @@ public class MainFrame {
     frame_.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     tagCtrl_.setAllTags(tagTree_);
     final JSplitPane leftSplitpane = new JSplitPane(HORIZONTAL_SPLIT, true,
-      tagTree_.getScrollPane(), thumbnails_.getScrollPane()
+      tagTree_.getScrollPane(), thumbnails_
     );
     final JSplitPane rightSplitpane = new JSplitPane(HORIZONTAL_SPLIT, true,
       leftSplitpane, selectionTagPanel.getComponent()
     );
     rightSplitpane.setResizeWeight(1);
     mainPanel.add(rightSplitpane, new CellConstraints(2, 4));
-
-    final JPanel buttonPanel = new JPanel(new FormLayout("f:p:g", "f:p:g"));
-    mainPanel.add(buttonPanel, new CellConstraints(2, 6, RIGHT, CENTER));
-    final JLabel orphanDialogButton = new JLabel("TODO display number of images displayed/selected");
-    buttonPanel.add(orphanDialogButton, new CellConstraints(1, 1, FILL, FILL));
 
     mainPanel.add((actionCtrl_ = new FocusedComponentActionController(new ActionGroup(
       new ActionGroup(tagCtrl_.getNewTagAction(), tagCtrl_.getEditTagAction()),
@@ -112,7 +103,7 @@ public class MainFrame {
       ),
       thumbnails_.getToolbarActions(),
       new ActionGroup(thumbnails_.getSlideshowAction())
-    ), List.of(tagTree_, thumbnails_, selectionTagPanel.getTagTree()))).createToolbar(), new CellConstraints(2, 2));
+    ), List.of(tagTree_, thumbnails_.getEntityComponent(), selectionTagPanel.getTagTree()))).createToolbar(), new CellConstraints(2, 2));
 
     mainPanel.setPreferredSize(new Dimension(750, 750));
     frame_.setContentPane(mainPanel);

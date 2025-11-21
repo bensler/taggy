@@ -3,18 +3,23 @@ package com.bensler.taggy.ui;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 
 import com.bensler.decaf.swing.EntityComponent;
 import com.bensler.decaf.swing.selection.EntitySelectionListener;
+import com.bensler.decaf.util.entity.EntityReference;
+import com.bensler.decaf.util.prefs.DelegatingPrefPersister;
+import com.bensler.decaf.util.prefs.PrefKey;
+import com.bensler.decaf.util.prefs.PrefsStorage;
 import com.bensler.taggy.App;
 import com.bensler.taggy.EntityChangeListener;
 import com.bensler.taggy.persist.Blob;
@@ -65,7 +70,6 @@ public abstract class ThumbnailOverview implements EntityComponent<Blob>, FocusL
 
   @Override
   public void addSelectionListener(EntitySelectionListener<Blob> listener) {
-    // TODO rm this hack ------vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
     comp_.addSelectionListener((source, selection) -> listener.selectionChanged(this, selection));
   }
 
@@ -85,7 +89,7 @@ public abstract class ThumbnailOverview implements EntityComponent<Blob>, FocusL
   }
 
   @Override
-  public JComponent getComponent() {
+  public ThumbnailOverviewPanel getComponent() {
     return comp_;
   }
 
@@ -135,6 +139,25 @@ public abstract class ThumbnailOverview implements EntityComponent<Blob>, FocusL
   @Override
   public void entityRemoved(Blob entity) {
     contains(entity).ifPresent(this::removeImage);
+  }
+
+  private void trySelect(List<EntityReference<Blob>> blobRefs) {
+    comp_.select(blobRefs);
+    if (!getSelection().isEmpty()) {
+      comp_.requestFocus();
+    }
+  }
+
+  public DelegatingPrefPersister getPrefPersisters(PrefKey prefKey) {
+    return new DelegatingPrefPersister(prefKey,
+      () -> Optional.of(getSelection().stream().map(blob -> blob.getId().toString()).collect(Collectors.joining(","))),
+      prefStr -> trySelect(
+        Arrays.stream(prefStr.split(","))
+        .map(PrefsStorage::tryParseInt).flatMap(Optional::stream)
+        .map(id -> new EntityReference<>(Blob.class, id))
+        .toList()
+      )
+    );
   }
 
 }

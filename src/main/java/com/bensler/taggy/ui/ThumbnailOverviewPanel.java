@@ -295,7 +295,6 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
 
   public void clear() {
     setData(List.of());
-    clearSelection();
   }
 
   @Override

@@ -1,31 +1,53 @@
 package com.bensler.taggy.ui;
 
-import java.util.Arrays;
+import static com.bensler.taggy.ui.MainFrame.PREF_BASE_KEY;
+
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.function.Consumer;
+
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
+import javax.swing.border.EmptyBorder;
 
 import com.bensler.decaf.swing.action.ActionGroup;
 import com.bensler.decaf.swing.action.FocusedComponentActionController;
 import com.bensler.decaf.swing.action.UiAction;
-import com.bensler.decaf.util.entity.EntityReference;
-import com.bensler.decaf.util.prefs.DelegatingPrefPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefPersister;
-import com.bensler.decaf.util.prefs.PrefsStorage;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.Tag;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
 
-class MainThumbnailOverview extends ThumbnailOverview {
+class MainThumbnailPanel extends JPanel {
 
+  private final ThumbnailOverview thumbs_;
+  private final JLabel statusLabel_;
   private final ImagesUiController imgUiCtrl_;
   private Optional<Tag> currentTag_;
+  private int blobsCount_, selectedBlobsCount_;
 
-  MainThumbnailOverview(App app) {
-    super(app);
-    imgUiCtrl_ = new ImagesUiController(app, comp_);
+  MainThumbnailPanel(App app) {
+    super(new FormLayout("f:p:g", "f:p:g, 3dlu, f:p"));
+    thumbs_ = new ThumbnailOverview(app) {
+      @Override
+      protected void blobChanged(Blob blob) {
+        currentTag_.ifPresent(tag -> {
+          if (blob.containsTag(tag)) {
+            addImage(blob);
+          } else {
+            removeImage(blob);
+          }
+        });
+      }
+    };
+
+    imgUiCtrl_ = new ImagesUiController(app, thumbs_.getComponent());
     new FocusedComponentActionController(new ActionGroup(
       imgUiCtrl_.getSlideshowAction(),
       new ActionGroup(
@@ -34,18 +56,33 @@ class MainThumbnailOverview extends ThumbnailOverview {
       ),
       imgUiCtrl_.getExportImageAction(),
       imgUiCtrl_.getDeleteImageAction()
-    ), Set.of(this)).attachTo(this, overview -> {}, this::beforeCtxMenuOpen);
+    ), Set.of(thumbs_)).attachTo(thumbs_, overview -> {}, thumbs_::beforeCtxMenuOpen);
+    thumbs_.addSelectionListener((source, selection) -> selectionChanged(selection.size()));
+
+    add(thumbs_.getScrollPane(), new CellConstraints(1, 1));
+    statusLabel_ = new JLabel("", SwingConstants.RIGHT);
+    statusLabel_.setBorder(new EmptyBorder(0, 5, 5, 5));
+    add(statusLabel_, new CellConstraints(1, 3));
   }
 
-  @Override
-  protected void blobChanged(Blob blob) {
-    currentTag_.ifPresent(tag -> {
-      if (blob.containsTag(tag)) {
-        addImage(blob);
-      } else {
-        removeImage(blob);
-      }
-    });
+  private void selectionChanged(int selectionCount) {
+    selectedBlobsCount_ = selectionCount;
+    updateStatusLabel();
+  }
+
+  private void setData(Collection<Blob> blobs) {
+    thumbs_.setData(blobs);
+    blobsCount_ = blobs.size();
+    selectedBlobsCount_ = thumbs_.getSelection().size();
+    updateStatusLabel();
+  }
+
+  private void updateStatusLabel() {
+    statusLabel_.setText("Images: %s %s".formatted(blobsCount_, (selectedBlobsCount_> 0) ? " (%s)".formatted(selectedBlobsCount_): ""));
+  }
+
+  public void addSelectionListener(Consumer<List<Blob>> listener) {
+    thumbs_.addSelectionListener((source, selection) -> listener.accept(selection));
   }
 
   public UiAction getSlideshowAction() {
@@ -61,28 +98,17 @@ class MainThumbnailOverview extends ThumbnailOverview {
   }
 
   public void setData(Optional<Tag> tag) {
-    (currentTag_ = tag).ifPresentOrElse(lTag -> setData(lTag.getBlobs()), this::clear);
+    setData((currentTag_ = tag).map(Tag::getBlobs).orElseGet(Set::of));
   }
 
-  private void trySelect(List<EntityReference<Blob>> blobRefs) {
-    comp_.select(blobRefs);
-    if (!getSelection().isEmpty()) {
-      comp_.requestFocus();
-    }
+  public ThumbnailOverview getEntityComponent() {
+    return thumbs_;
   }
 
   public List<PrefPersister> getPrefPersisters() {
     return List.of(
       imgUiCtrl_.getExportPrefPersister(),
-      new DelegatingPrefPersister(new PrefKey(MainFrame.PREF_BASE_KEY, "selectedImages"),
-        () -> Optional.of(getSelection().stream().map(blob -> blob.getId().toString()).collect(Collectors.joining(","))),
-        prefStr -> trySelect(
-          Arrays.stream(prefStr.split(","))
-          .map(PrefsStorage::tryParseInt).flatMap(Optional::stream)
-          .map(id -> new EntityReference<>(Blob.class, id))
-          .toList()
-        )
-      )
+      thumbs_.getPrefPersisters(new PrefKey(PREF_BASE_KEY, "selectedImages"))
     );
   }
 
