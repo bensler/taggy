@@ -47,8 +47,9 @@ public class ImportController {
 
   private static final String IMPORT_DIR = "import";
 
+  public static final OverlayIcon ICON_LARGE = new OverlayIcon(IMAGES_48, new Overlay(PLUS_30, SE));
   public static final ActionAppearance IMPORT_ACTION_APPEARANCE =  new ActionAppearance(
-    null, new OverlayIcon(IMAGES_48, new Overlay(PLUS_30, SE)), null, "Scan for new Images to import."
+    null, ICON_LARGE, null, "Scan for new Images to import."
   );
 
   private final App app_;

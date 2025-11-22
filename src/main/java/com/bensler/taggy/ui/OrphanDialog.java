@@ -3,13 +3,10 @@ package com.bensler.taggy.ui;
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
 import static com.bensler.taggy.ui.Icons.IMAGE_48;
 import static com.bensler.taggy.ui.Icons.TAGS_MISSING_36;
-import static com.jgoodies.forms.layout.CellConstraints.FILL;
-import static com.jgoodies.forms.layout.CellConstraints.RIGHT;
 
 import java.awt.Dimension;
 import java.util.Set;
 
-import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -18,6 +15,8 @@ import com.bensler.decaf.swing.action.ActionGroup;
 import com.bensler.decaf.swing.action.FocusedComponentActionController;
 import com.bensler.decaf.swing.awt.OverlayIcon;
 import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
+import com.bensler.decaf.swing.dialog.DialogAppearance;
+import com.bensler.decaf.swing.dialog.HeaderPanel;
 import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefPersisterImpl;
@@ -35,12 +34,15 @@ public class OrphanDialog extends JDialog {
   private final BlobController blobCtrl_;
 
   public OrphanDialog(App app) {
-    super(app.getMainFrameFrame(), "Uncategorized Files");
+    super(app.getMainFrameFrame());
     final JPanel mainPanel = new JPanel(new FormLayout(
       "3dlu, f:p:g, 3dlu",
-      "3dlu, f:p:g, 3dlu, f:p, 3dlu"
+      "f:p, 3dlu, f:p:g, 3dlu"
     ));
 
+    var appearance = new DialogAppearance(ICON, "Untagged Images", "Images, having no Tags assigned. Assign them here!");
+    setTitle(appearance.getWindowTitle());
+    mainPanel.add(new HeaderPanel(appearance).getComponent(), new CellConstraints(1, 1, 3, 1));
     blobCtrl_ = app.getBlobCtrl();
     thumbViewer_ = new ThumbnailOverview(app) {
       @Override
@@ -52,7 +54,7 @@ public class OrphanDialog extends JDialog {
         }
       }
     };
-    mainPanel.add(thumbViewer_.getScrollPane(), new CellConstraints(2, 2));
+    mainPanel.add(thumbViewer_.getScrollPane(), new CellConstraints(2, 3));
 
     final ImagesUiController imgUiCtrl_ = new ImagesUiController(app, thumbViewer_.getComponent());
     new FocusedComponentActionController(new ActionGroup(
@@ -63,10 +65,6 @@ public class OrphanDialog extends JDialog {
       ),
       imgUiCtrl_.getExportImageAction()
     ), Set.of(thumbViewer_)).attachTo(thumbViewer_, overview -> {}, thumbViewer_::beforeCtxMenuOpen);
-
-    final JButton closeButton = new JButton("Close");
-    closeButton.addActionListener(evt -> dispose());
-    mainPanel.add(closeButton, new CellConstraints(2, 4, RIGHT, FILL));
 
     mainPanel.setPreferredSize(new Dimension(400, 400));
     setContentPane(mainPanel);

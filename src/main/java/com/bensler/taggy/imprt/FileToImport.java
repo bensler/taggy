@@ -2,6 +2,7 @@ package com.bensler.taggy.imprt;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Optional;
 
 import com.bensler.decaf.util.Pair;
@@ -38,6 +39,7 @@ class FileToImport {
   FileToImport(Path basePath, File file) {
     fileSize_ = (file_ = file).length();
     relativePath_ = basePath.relativize(file_.toPath());
+    type_ = List.of(file.getPath().split("\\.")).getLast();
     setImportObstacle(ImportObstacle.SHA_MISSING, null);
   }
 

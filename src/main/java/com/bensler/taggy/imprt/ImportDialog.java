@@ -4,6 +4,7 @@ import static com.bensler.decaf.swing.view.SimplePropertyGetter.createComparable
 import static com.bensler.decaf.swing.view.SimplePropertyGetter.createGetterComparator;
 import static com.bensler.decaf.util.cmp.CollatorComparator.COLLATOR_COMPARATOR;
 import static com.bensler.decaf.util.prefs.DelegatingPrefPersister.createSplitPanePrefPersister;
+import static com.bensler.taggy.imprt.ImportController.ICON_LARGE;
 import static com.bensler.taggy.ui.Icons.IMAGE_13;
 import static com.bensler.taggy.ui.Icons.PLUS_10;
 import static com.bensler.taggy.ui.Icons.X_10;
@@ -28,6 +29,8 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
 import com.bensler.decaf.swing.awt.WindowHelper;
+import com.bensler.decaf.swing.dialog.DialogAppearance;
+import com.bensler.decaf.swing.dialog.HeaderPanel;
 import com.bensler.decaf.swing.dialog.OkCancelDialog;
 import com.bensler.decaf.swing.dialog.WindowClosingTrigger;
 import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
@@ -66,14 +69,18 @@ class ImportDialog extends JDialog {
   private final FileSizeRenderer fileSizeRenderer_;
 
   ImportDialog(App app) {
-    super(app.getMainFrameFrame(), "Import Files", true);
+    super(app.getMainFrameFrame(), true);
     importController_ = app.getImportCtrl();
     blobCtrl_ = app.getBlobCtrl();
     db_ = app.getDbAccess();
     final JPanel mainPanel = new JPanel(new FormLayout(
       "3dlu, f:p:g, 3dlu",
-      "3dlu, f:p:g, 3dlu"
+      "f:p, 3dlu, f:p:g, 3dlu"
     ));
+    var appearance = new DialogAppearance(ICON_LARGE, "Import Images", "Import images into the database.");
+    setTitle(appearance.getWindowTitle());
+    mainPanel.add(new HeaderPanel(appearance).getComponent(), new CellConstraints(1, 1, 3, 1));
+
     fileSizeRenderer_ = new FileSizeRenderer();
     final TablePropertyView<FileToImport, String> pathCol;
     files_ = new EntityTable<>(new TableView<>(
@@ -115,7 +122,7 @@ class ImportDialog extends JDialog {
 
     final JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, files_.getScrollPane(), sidePanel);
     splitPane.setDividerLocation(.7f);
-    mainPanel.add(splitPane, new CellConstraints(2, 2));
+    mainPanel.add(splitPane, new CellConstraints(2, 3));
     setContentPane(mainPanel);
     final List<FileToImport> filesToImport = importController_.getFilesToImport();
     files_.addOrUpdateData(filesToImport);
