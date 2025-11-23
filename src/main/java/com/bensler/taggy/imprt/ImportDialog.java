@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -57,6 +56,15 @@ import com.jgoodies.forms.layout.FormLayout;
 
 class ImportDialog extends JDialog {
 
+  public static final SimpleCellRenderer<FileToImport, String> TYPE_ICON_RENDERER = new SimpleCellRenderer<> (
+    null, (file, type) -> (type != null) ? IMAGE_13 : null
+  );
+
+  public static final SimpleCellRenderer<FileToImport, Boolean> IS_NEW_ICON_RENDERER = new SimpleCellRenderer<> (
+    (file, importable) -> file.getImportObstacleAsString(),
+    (file, importable) -> Boolean.TRUE.equals(importable) ? PLUS_10 : X_10
+  );
+
   private final ImportController importController_;
   private final BlobController blobCtrl_;
   private final DbAccess db_;
@@ -87,14 +95,14 @@ class ImportDialog extends JDialog {
       new TablePropertyView<>("filename", "Filename", createGetterComparator(FileToImport::getName, COLLATOR_COMPARATOR)),
       pathCol = new TablePropertyView<>("relativePath", "Path", createGetterComparator(FileToImport::getRelativePath, COLLATOR_COMPARATOR)),
       new TablePropertyView<>("type", "Type", new PropertyViewImpl<>(
-        new TypeIconRenderer(), createGetterComparator(FileToImport::getType, COLLATOR_COMPARATOR)
+        TYPE_ICON_RENDERER, createGetterComparator(FileToImport::getType, COLLATOR_COMPARATOR)
       )),
       new TablePropertyView<>("fileSize", "Size", new PropertyViewImpl<>(
         fileSizeRenderer_, createComparableGetter(FileToImport::getFileSize)
       )),
       new TablePropertyView<>("shasum", "sha256-Hash", createGetterComparator(FileToImport::getShaSum, COLLATOR_COMPARATOR)),
       new TablePropertyView<>("importable", "Importable", new PropertyViewImpl<>(
-        new IsNewIconRenderer(), createComparableGetter(FileToImport::isImportable)
+        IS_NEW_ICON_RENDERER, createComparableGetter(FileToImport::isImportable)
       ))
     ), FileToImport.class);
     files_.sortByColumn(pathCol);
@@ -189,46 +197,18 @@ class ImportDialog extends JDialog {
 
     private final static String[] UNITS = new String[] {"B", "kB", "MB", "GB", "TB"};
 
-    FileSizeRenderer() {
-      super(null, SwingConstants.RIGHT);
-    }
-
-    String formatFileSize(Long fileSize) {
+    static String formatFileSize(Long fileSize) {
       int unitIndex = 0;
 
       while ((fileSize > 2048) && ((unitIndex + 1) < UNITS.length )) {
         fileSize = fileSize >> 10;
-        unitIndex++;
+      unitIndex++;
       }
       return String.valueOf(fileSize) + " " + UNITS[unitIndex];
     }
 
-    @Override
-    public String getText(FileToImport entity, Long fileSize) {
-      return formatFileSize(fileSize);
-    }
-  }
-
-  static final class TypeIconRenderer extends SimpleCellRenderer<FileToImport, String> {
-    TypeIconRenderer() {
-      super(IMAGE_13);
-    }
-
-    @Override
-    public Icon getIcon(FileToImport entity, String property) {
-      return (property != null) ? icon_ : null;
-    }
-  }
-
-  static final class IsNewIconRenderer extends SimpleCellRenderer<FileToImport, Boolean> {
-    @Override
-    public Icon getIcon(FileToImport entity, Boolean importable) {
-      return Boolean.TRUE.equals(importable) ? PLUS_10 : X_10;
-    }
-
-    @Override
-    protected String getText(FileToImport entity, Boolean property) {
-      return entity.getImportObstacleAsString();
+    FileSizeRenderer() {
+      super((entity, property) -> formatFileSize(property), null, SwingConstants.RIGHT);
     }
   }
 

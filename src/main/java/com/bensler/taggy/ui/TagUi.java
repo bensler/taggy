@@ -6,8 +6,6 @@ import static com.bensler.taggy.persist.TagProperty.REPRESENTED_DATE;
 
 import java.util.List;
 
-import javax.swing.Icon;
-
 import com.bensler.decaf.swing.action.FilteredAction.FilterOne;
 import com.bensler.decaf.swing.view.EntityPropertyComparator;
 import com.bensler.decaf.swing.view.PropertyViewImpl;
@@ -28,12 +26,9 @@ public final class TagUi {
 
   public static final FilterOne<Tag> TAG_FILTER = tag -> !TIMELINE_TAG_FILTER.matches(tag);
 
-  public static final SimpleCellRenderer<Tag, String> CELL_RENDERER = new SimpleCellRenderer<>() {
-    @Override
-    protected Icon getIcon(Tag tag, String name) {
-      return (tag.containsProperty(REPRESENTED_DATE) ? Icons.TIMELINE_13 : Icons.TAG_SIMPLE_13);
-    }
-  };
+  public static final SimpleCellRenderer<Tag, String> CELL_RENDERER = new SimpleCellRenderer<>(
+    null, (tag, name) -> tag.containsProperty(REPRESENTED_DATE) ? Icons.TIMELINE_13 : Icons.TAG_SIMPLE_13
+  );
 
   public static final PropertyViewImpl<Tag, String> NAME_VIEW = new PropertyViewImpl<>(
     CELL_RENDERER, createGetter(Tag::getName, new ComparatorChain<>(List.of(DATE_COMPARATOR, NAME_COMPARATOR)))
