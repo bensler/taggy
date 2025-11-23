@@ -44,7 +44,7 @@ public class ImageComponent extends JComponent {
       final double heightRatio = (img_.getHeight() / size.getHeight());
       final double ratio;
 
-      try (var timer = new TimerTrap("ImageComponent.resizeDrawImg")) {
+      try (var _ = new TimerTrap("ImageComponent.resizeDrawImg")) {
         if (widthRatio > heightRatio) {
           drawImg_ = img_.getScaledInstance(size.width, -1, 0);
           ratio = widthRatio;
