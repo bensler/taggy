@@ -57,7 +57,7 @@ import com.jgoodies.forms.layout.FormLayout;
 class ImportDialog extends JDialog {
 
   public static final SimpleCellRenderer<FileToImport, String> TYPE_ICON_RENDERER = new SimpleCellRenderer<> (
-    null, (file, type) -> (type != null) ? IMAGE_13 : null
+    null, (file, type) -> (file.getType() != null) ? IMAGE_13 : null
   );
 
   public static final SimpleCellRenderer<FileToImport, Boolean> IS_NEW_ICON_RENDERER = new SimpleCellRenderer<> (
@@ -95,7 +95,7 @@ class ImportDialog extends JDialog {
       new TablePropertyView<>("filename", "Filename", createGetterComparator(FileToImport::getName, COLLATOR_COMPARATOR)),
       pathCol = new TablePropertyView<>("relativePath", "Path", createGetterComparator(FileToImport::getRelativePath, COLLATOR_COMPARATOR)),
       new TablePropertyView<>("type", "Type", new PropertyViewImpl<>(
-        TYPE_ICON_RENDERER, createGetterComparator(FileToImport::getType, COLLATOR_COMPARATOR)
+        TYPE_ICON_RENDERER, createGetterComparator(file -> Optional.ofNullable(file.getType()).orElseGet(() -> file.getFileType()), COLLATOR_COMPARATOR)
       )),
       new TablePropertyView<>("fileSize", "Size", new PropertyViewImpl<>(
         fileSizeRenderer_, createComparableGetter(FileToImport::getFileSize)

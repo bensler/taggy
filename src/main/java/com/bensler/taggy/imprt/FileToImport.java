@@ -31,6 +31,7 @@ class FileToImport {
   private final File file_;
   private final Path relativePath_;
   private final long fileSize_;
+  private final String fileType_;
   private String shaSum_;
   private Optional<Pair<ImportObstacle, Optional<String>>> importObstacle_;
   private String type_;
@@ -39,7 +40,7 @@ class FileToImport {
   FileToImport(Path basePath, File file) {
     fileSize_ = (file_ = file).length();
     relativePath_ = basePath.relativize(file_.toPath());
-    type_ = List.of(file.getPath().split("\\.")).getLast();
+    fileType_ = List.of(file.getPath().split("\\.")).getLast();
     setImportObstacle(ImportObstacle.SHA_MISSING, null);
   }
 
@@ -48,6 +49,7 @@ class FileToImport {
     relativePath_ = template.relativePath_;
     shaSum_ = shaSum;
     setImportObstacle(obstacle, obstacleMsg);
+    fileType_ = template.fileType_;
     type_ = type;
     blob_ = blob;
   }
@@ -79,6 +81,10 @@ class FileToImport {
 
   void setType(String type) {
     type_ = type;
+  }
+
+  String getFileType() {
+    return fileType_;
   }
 
   String getType() {

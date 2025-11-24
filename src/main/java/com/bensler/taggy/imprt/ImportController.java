@@ -80,7 +80,7 @@ public class ImportController {
     final Path basePath = importDir_.toPath();
     final List<FileToImport> result = getFilesToImport(importDir_)
       .map(file -> new FileToImport(basePath, file))
-      .map(forEachMapper(file -> getType(file.getFile()).ifPresentOrElse(
+      .map(forEachMapper(file -> getType(file.getFileType()).ifPresentOrElse(
         file::setType, () -> file.setImportObstacle(ImportObstacle.UNSUPPORTED_TYPE, null)
       )))
       .map(forEachMapper(this::reuseSha)).toList();
@@ -116,12 +116,8 @@ public class ImportController {
         .flatMap(file -> file.isFile() ? Stream.of(file) : getFilesToImport(file));
   }
 
-  Optional<String> getType(File file) {
-    final String[] fileNameParts = file.getName().split("\\.");
-
-    return (fileNameParts.length > 0)
-      ? Optional.ofNullable(EXTENSIONS_TO_TYPE_MAP.get(fileNameParts[fileNameParts.length - 1].toUpperCase()))
-      : Optional.empty();
+  Optional<String> getType(String fileExtension) {
+    return Optional.ofNullable(EXTENSIONS_TO_TYPE_MAP.get(fileExtension.toUpperCase()));
   }
 
   FileToImport importFile(FileToImport file, Tag initialTag) {
