@@ -163,7 +163,7 @@ class ImportDialog extends JDialog {
 
     importButton_.setEnabled(selectionNotEmpty && files.stream().allMatch(FileToImport::isImportable));
     fileSizeLabel_.setText(selectionNotEmpty ? "%s file%s (%s)".formatted(
-      filesCount, ((filesCount < 2) ? "" : "s"), fileSizeRenderer_.formatFileSize(fileSizesSum)
+      filesCount, ((filesCount < 2) ? "" : "s"), FileSizeRenderer.formatFileSize(fileSizesSum)
     ) : " ");
   }
 

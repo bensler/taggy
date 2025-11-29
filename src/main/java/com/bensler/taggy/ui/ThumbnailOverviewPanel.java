@@ -185,7 +185,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
       @Override
       public void keyPressed(KeyEvent evt) {
         if ((evt.getKeyCode() == KeyEvent.VK_A) && (evt.getModifiersEx() == KeyEvent.CTRL_DOWN_MASK)) {
-          try (SelectionEvent selectionEvent = new SelectionEvent()) {
+          try (var _ = new SelectionEvent()) {
             selection_.clear();
             selection_.addAll(blobs_);
           }
@@ -199,7 +199,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     if (evt.getButton() == MouseEvent.BUTTON1) {
       if ((evt.getClickCount() == 1)) {
         blobAt(evt.getPoint()).ifPresentOrElse(blob -> {
-          try (SelectionEvent selectionEvent = new SelectionEvent()) {
+          try (var _ = new SelectionEvent()) {
             if (evt.isControlDown()) {
               if (selection_.contains(blob)) {
                 selection_.remove(blob);
@@ -245,7 +245,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     blobs_.clear();
     images_.clear();
 
-    try (SelectionEvent selectionEvent = new SelectionEvent(true)) {
+    try (var _ = new SelectionEvent(true)) {
       data.forEach(blob -> {
         if (addImageInternally(blob) && selection_.contains(blob)) {
           selection_.set(selection_.indexOf(blob), blob);
@@ -280,7 +280,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
 
     Collections.sort(blobs_, BLOB_COMPARATOR);
     if (selection_.contains(blob)) {
-      try (SelectionEvent selectionEvent = new SelectionEvent(containedBefore)) {
+      try (var _ = new SelectionEvent(containedBefore)) {
         selection_.set(selection_.indexOf(blob), blob);
       }
     }
@@ -291,7 +291,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
   public void removeImage(Blob blob) {
     if (blobs_.remove(blob)) {
       images_.remove(blob);
-      try (SelectionEvent selectionEvent = new SelectionEvent()) {
+      try (var _ = new SelectionEvent()) {
         selection_.remove(blob);
       }
       revalidate();
@@ -447,14 +447,14 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
 
   public void clearSelection() {
     if (!selection_.isEmpty()) {
-      try (SelectionEvent selectionEvent = new SelectionEvent()) {
+      try (var _ = new SelectionEvent()) {
         selection_.clear();
       }
     }
   }
 
   public void select(Collection<?> blobs) {
-    try (SelectionEvent selectionEvent = new SelectionEvent()) {
+    try (var _ = new SelectionEvent()) {
       selection_.clear();
       blobs.stream().flatMap(blob -> EntityReference.resolve(blob, images_.keySet()).stream()).forEach(selection_::add);
     }
