@@ -3,30 +3,57 @@ package com.bensler.taggy.ui;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.Point;
+import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
 import java.util.Optional;
 
 import javax.swing.JComponent;
 
+import com.bensler.decaf.swing.awt.MouseDragCtrl;
 import com.bensler.decaf.util.TimerTrap;
 
 public class ImageComponent extends JComponent {
 
   private BufferedImage img_;
   private Image drawImg_;
-  private Dimension drawImgCompSize_;
-  private Optional<Integer> imageSizePercentage_;
+  private Dimension lastCompSize_;
+  private Dimension drawImgSize_;
+  private Point imgOrigin_;
+  private Dimension drawImgDrag_;
+  private float zoomFactor_;
 
   public ImageComponent() {
     setImage(new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB));
+    addMouseWheelListener(this::mouseWheelWheeled);
+    new MouseDragCtrl(this, this::mouseDragging, this::mouseDragged);
+  }
+
+  void mouseDragged(Point origin, Point position) {
+    imgOrigin_.translate(drawImgDrag_.width, drawImgDrag_.height);
+    drawImgDrag_ = new Dimension();
+    repaint();
+  }
+
+  void mouseDragging(Point origin, Point position) {
+    drawImgDrag_ = new Dimension(position.x - origin.x, position.y - origin.y);
+    repaint();
   }
 
   public void setImage(BufferedImage img) {
     img_ = img;
-    drawImgCompSize_ = new Dimension(-1, -1);
-    imageSizePercentage_ = Optional.empty();
+    lastCompSize_ = new Dimension(-1, -1);
+    drawImgSize_ = new Dimension(-1, -1);
+    imgOrigin_ = new Point(0, 0);
+    drawImgDrag_ = new Dimension();
+    zoomFactor_ = 1.0f;
     revalidate();
     repaint();
+  }
+
+  private void mouseWheelWheeled(MouseWheelEvent evt) {
+    // +1/-1 ----------vvvvvvvvvvvvvvvvvvvvvv
+    System.out.println(evt.getWheelRotation() + " # " +evt.getPoint());
   }
 
   @Override
@@ -39,7 +66,7 @@ public class ImageComponent extends JComponent {
     super.paintComponent(g);
     final Dimension size = getSize();
 
-    if (!size.equals(drawImgCompSize_)) {
+    if (!size.equals(lastCompSize_)) {
       final double widthRatio = (img_.getWidth() / size.getWidth());
       final double heightRatio = (img_.getHeight() / size.getHeight());
       final double ratio;
@@ -53,16 +80,15 @@ public class ImageComponent extends JComponent {
           ratio = heightRatio;
         }
       }
+      drawImgSize_ = new Dimension(drawImg_.getWidth(null), drawImg_.getHeight(null));
+      imgOrigin_ = new Point(
+        (size.width  - drawImgSize_.width) / 2,
+        (size.height - drawImgSize_.height) / 2
+      );
       Optional<Integer> newPercentage = Optional.of(Math.round(100 / (float)ratio));
-      drawImgCompSize_ = size;
+      lastCompSize_ = size;
     }
-
-    g.drawImage(
-      drawImg_,
-      (size.width  - drawImg_.getWidth(null) ) / 2,
-      (size.height - drawImg_.getHeight(null)) / 2,
-      this
-    );
+    g.drawImage(drawImg_, imgOrigin_.x + drawImgDrag_.width, imgOrigin_.y + drawImgDrag_.height, this);
   }
 
 
