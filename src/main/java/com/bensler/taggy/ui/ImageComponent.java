@@ -57,25 +57,21 @@ public class ImageComponent extends JComponent {
       && (point.x > imgOrigin_.x) && (point.x < (imgOrigin_.x + drawImgSize_.width))  // being over the
       && (point.y > imgOrigin_.y) && (point.y < (imgOrigin_.y + drawImgSize_.height)) // actual image
     ) {
+      final Dimension drawImgSizeOld = new Dimension(drawImg_.getWidth(null), drawImg_.getHeight(null));
+      // -1 or just negative: zoom in / +1 or just positive: zoom out
       final int wheelRotation = evt.getWheelRotation();
-      // -1 or just negative: zoom in / +1 or just positive: zoom out ---vvvvvvvvvvvvvvvvv
-      final double newZoom = Math.min(3.0, Math.max(0.1, zoomFactor_ + ((wheelRotation < 0) ? 0.2 : -0.2)));
+      // limit zoomFactor_ to [3.0, 0.2] with steps of 0.2
+      zoomFactor_ = Math.min(3.0, Math.max(0.1, zoomFactor_ + ((wheelRotation < 0) ? 0.2 : -0.2)));
 
-      if (zoomFactor_ != newZoom) {
-        zoomFactor_ = newZoom;
-        final Dimension drawImgSizeOld = new Dimension(drawImg_.getWidth(null), drawImg_.getHeight(null));
-
-        try (var _ = new TimerTrap("ImageComponent.resizeDrawImg")) {
-          drawImg_ = img_.getScaledInstance((int)Math.round(img_.getWidth() * zoomFactor_), -1, 0);
-        }
-        drawImgSize_ = new Dimension(drawImg_.getWidth(null), drawImg_.getHeight(null));
-        System.out.println("zoom: %f\\n %s\\n%s".formatted(zoomFactor_, drawImgSizeOld, drawImgSize_));
-        imgOrigin_ = new Point(
-          scaleMove(drawImgSizeOld.width , drawImgSize_.width , imgOrigin_.x, point.x),
-          scaleMove(drawImgSizeOld.height, drawImgSize_.height, imgOrigin_.y, point.y)
-        );
-        repaint();
+      try (var _ = new TimerTrap("ImageComponent.resizeDrawImg")) {
+        drawImg_ = img_.getScaledInstance((int)Math.round(img_.getWidth() * zoomFactor_), -1, 0);
       }
+      drawImgSize_ = new Dimension(drawImg_.getWidth(null), drawImg_.getHeight(null));
+      imgOrigin_ = new Point(
+        scaleMove(drawImgSizeOld.width , drawImgSize_.width , imgOrigin_.x, point.x),
+        scaleMove(drawImgSizeOld.height, drawImgSize_.height, imgOrigin_.y, point.y)
+      );
+      repaint();
     }
   }
 
