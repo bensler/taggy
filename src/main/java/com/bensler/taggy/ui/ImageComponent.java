@@ -52,8 +52,17 @@ public class ImageComponent extends JComponent {
   }
 
   private void mouseWheelWheeled(MouseWheelEvent evt) {
-    // +1/-1 ----------vvvvvvvvvvvvvvvvvvvvvv
-    System.out.println(evt.getWheelRotation() + " # " +evt.getPoint());
+    if (
+      (drawImgDrag_.width == 0) && (drawImgDrag_.height == 0) // no ongoing drag operation
+      && (evt.getPoint() instanceof Point point) // local var
+      && (point.x > imgOrigin_.x) && (point.x < (imgOrigin_.x + drawImgSize_.width))  // being over the
+      && (point.y > imgOrigin_.y) && (point.y < (imgOrigin_.y + drawImgSize_.height)) // actual image
+    ) {
+      // -1 or just negative: zoom in
+      // +1 or just positive: zoom out
+      int wheelRotation = evt.getWheelRotation();
+      System.out.println(wheelRotation + " # " +evt.getPoint());
+    }
   }
 
   @Override
