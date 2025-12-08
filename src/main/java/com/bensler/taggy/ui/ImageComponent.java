@@ -6,7 +6,6 @@ import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
-import java.util.Optional;
 
 import javax.swing.JComponent;
 
@@ -21,7 +20,7 @@ public class ImageComponent extends JComponent {
   private Dimension drawImgSize_;
   private Point imgOrigin_;
   private Dimension drawImgDrag_;
-  private float zoomFactor_;
+  private double zoomFactor_;
 
   public ImageComponent() {
     setImage(new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB));
@@ -58,11 +57,30 @@ public class ImageComponent extends JComponent {
       && (point.x > imgOrigin_.x) && (point.x < (imgOrigin_.x + drawImgSize_.width))  // being over the
       && (point.y > imgOrigin_.y) && (point.y < (imgOrigin_.y + drawImgSize_.height)) // actual image
     ) {
-      // -1 or just negative: zoom in
-      // +1 or just positive: zoom out
-      int wheelRotation = evt.getWheelRotation();
-      System.out.println(wheelRotation + " # " +evt.getPoint());
+      final int wheelRotation = evt.getWheelRotation();
+      // -1 or just negative: zoom in / +1 or just positive: zoom out ---vvvvvvvvvvvvvvvvv
+      final double newZoom = Math.min(3.0, Math.max(0.1, zoomFactor_ + ((wheelRotation < 0) ? 0.2 : -0.2)));
+
+      if (zoomFactor_ != newZoom) {
+        zoomFactor_ = newZoom;
+        final Dimension drawImgSizeOld = new Dimension(drawImg_.getWidth(null), drawImg_.getHeight(null));
+
+        try (var _ = new TimerTrap("ImageComponent.resizeDrawImg")) {
+          drawImg_ = img_.getScaledInstance((int)Math.round(img_.getWidth() * zoomFactor_), -1, 0);
+        }
+        drawImgSize_ = new Dimension(drawImg_.getWidth(null), drawImg_.getHeight(null));
+        System.out.println("zoom: %f\\n %s\\n%s".formatted(zoomFactor_, drawImgSizeOld, drawImgSize_));
+        imgOrigin_ = new Point(
+          scaleMove(drawImgSizeOld.width , drawImgSize_.width , imgOrigin_.x, point.x),
+          scaleMove(drawImgSizeOld.height, drawImgSize_.height, imgOrigin_.y, point.y)
+        );
+        repaint();
+      }
     }
+  }
+
+  private int scaleMove(int sizeOld, int sizeNew, int originOld, int centerPoint) {
+    return Math.round(((sizeOld * centerPoint) + (sizeNew * originOld) - (sizeNew * centerPoint)) / sizeOld);
   }
 
   @Override
@@ -76,25 +94,18 @@ public class ImageComponent extends JComponent {
     final Dimension size = getSize();
 
     if (!size.equals(lastCompSize_)) {
-      final double widthRatio = (img_.getWidth() / size.getWidth());
-      final double heightRatio = (img_.getHeight() / size.getHeight());
-      final double ratio;
-
+      zoomFactor_ = Math.min(
+        (size.getWidth() / img_.getWidth()),
+        (size.getHeight() / img_.getHeight())
+      );
       try (var _ = new TimerTrap("ImageComponent.resizeDrawImg")) {
-        if (widthRatio > heightRatio) {
-          drawImg_ = img_.getScaledInstance(size.width, -1, 0);
-          ratio = widthRatio;
-        } else {
-          drawImg_ = img_.getScaledInstance(-1, size.height, 0);
-          ratio = heightRatio;
-        }
+        drawImg_ = img_.getScaledInstance((int)Math.round(img_.getWidth() * zoomFactor_), -1, 0);
       }
       drawImgSize_ = new Dimension(drawImg_.getWidth(null), drawImg_.getHeight(null));
       imgOrigin_ = new Point(
         (size.width  - drawImgSize_.width) / 2,
         (size.height - drawImgSize_.height) / 2
       );
-      Optional<Integer> newPercentage = Optional.of(Math.round(100 / (float)ratio));
       lastCompSize_ = size;
     }
     g.drawImage(drawImg_, imgOrigin_.x + drawImgDrag_.width, imgOrigin_.y + drawImgDrag_.height, this);
