@@ -1,13 +1,17 @@
 package com.bensler.taggy.imprt;
 
-import java.awt.Image;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.awt.image.BufferedImageOp;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 
 import javax.imageio.ImageIO;
+
+import org.imgscalr.Scalr;
+import org.imgscalr.Scalr.Method;
+import org.imgscalr.Scalr.Mode;
 
 import com.bensler.taggy.App;
 import com.bensler.taggy.ui.BlobController.Orientation;
@@ -33,18 +37,14 @@ public class Thumbnailer {
 
     if ((width > THUMBNAIL_SIZE) || (height > THUMBNAIL_SIZE)) {
       if (width > height) {
+        height = Math.round((((float)THUMBNAIL_SIZE) / width) * height);
         width = THUMBNAIL_SIZE;
-        height = -1;
       } else {
-        width = -1;
+        width = Math.round((((float)THUMBNAIL_SIZE) / height) * width);
         height = THUMBNAIL_SIZE;
       }
 
-      final Image scaledImg = srcImg.getScaledInstance(width, height, Image.SCALE_SMOOTH);
-      final BufferedImage bufferedImg = new BufferedImage(scaledImg.getWidth(null), scaledImg.getHeight(null), BufferedImage.TYPE_INT_RGB);
-
-      bufferedImg.getGraphics().drawImage(scaledImg, 0, 0 , null);
-      return bufferedImg;
+      return Scalr.resize(srcImg, Method.ULTRA_QUALITY, Mode.FIT_EXACT, width, height, new BufferedImageOp[0]);
     } else {
       return srcImg;
     }
