@@ -6,8 +6,13 @@ import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
+import java.awt.image.BufferedImageOp;
 
 import javax.swing.JComponent;
+
+import org.imgscalr.Scalr;
+import org.imgscalr.Scalr.Method;
+import org.imgscalr.Scalr.Mode;
 
 import com.bensler.decaf.swing.awt.MouseDragCtrl;
 import com.bensler.decaf.util.TimerTrap;
@@ -34,9 +39,17 @@ public class ImageComponent extends JComponent {
     repaint();
   }
 
-  void mouseDragging(Point origin, Point position) {
-    drawImgDrag_ = new Dimension(position.x - origin.x, position.y - origin.y);
-    repaint();
+  boolean mouseDragging(Point origin, Point position) {
+    final boolean imgHit = (
+         (origin.x >= imgOrigin_.x) && (origin.x <= (imgOrigin_.x + drawImgSize_.width))
+      && (origin.y >= imgOrigin_.y) && (origin.y <= (imgOrigin_.y + drawImgSize_.height))
+    );
+
+    if (imgHit) {
+      drawImgDrag_ = new Dimension(position.x - origin.x, position.y - origin.y);
+      repaint();
+    }
+    return imgHit;
   }
 
   public void setImage(BufferedImage img) {
@@ -62,10 +75,13 @@ public class ImageComponent extends JComponent {
       final int wheelRotation = evt.getWheelRotation();
       // limit zoomFactor_ to [3.0, 0.2] with steps of 0.2
       zoomFactor_ = Math.min(3.0, Math.max(0.1, zoomFactor_ + ((wheelRotation < 0) ? 0.2 : -0.2)));
+      final int newWidth = (int)Math.round(img_.getWidth()  * zoomFactor_);
+      final int newHeight = (int)Math.round(img_.getHeight() * zoomFactor_);
 
-      try (var _ = new TimerTrap("ImageComponent.resizeDrawImg")) {
-        drawImg_ = img_.getScaledInstance((int)Math.round(img_.getWidth() * zoomFactor_), -1, 0);
+      try (var _ = new TimerTrap(durationMillies -> System.out.println("### scaled fast: " + durationMillies))) {
+        drawImg_= Scalr.resize(img_, Method.SPEED, Mode.FIT_EXACT, newWidth, newHeight, new BufferedImageOp[0]);
       }
+
       drawImgSize_ = new Dimension(drawImg_.getWidth(null), drawImg_.getHeight(null));
       imgOrigin_ = new Point(
         scaleMove(drawImgSizeOld.width , drawImgSize_.width , imgOrigin_.x, point.x),
@@ -106,6 +122,5 @@ public class ImageComponent extends JComponent {
     }
     g.drawImage(drawImg_, imgOrigin_.x + drawImgDrag_.width, imgOrigin_.y + drawImgDrag_.height, this);
   }
-
 
 }
