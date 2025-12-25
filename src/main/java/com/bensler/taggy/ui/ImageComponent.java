@@ -74,15 +74,7 @@ public class ImageComponent extends JComponent {
       // -1 or just negative: zoom in / +1 or just positive: zoom out
       final int wheelRotation = evt.getWheelRotation();
       // limit zoomFactor_ to [3.0, 0.2] with steps of 0.2
-      zoomFactor_ = Math.min(3.0, Math.max(0.1, zoomFactor_ + ((wheelRotation < 0) ? 0.2 : -0.2)));
-      final int newWidth = (int)Math.round(img_.getWidth()  * zoomFactor_);
-      final int newHeight = (int)Math.round(img_.getHeight() * zoomFactor_);
-
-      try (var _ = new TimerTrap(durationMillies -> System.out.println("### scaled fast: " + durationMillies))) {
-        drawImg_= Scalr.resize(img_, Method.SPEED, Mode.FIT_EXACT, newWidth, newHeight, new BufferedImageOp[0]);
-      }
-
-      drawImgSize_ = new Dimension(drawImg_.getWidth(null), drawImg_.getHeight(null));
+      performZoom(Math.min(3.0, Math.max(0.1, zoomFactor_ + ((wheelRotation < 0) ? 0.2 : -0.2))));
       imgOrigin_ = new Point(
         scaleMove(drawImgSizeOld.width , drawImgSize_.width , imgOrigin_.x, point.x),
         scaleMove(drawImgSizeOld.height, drawImgSize_.height, imgOrigin_.y, point.y)
@@ -93,6 +85,17 @@ public class ImageComponent extends JComponent {
 
   private int scaleMove(int sizeOld, int sizeNew, int originOld, int centerPoint) {
     return Math.round(((sizeOld * centerPoint) + (sizeNew * originOld) - (sizeNew * centerPoint)) / sizeOld);
+  }
+
+  private void performZoom(double zoomFactor) {
+    final int newWidth = (int)Math.round(img_.getWidth()  * zoomFactor);
+    final int newHeight = (int)Math.round(img_.getHeight() * zoomFactor);
+
+    try (var _ = new TimerTrap(durationMillies -> System.out.println("### scaled fast: " + durationMillies))) {
+      drawImg_= Scalr.resize(img_, Method.SPEED, Mode.FIT_EXACT, newWidth, newHeight, new BufferedImageOp[0]);
+    }
+    drawImgSize_ = new Dimension(newWidth, newHeight);
+    zoomFactor_ = zoomFactor;
   }
 
   @Override
@@ -106,14 +109,10 @@ public class ImageComponent extends JComponent {
     final Dimension size = getSize();
 
     if (!size.equals(lastCompSize_)) {
-      zoomFactor_ = Math.min(
+      performZoom(Math.min(
         (size.getWidth() / img_.getWidth()),
         (size.getHeight() / img_.getHeight())
-      );
-      try (var _ = new TimerTrap("ImageComponent.resizeDrawImg")) {
-        drawImg_ = img_.getScaledInstance((int)Math.round(img_.getWidth() * zoomFactor_), -1, 0);
-      }
-      drawImgSize_ = new Dimension(drawImg_.getWidth(null), drawImg_.getHeight(null));
+      ));
       imgOrigin_ = new Point(
         (size.width  - drawImgSize_.width) / 2,
         (size.height - drawImgSize_.height) / 2
