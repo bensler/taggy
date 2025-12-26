@@ -72,14 +72,22 @@ public class ImageComponent extends JComponent {
       && (point.x > imgOrigin_.x) && (point.x < (imgOrigin_.x + drawImgSize_.width))  // being over the
       && (point.y > imgOrigin_.y) && (point.y < (imgOrigin_.y + drawImgSize_.height)) // actual image
     ) {
-      final Dimension drawImgSizeOld = new Dimension(drawImg_.getWidth(null), drawImg_.getHeight(null));
+      final Dimension drawImgSizeOld = new Dimension(drawImgSize_);
       // -1 or just negative: zoom in / +1 or just positive: zoom out
       final int wheelRotation = evt.getWheelRotation();
       // limit zoomFactor_ to [3.0, 0.2] with steps of 0.2
-      performZoom(Math.min(3.0, Math.max(0.1, zoomFactor_ + ((wheelRotation < 0) ? 0.2 : -0.2))));
+      final double wantedZoom = Math.min(3.0, zoomFactor_ + ((wheelRotation < 0) ? 0.2 : -0.2));
+      final Dimension size = getSize();
+      final double minHorizZoom = (size.getWidth() / img_.getWidth());
+      final double minVertZoom = (size.getHeight() / img_.getHeight());
+      final double minZoom = Math.min(minHorizZoom, minVertZoom);
+      final boolean horizLimits = minHorizZoom < minVertZoom;
+      final boolean zoomLimited = wantedZoom < minZoom;
+
+      performZoom(Math.max(minZoom, wantedZoom));
       imgOrigin_ = new Point(
-        scaleMove(drawImgSizeOld.width , drawImgSize_.width , imgOrigin_.x, point.x),
-        scaleMove(drawImgSizeOld.height, drawImgSize_.height, imgOrigin_.y, point.y)
+        (zoomLimited && horizLimits)    ? 0 : scaleMove(drawImgSizeOld.width , drawImgSize_.width , imgOrigin_.x, point.x),
+        (zoomLimited && (!horizLimits)) ? 0 : scaleMove(drawImgSizeOld.height, drawImgSize_.height, imgOrigin_.y, point.y)
       );
       repaint();
     }
