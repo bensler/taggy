@@ -15,10 +15,11 @@ import org.imgscalr.Scalr.Method;
 import org.imgscalr.Scalr.Mode;
 
 import com.bensler.decaf.swing.awt.MouseDragCtrl;
-import com.bensler.decaf.util.TimerTrap;
+import com.bensler.taggy.App;
 
 public class ImageComponent extends JComponent {
 
+  private ResizeThread resizeThread_;
   private BufferedImage img_;
   private Image drawImg_;
   private Dimension lastCompSize_;
@@ -31,6 +32,7 @@ public class ImageComponent extends JComponent {
     setImage(new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB));
     addMouseWheelListener(this::mouseWheelWheeled);
     new MouseDragCtrl(this, this::mouseDragging, this::mouseDragged);
+    resizeThread_ = App.getApp().getResizeThread();
   }
 
   void mouseDragged(Point origin, Point position) {
@@ -91,11 +93,16 @@ public class ImageComponent extends JComponent {
     final int newWidth = (int)Math.round(img_.getWidth()  * zoomFactor);
     final int newHeight = (int)Math.round(img_.getHeight() * zoomFactor);
 
-    try (var _ = new TimerTrap(durationMillies -> System.out.println("### scaled fast: " + durationMillies))) {
-      drawImg_= Scalr.resize(img_, Method.SPEED, Mode.FIT_EXACT, newWidth, newHeight, new BufferedImageOp[0]);
-    }
-    drawImgSize_ = new Dimension(newWidth, newHeight);
+    drawImg_= Scalr.resize(img_, Method.SPEED, Mode.FIT_EXACT, newWidth, newHeight, new BufferedImageOp[0]);
+    resizeThread_.enqueue(this, img_, drawImgSize_ = new Dimension(newWidth, newHeight));
     zoomFactor_ = zoomFactor;
+  }
+
+  public void setScaledImg(BufferedImage srcImg, BufferedImage scaledImg, Dimension scaledImgSize) {
+    if ((img_ == srcImg) && drawImgSize_.equals(scaledImgSize)) {
+      drawImg_ = scaledImg;
+      repaint();
+    }
   }
 
   @Override

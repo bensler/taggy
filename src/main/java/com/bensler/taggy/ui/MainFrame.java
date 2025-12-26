@@ -138,6 +138,7 @@ public class MainFrame {
     if (slideshowFrame_ != null) {
       slideshowFrame_.close();
     }
+    app_.getResizeThread().terminate();
     prefs_.store();
     try {
       app_.getPrefs().store();

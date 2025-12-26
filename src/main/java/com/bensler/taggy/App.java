@@ -22,6 +22,7 @@ import com.bensler.taggy.persist.DbConnector;
 import com.bensler.taggy.persist.SqliteDbConnector;
 import com.bensler.taggy.ui.BlobController;
 import com.bensler.taggy.ui.MainFrame;
+import com.bensler.taggy.ui.ResizeThread;
 import com.bensler.taggy.ui.TagsUiController;
 import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
 import com.jgoodies.looks.plastic.theme.DesertYellow;
@@ -61,6 +62,7 @@ public class App {
   private final DbAccess dbAccess_;
   private final ImportController importCtrl_;
   private final Thumbnailer thumbnailer_;
+  private final ResizeThread resizeThread_;
   private final MainFrame mainFrame_;
 
   private final Map<Class<?>, Map<EntityChangeListener<?>, Object>> entityChangeListeners_;
@@ -79,6 +81,7 @@ public class App {
     tagCtrl_ = new TagsUiController(this);
     importCtrl_ = new ImportController(this, getBaseDir());
     thumbnailer_ = new Thumbnailer(dataDir);
+    resizeThread_ = new ResizeThread();
     mainFrame_ = new MainFrame(this);
   }
 
@@ -96,6 +99,10 @@ public class App {
 
   public Thumbnailer getThumbnailer() {
     return thumbnailer_;
+  }
+
+  public ResizeThread getResizeThread() {
+    return resizeThread_;
   }
 
   public ImportController getImportCtrl() {
