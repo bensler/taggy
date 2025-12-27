@@ -4,6 +4,8 @@ import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
 import static com.bensler.taggy.ui.Icons.IMAGE_48;
 import static com.bensler.taggy.ui.Icons.TAGS_36;
 
+import java.util.Optional;
+
 import com.bensler.decaf.swing.awt.OverlayIcon;
 import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
 import com.bensler.decaf.swing.dialog.BasicContentPanel;
@@ -49,7 +51,7 @@ public class ChooseInitialTagDialog extends BasicContentPanel<Tag, Tag> {
 
   @Override
   protected void setData(Tag tag) {
-    allTags_.contains(tag).ifPresent(lTag -> allTags_.select(lTag));
+    Optional.ofNullable(tag).flatMap(allTags_::contains).ifPresent(lTag -> allTags_.select(lTag));
   }
 
 }
