@@ -48,7 +48,34 @@ public class ImageComponent extends JComponent {
     );
 
     if (imgHit) {
-      drawImgDrag_ = new Dimension(position.x - origin.x, position.y - origin.y);
+      final Dimension size = getSize();
+      final int leftEdge = (imgOrigin_.x + (position.x - origin.x));
+      final int rightEdge = leftEdge + drawImgSize_.width;
+      int xDiff = 0;
+
+      if (drawImgSize_.width > size.width) {
+        if (leftEdge > 0) {
+          position.x += -leftEdge;
+        }
+        if (rightEdge < size.width) {
+          position.x += (size.width - rightEdge);
+        }
+        xDiff = position.x - origin.x;
+      }
+      final int topEdge = (imgOrigin_.y + (position.y - origin.y));
+      final int bottomEdge = topEdge + drawImgSize_.height;
+      int yDiff = 0;
+
+      if (drawImgSize_.height > size.height) {
+        if (topEdge > 0) {
+          position.y += -topEdge;
+        }
+        if (bottomEdge < size.height) {
+          position.y += (size.height - bottomEdge);
+        }
+        yDiff = position.y - origin.y;
+      }
+      drawImgDrag_ = new Dimension(xDiff, yDiff);
       repaint();
     }
     return imgHit;
