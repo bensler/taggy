@@ -24,6 +24,9 @@ import com.bensler.decaf.swing.action.FilteredAction;
 import com.bensler.decaf.swing.action.UiAction;
 import com.bensler.decaf.swing.awt.OverlayIcon;
 import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
+import com.bensler.decaf.util.prefs.DelegatingPrefPersister;
+import com.bensler.decaf.util.prefs.PrefKey;
+import com.bensler.decaf.util.prefs.PrefPersister;
 import com.bensler.taggy.App;
 import com.bensler.taggy.imprt.FileToImport.ImportObstacle;
 import com.bensler.taggy.persist.Blob;
@@ -54,9 +57,9 @@ public class ImportController {
   );
 
   private final App app_;
-  private final File importDir_;
   private final UiAction actionImport_;
   private final Map<File, String> fileShaMap_;
+  private File importDir_;
 
   public ImportController(App app, File dataDir) {
     app_ = app;
@@ -74,6 +77,10 @@ public class ImportController {
 
   private void showImportDialog() {
     new ImportDialog(app_).setVisible(true);
+  }
+
+  File getImportDir() {
+    return importDir_;
   }
 
   List<FileToImport> getFilesToImport() {
@@ -131,6 +138,29 @@ public class ImportController {
       e.printStackTrace();
       return new FileToImport(file, file.getShaSum(), ImportObstacle.IMPORT_ERROR, e.getMessage(), file.getType(), null);
     }
+  }
+
+  void setImportDir(File newImportDir) {
+    importDir_ = newImportDir;
+  }
+
+  private File setPrefImportDir(String prefValue) {
+    final File file = new File(prefValue);
+
+    if (
+      file.exists() && file.isDirectory()
+      && file.getParentFile() instanceof File parent && parent.exists()
+    ) {
+      return file;
+    }
+    return importDir_;
+  }
+
+  PrefPersister getPrefPersister(PrefKey baseKey) {
+    return new DelegatingPrefPersister(new PrefKey(baseKey, "sourceFolder"),
+      () -> Optional.of(importDir_.getAbsolutePath()),
+      value -> importDir_ = setPrefImportDir(value)
+    );
   }
 
 }

@@ -26,6 +26,8 @@ public class Icons {
   public static final ImageIcon EDIT_13 = new ImageIcon(Icons.class.getResource("edit_13x13.png"));
   public static final ImageIcon EDIT_30 = new ImageIcon(Icons.class.getResource("edit_30x30.png"));
 
+  public static final ImageIcon FOLDER_16 = new ImageIcon(Icons.class.getResource("/com/jgoodies/looks/windows/icons/Directory.gif"));
+
   public static final ImageIcon EXPORT_FOLDER_13 = new ImageIcon(Icons.class.getResource("export_folder_13x13.png"));
   public static final ImageIcon EXPORT_FOLDER_30 = new ImageIcon(Icons.class.getResource("export_folder_30x30.png"));
 

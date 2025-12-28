@@ -8,6 +8,7 @@ import static com.bensler.taggy.imprt.ImportController.ICON_LARGE;
 import static com.bensler.taggy.ui.Icons.IMAGE_13;
 import static com.bensler.taggy.ui.Icons.PLUS_10;
 import static com.bensler.taggy.ui.Icons.X_10;
+import static java.lang.Boolean.TRUE;
 
 import java.awt.Dimension;
 import java.io.File;
@@ -21,6 +22,7 @@ import java.util.Set;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
@@ -43,12 +45,14 @@ import com.bensler.decaf.swing.view.PropertyViewImpl;
 import com.bensler.decaf.swing.view.SimpleCellRenderer;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefPersisterImpl;
+import com.bensler.decaf.util.tree.Hierarchical;
 import com.bensler.decaf.util.tree.Hierarchy;
 import com.bensler.taggy.App;
 import com.bensler.taggy.imprt.FileToImport.ImportObstacle;
 import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.persist.Tag;
 import com.bensler.taggy.ui.BlobController;
+import com.bensler.taggy.ui.Icons;
 import com.bensler.taggy.ui.TagPrefPersister;
 import com.bensler.taggy.ui.TagUi;
 import com.jgoodies.forms.layout.CellConstraints;
@@ -56,19 +60,25 @@ import com.jgoodies.forms.layout.FormLayout;
 
 class ImportDialog extends JDialog {
 
+  final PropertyViewImpl<UiFile, String> FILE_NAME_VIEW = new PropertyViewImpl<>(
+    new SimpleCellRenderer<>((_, name) -> name, (_, _) -> Icons.FOLDER_16), createGetterComparator(UiFile::getName, COLLATOR_COMPARATOR)
+  );
+
   public static final SimpleCellRenderer<FileToImport, String> TYPE_ICON_RENDERER = new SimpleCellRenderer<> (
     null, (file, type) -> (file.getType() != null) ? IMAGE_13 : null
   );
 
   public static final SimpleCellRenderer<FileToImport, Boolean> IS_NEW_ICON_RENDERER = new SimpleCellRenderer<> (
     (file, importable) -> file.getImportObstacleAsString(),
-    (file, importable) -> Boolean.TRUE.equals(importable) ? PLUS_10 : X_10
+    (file, importable) -> TRUE.equals(importable) ? PLUS_10 : X_10
   );
 
   private final ImportController importController_;
   private final BlobController blobCtrl_;
   private final DbAccess db_;
   private final EntityTable<FileToImport> files_;
+  private final EntityTree<UiFile> srcFolder_;
+  private final JButton srcFolderButton_;
   private final EntityTree<Tag> initialTag_;
   private final JButton initialTagButton_;
   private final JLabel fileSizeLabel_;
@@ -111,8 +121,14 @@ class ImportDialog extends JDialog {
 
     final JPanel sidePanel = new JPanel(new FormLayout(
       "f:p:g",
-      "p, 3dlu, p, 3dlu:g, p, 3dlu, p"
+      "p, 3dlu, p, 6dlu, p, 3dlu, p, 3dlu:g, p, 3dlu, p"
     ));
+
+    srcFolder_ = new EntityTree<>(FILE_NAME_VIEW, UiFile.class);
+    srcFolder_.setVisibleRowCount(6, 0.5f);
+    srcFolder_.setSelectionMode(SelectionMode.NONE);
+    srcFolderButton_ = new JButton("Source Folder");
+    srcFolderButton_.addActionListener(evt -> chooseImportDir());
     initialTag_ = new EntityTree<>(TagUi.NAME_VIEW, Tag.class);
     initialTag_.setVisibleRowCount(10, 0.5f);
     initialTag_.setSelectionMode(SelectionMode.NONE);
@@ -123,22 +139,22 @@ class ImportDialog extends JDialog {
     importButton_.setEnabled(false);
     importButton_.addActionListener(evt -> importSelection());
     files_.addSelectionListener((source, files) -> filesSelectionChanged(files));
-    sidePanel.add(initialTag_.getScrollPane(), new CellConstraints(1, 1));
-    sidePanel.add(initialTagButton_, new CellConstraints(1, 3));
-    sidePanel.add(fileSizeLabel_, new CellConstraints(1, 5));
-    sidePanel.add(importButton_, new CellConstraints(1, 7));
+    sidePanel.add(srcFolder_.getScrollPane(), new CellConstraints(1, 1));
+    sidePanel.add(srcFolderButton_, new CellConstraints(1, 3));
+    sidePanel.add(initialTag_.getScrollPane(), new CellConstraints(1, 5));
+    sidePanel.add(initialTagButton_, new CellConstraints(1, 7));
+    sidePanel.add(fileSizeLabel_, new CellConstraints(1, 9));
+    sidePanel.add(importButton_, new CellConstraints(1, 11));
 
     final JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, files_.getScrollPane(), sidePanel);
     splitPane.setDividerLocation(.7f);
     mainPanel.add(splitPane, new CellConstraints(2, 3));
     setContentPane(mainPanel);
-    final List<FileToImport> filesToImport = importController_.getFilesToImport();
-    files_.addOrUpdateData(filesToImport);
-    filesToSha_ = new LinkedList<>(filesToImport.stream()
-      .filter(file -> file.hasObstacle(ImportObstacle.SHA_MISSING) || file.hasObstacle(ImportObstacle.DUPLICATE_CHECK_MISSING)).toList());
+    filesToSha_ = new LinkedList<>();
     pack();
     final PrefKey baseKey = new PrefKey(App.PREFS_APP_ROOT, getClass());
     final PrefPersisterImpl prefs = new PrefPersisterImpl(app.getPrefs(), new WindowPrefsPersister(baseKey, this),
+      importController_.getPrefPersister(baseKey),
       createSplitPanePrefPersister(new PrefKey(baseKey, "split"), splitPane),
       TagPrefPersister.create(
         new PrefKey(baseKey, "initialTag"), this::getInitialTag,
@@ -154,6 +170,17 @@ class ImportDialog extends JDialog {
     });
     WindowHelper.centerOnParent(this);
     new Thread(new ShaSumDuplicateCheckThread(), "Taggy.Import.ShaSumDuplicateCheck").start();
+    populateFileList();
+    displaySrcFolder();
+  }
+
+  private void populateFileList() {
+    final List<FileToImport> filesToImport = importController_.getFilesToImport();
+    files_.clear();
+    files_.addOrUpdateData(filesToImport);
+    filesToSha_.clear();
+    filesToSha_.addAll(filesToImport.stream()
+      .filter(file -> file.hasObstacle(ImportObstacle.SHA_MISSING) || file.hasObstacle(ImportObstacle.DUPLICATE_CHECK_MISSING)).toList());
   }
 
   private void filesSelectionChanged(List<FileToImport> files) {
@@ -169,6 +196,20 @@ class ImportDialog extends JDialog {
 
   private void chooseInitialTag() {
     new OkCancelDialog<>(this, new ChooseInitialTagDialog()).show(getInitialTag()).ifPresent(this::setInitialTag);
+  }
+
+  private void chooseImportDir() {
+    final JFileChooser fileChooser = new JFileChooser(importController_.getImportDir());
+
+    fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+    fileChooser.setFileHidingEnabled(false);
+    if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+      final File newImportDir = fileChooser.getSelectedFile();
+
+      importController_.setImportDir(newImportDir);
+      displaySrcFolder();
+      populateFileList();
+    }
   }
 
   private Tag getInitialTag() {
@@ -258,6 +299,33 @@ class ImportDialog extends JDialog {
           e.printStackTrace();
         }
       }
+    }
+  }
+
+  private void displaySrcFolder() {
+    srcFolder_.setData(new Hierarchy<>(Hierarchical.toPath(new UiFile(importController_.getImportDir()))));
+    srcFolder_.expandCollapseAll(true);
+  }
+
+  static class UiFile implements Hierarchical<UiFile> {
+
+    private final UiFile parent_;
+    private final String name_;
+
+    UiFile(File file) {
+      parent_ = Optional.ofNullable(file.getParentFile())
+        .filter(lFile -> !lFile.getName().isEmpty())
+        .map(UiFile::new).orElse(null);
+      name_ = file.getName();
+    }
+
+    public String getName() {
+      return name_;
+    }
+
+    @Override
+    public UiFile getParent() {
+      return parent_;
     }
   }
 
