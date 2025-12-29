@@ -19,6 +19,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -85,6 +86,7 @@ class ImportDialog extends JDialog {
   private final JButton importButton_;
   private final List<FileToImport> filesToSha_;
   private final FileSizeRenderer fileSizeRenderer_;
+  private final ShaSumDuplicateCheckThread shaSumThread_;
 
   ImportDialog(App app) {
     super(app.getMainFrameFrame(), true);
@@ -162,14 +164,15 @@ class ImportDialog extends JDialog {
       ),
       new TablePrefPersister(new PrefKey(baseKey, "files"), files_.getComponent())
     );
+    new Thread(shaSumThread_ = new ShaSumDuplicateCheckThread(), "Taggy.Import.ShaSumDuplicateCheck").start();
     new WindowClosingTrigger(this, evt -> {
       synchronized (filesToSha_) {
         filesToSha_.clear();
       }
+      shaSumThread_.wakeup(false);
       prefs.store();
     });
     WindowHelper.centerOnParent(this);
-    new Thread(new ShaSumDuplicateCheckThread(), "Taggy.Import.ShaSumDuplicateCheck").start();
     populateFileList();
     displaySrcFolder();
   }
@@ -181,6 +184,7 @@ class ImportDialog extends JDialog {
     filesToSha_.clear();
     filesToSha_.addAll(filesToImport.stream()
       .filter(file -> file.hasObstacle(ImportObstacle.SHA_MISSING) || file.hasObstacle(ImportObstacle.DUPLICATE_CHECK_MISSING)).toList());
+    shaSumThread_.wakeup(true);
   }
 
   private void filesSelectionChanged(List<FileToImport> files) {
@@ -271,8 +275,29 @@ class ImportDialog extends JDialog {
   }
 
   class ShaSumDuplicateCheckThread implements Runnable {
+
+    private final LinkedBlockingQueue<Boolean> continueWorkQueue_;
+
+    ShaSumDuplicateCheckThread() {
+      continueWorkQueue_ = new LinkedBlockingQueue<>();
+    }
+
+    void wakeup(boolean continueWorking) {
+      try {
+        continueWorkQueue_.put(continueWorking);
+      } catch (InterruptedException ie) { /* no capacity limit, no wait, no interruption */ }
+    }
+
     @Override
     public void run() {
+      try {
+        do {
+          doWork();
+        } while (continueWorkQueue_.take());
+      } catch (InterruptedException ie) { /* just a wakeup call */ }
+    }
+
+    private void doWork() {
       Optional<FileToImport> fileInProgress = Optional.empty();
 
       while((fileInProgress = getNextToSha(fileInProgress)).isPresent()) {
