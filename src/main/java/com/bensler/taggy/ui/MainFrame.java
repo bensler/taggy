@@ -106,6 +106,14 @@ public class MainFrame {
         new UiAction(
           new ActionAppearance(Icons.ROTATE_L_13, null, "Rotate Counterclockwise", null),
           FilteredAction.one(Blob.class, blob -> {})
+        ),
+        new UiAction(
+          new ActionAppearance(Icons.FLIP_H_13, null, "Flip Horizontally", null),
+          FilteredAction.one(Blob.class, blob -> {})
+        ),
+        new UiAction(
+          new ActionAppearance(Icons.FLIP_V_13, null, "Flip Vertically", null),
+          FilteredAction.one(Blob.class, blob -> {})
         )
       ),
       thumbnails_.getToolbarActions(),
