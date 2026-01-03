@@ -2,8 +2,6 @@ package com.bensler.taggy.ui;
 
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
 import static com.bensler.decaf.util.prefs.DelegatingPrefPersister.createSplitPanePrefPersister;
-import static com.bensler.taggy.ui.Icons.EDIT_30;
-import static com.bensler.taggy.ui.Icons.IMAGES_48;
 import static com.bensler.taggy.ui.Icons.IMAGE_48;
 import static com.bensler.taggy.ui.Icons.TAGS_36;
 import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
@@ -38,7 +36,6 @@ import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.decaf.util.prefs.PrefsStorage;
 import com.bensler.taggy.App;
-import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.Tag;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -97,25 +94,7 @@ public class MainFrame {
         ),
         thumbnails_.getExportImageAction()
       ),
-      new ActionGroup(
-        new ActionAppearance(new OverlayIcon(IMAGES_48, new Overlay(EDIT_30, SE)), null, null, "Edit Images"),
-        new UiAction(
-          new ActionAppearance(Icons.ROTATE_R_13, null, "Rotate Clockwise", null),
-          FilteredAction.one(Blob.class, blob -> {})
-        ),
-        new UiAction(
-          new ActionAppearance(Icons.ROTATE_L_13, null, "Rotate Counterclockwise", null),
-          FilteredAction.one(Blob.class, blob -> {})
-        ),
-        new UiAction(
-          new ActionAppearance(Icons.FLIP_H_13, null, "Flip Horizontally", null),
-          FilteredAction.one(Blob.class, blob -> {})
-        ),
-        new UiAction(
-          new ActionAppearance(Icons.FLIP_V_13, null, "Flip Vertically", null),
-          FilteredAction.one(Blob.class, blob -> {})
-        )
-      ),
+      app_.getBlobUiCtrl().getEditImageActions(),
       thumbnails_.getToolbarActions(),
       new ActionGroup(thumbnails_.getSlideshowAction())
     ), List.of(tagTree_, thumbnails_.getEntityComponent(), selectionTagPanel.getTagTree()))).createToolbar(), new CellConstraints(2, 2));
