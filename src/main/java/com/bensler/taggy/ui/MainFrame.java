@@ -38,6 +38,7 @@ import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.decaf.util.prefs.PrefsStorage;
 import com.bensler.taggy.App;
+import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.Tag;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -92,14 +93,20 @@ public class MainFrame {
         app_.getImportCtrl().getImportAction(),
         new UiAction(
           new ActionAppearance(OrphanDialog.ICON, null, null, "Show Images without any Tags assigned"),
-          FilteredAction.many(Void.class, FilteredAction.allwaysOnFilter(), entities -> new OrphanDialog(app_).showDialog() )
+          FilteredAction.many(Void.class, FilteredAction.allwaysOnFilter(), entities -> new OrphanDialog(app_).showDialog())
         ),
         thumbnails_.getExportImageAction()
       ),
       new ActionGroup(
         new ActionAppearance(new OverlayIcon(IMAGES_48, new Overlay(EDIT_30, SE)), null, null, "Edit Images"),
-        thumbnails_.getSlideshowAction(),
-        thumbnails_.getExportImageAction()
+        new UiAction(
+          new ActionAppearance(Icons.ROTATE_R_13, null, "Rotate Clockwise", null),
+          FilteredAction.one(Blob.class, blob -> {})
+        ),
+        new UiAction(
+          new ActionAppearance(Icons.ROTATE_L_13, null, "Rotate Counterclockwise", null),
+          FilteredAction.one(Blob.class, blob -> {})
+        )
       ),
       thumbnails_.getToolbarActions(),
       new ActionGroup(thumbnails_.getSlideshowAction())

@@ -35,6 +35,9 @@ public class Icons {
   public static final ImageIcon PLUS_20 = new ImageIcon(Icons.class.getResource("plus_20x20.png"));
   public static final ImageIcon PLUS_30 = new ImageIcon(Icons.class.getResource("plus_30x30.png"));
 
+  public static final ImageIcon ROTATE_R_13 = new ImageIcon(Icons.class.getResource("rotate_r_13x13.png"));
+  public static final ImageIcon ROTATE_L_13 = new ImageIcon(Icons.class.getResource("rotate_l_13x13.png"));
+
   public static final ImageIcon X_10 = new ImageIcon(Icons.class.getResource("x_10x10.png"));
   public static final ImageIcon X_30 = new ImageIcon(Icons.class.getResource("x_30x30.png"));
 
