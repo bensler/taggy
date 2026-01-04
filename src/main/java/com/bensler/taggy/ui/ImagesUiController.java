@@ -2,6 +2,7 @@ package com.bensler.taggy.ui;
 
 import static com.bensler.decaf.swing.action.FilteredAction.atLeastOneFilter;
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
+import static com.bensler.taggy.ui.Icons.EDIT_30;
 import static com.bensler.taggy.ui.Icons.EXPORT_FOLDER_13;
 import static com.bensler.taggy.ui.Icons.EXPORT_FOLDER_30;
 import static com.bensler.taggy.ui.Icons.IMAGES_48;
@@ -12,12 +13,18 @@ import static com.bensler.taggy.ui.Icons.SLIDESHOW_48;
 import static com.bensler.taggy.ui.Icons.TAG_SIMPLE_13;
 import static com.bensler.taggy.ui.Icons.X_10;
 
+import java.awt.image.BufferedImage;
+import java.awt.image.BufferedImageOp;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
+import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+
+import org.imgscalr.Scalr;
 
 import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.ActionGroup;
@@ -46,6 +53,7 @@ public class ImagesUiController {
   private final UiAction addImagesTagsAction_;
   private final UiAction exportImageAction_;
   private final UiAction deleteImageAction_;
+  private final ActionGroup editImageActions_;
 
   public ImagesUiController(App app, JComponent dialogParentComp) {
     blobCtrl_ = (app_ = app).getBlobCtrl();
@@ -71,6 +79,41 @@ public class ImagesUiController {
       new ActionAppearance(new OverlayIcon(IMAGE_13, new Overlay(X_10, SE)), null, "Delete Image(s)", "Remove currently selected Image(s)"),
       FilteredAction.many(Blob.class, atLeastOneFilter(), this::deleteImagesConfirm)
     );
+    editImageActions_ = new ActionGroup(
+      new ActionAppearance(new OverlayIcon(IMAGES_48, new Overlay(EDIT_30, SE)), null, null, "Edit Images"),
+      createAction(Icons.ROTATE_R_13, "Rotate Clockwise", Scalr.Rotation.CW_90),
+      createAction(Icons.ROTATE_L_13, "Rotate Counterclockwise", Scalr.Rotation.CW_270),
+      createAction(Icons.FLIP_H_13, "Flip Horizontally", Scalr.Rotation.FLIP_HORZ),
+      createAction(Icons.FLIP_V_13, "Flip Vertically", Scalr.Rotation.FLIP_VERT)
+    );
+  }
+
+  private UiAction createAction(ImageIcon icon, String menuText, Scalr.Rotation imageChange) {
+    return new UiAction(
+      new ActionAppearance(icon, null, menuText, null),
+      FilteredAction.one(Blob.class, blob -> editImage(blob, imageChange))
+    );
+  }
+
+  public ActionGroup getEditImageActions() {
+    return editImageActions_;
+  }
+
+  private void editImage(Blob blob, Scalr.Rotation imageChange) {
+    final BlobController blobCtrl = App.getApp().getBlobCtrl();
+
+    try {
+      final BufferedImage image = blobCtrl.loadRotated(blob);
+      final BufferedImage resultImg = Scalr.rotate(image, imageChange, new BufferedImageOp[0]);
+
+      // TODO
+      // mv functionality to BlobCtrl?
+  //    image.getSha256sum()
+      System.out.println(image + " -> " + imageChange);
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
   }
 
   public UiAction getSlideshowAction() {

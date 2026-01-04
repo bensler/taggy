@@ -15,7 +15,6 @@ import javax.swing.border.EmptyBorder;
 
 import com.bensler.decaf.swing.action.ActionGroup;
 import com.bensler.decaf.swing.action.FocusedComponentActionController;
-import com.bensler.decaf.swing.action.UiAction;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefPersister;
 import com.bensler.taggy.App;
@@ -85,16 +84,8 @@ class MainThumbnailPanel extends JPanel {
     thumbs_.addSelectionListener((source, selection) -> listener.accept(selection));
   }
 
-  public UiAction getSlideshowAction() {
-    return imgUiCtrl_.getSlideshowAction();
-  }
-
-  public UiAction getExportImageAction() {
-    return imgUiCtrl_.getExportImageAction();
-  }
-
-  public ActionGroup getToolbarActions() {
-    return new ActionGroup(imgUiCtrl_.getEditImageTagsAction(), imgUiCtrl_.getAddImagesTagsAction());
+  public ImagesUiController getImagesUiCtrl() {
+    return imgUiCtrl_;
   }
 
   public void setData(Optional<Tag> tag) {

@@ -68,6 +68,7 @@ public class MainFrame {
 
     final SelectedBlobsDetailPanel selectionTagPanel = new SelectedBlobsDetailPanel(this);
     (thumbnails_ = new MainThumbnailPanel(app_)).addSelectionListener(selectionTagPanel::setData);
+    final ImagesUiController imagesUiCtrl = thumbnails_.getImagesUiCtrl();
     tagTree_ = new EntityTree<>(TagUi.NAME_VIEW, Tag.class);
     tagTree_.setVisibleRowCount(20, .5f);
     tagTree_.addSelectionListener((source, selection) -> displayThumbnailsOfSelectedTag(selection));
@@ -92,11 +93,11 @@ public class MainFrame {
           new ActionAppearance(OrphanDialog.ICON, null, null, "Show Images without any Tags assigned"),
           FilteredAction.many(Void.class, FilteredAction.allwaysOnFilter(), entities -> new OrphanDialog(app_).showDialog())
         ),
-        thumbnails_.getExportImageAction()
+        imagesUiCtrl.getExportImageAction()
       ),
-      app_.getBlobUiCtrl().getEditImageActions(),
-      thumbnails_.getToolbarActions(),
-      new ActionGroup(thumbnails_.getSlideshowAction())
+      imagesUiCtrl.getEditImageActions(),
+      new ActionGroup(imagesUiCtrl.getEditImageTagsAction(), imagesUiCtrl.getAddImagesTagsAction()),
+      new ActionGroup(imagesUiCtrl.getSlideshowAction())
     ), List.of(tagTree_, thumbnails_.getEntityComponent(), selectionTagPanel.getTagTree()))).createToolbar(), new CellConstraints(2, 2));
 
     mainPanel.setPreferredSize(new Dimension(750, 750));
