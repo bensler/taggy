@@ -83,7 +83,11 @@ public class Blob extends AbstractEntity<Blob> {
   }
 
   public void addProperty(String name, String value) {
-    properties_.put(name, value);
+    if (value != null) {
+      properties_.put(name, value);
+    } else {
+      properties_.remove(name);
+    }
   }
 
 }

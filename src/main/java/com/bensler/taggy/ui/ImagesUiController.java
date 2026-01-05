@@ -13,18 +13,13 @@ import static com.bensler.taggy.ui.Icons.SLIDESHOW_48;
 import static com.bensler.taggy.ui.Icons.TAG_SIMPLE_13;
 import static com.bensler.taggy.ui.Icons.X_10;
 
-import java.awt.image.BufferedImage;
-import java.awt.image.BufferedImageOp;
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-
-import org.imgscalr.Scalr;
 
 import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.ActionGroup;
@@ -42,6 +37,8 @@ import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
 
 public class ImagesUiController {
+
+  private static final String TMP_DIR_NAME = "tmp";
 
   private final App app_;
   private final BlobController blobCtrl_;
@@ -81,39 +78,20 @@ public class ImagesUiController {
     );
     editImageActions_ = new ActionGroup(
       new ActionAppearance(new OverlayIcon(IMAGES_48, new Overlay(EDIT_30, SE)), null, null, "Edit Images"),
-      createAction(Icons.ROTATE_R_13, "Rotate Clockwise", Scalr.Rotation.CW_90),
-      createAction(Icons.ROTATE_L_13, "Rotate Counterclockwise", Scalr.Rotation.CW_270),
-      createAction(Icons.FLIP_H_13, "Flip Horizontally", Scalr.Rotation.FLIP_HORZ),
-      createAction(Icons.FLIP_V_13, "Flip Vertically", Scalr.Rotation.FLIP_VERT)
+      createAction(Icons.ROTATE_R_13, "Rotate Clockwise", 1),
+      createAction(Icons.ROTATE_L_13, "Rotate Counterclockwise", -1)
     );
   }
 
-  private UiAction createAction(ImageIcon icon, String menuText, Scalr.Rotation imageChange) {
+  private UiAction createAction(ImageIcon icon, String menuText, int direction) {
     return new UiAction(
       new ActionAppearance(icon, null, menuText, null),
-      FilteredAction.one(Blob.class, blob -> editImage(blob, imageChange))
+      FilteredAction.one(Blob.class, blob -> blobCtrl_.rotateBlob(blob, direction))
     );
   }
 
   public ActionGroup getEditImageActions() {
     return editImageActions_;
-  }
-
-  private void editImage(Blob blob, Scalr.Rotation imageChange) {
-    final BlobController blobCtrl = App.getApp().getBlobCtrl();
-
-    try {
-      final BufferedImage image = blobCtrl.loadRotated(blob);
-      final BufferedImage resultImg = Scalr.rotate(image, imageChange, new BufferedImageOp[0]);
-
-      // TODO
-      // mv functionality to BlobCtrl?
-  //    image.getSha256sum()
-      System.out.println(image + " -> " + imageChange);
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
   }
 
   public UiAction getSlideshowAction() {

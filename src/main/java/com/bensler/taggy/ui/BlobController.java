@@ -3,6 +3,7 @@ package com.bensler.taggy.ui;
 import static com.bensler.taggy.imprt.ImportController.TYPE_BIN_PREFIX;
 import static com.bensler.taggy.imprt.ImportController.TYPE_IMG_PREFIX;
 import static com.bensler.taggy.persist.TagProperty.REPRESENTED_DATE;
+import static org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants.ORIENTATION_VALUE_ROTATE_180;
 import static org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants.ORIENTATION_VALUE_ROTATE_270_CW;
 import static org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants.ORIENTATION_VALUE_ROTATE_90_CW;
 
@@ -33,6 +34,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -63,6 +65,7 @@ public class BlobController {
   public static final String PROPERTY_SIZE_HEIGHT = SIZE_PREFIX + "height";
   public static final String PROPERTY_ORIENTATION = TYPE_IMG_PREFIX + "orientation";
   public static final String PROPERTY_ORIENTATION_VALUE_90_CW  = "rotate90cw";
+  public static final String PROPERTY_ORIENTATION_VALUE_180_CW = "rotate180cw";
   public static final String PROPERTY_ORIENTATION_VALUE_270_CW = "rotate270cw";
   public static final String DATE_PREFIX = TYPE_BIN_PREFIX + "date.";
   public static final String PROPERTY_DATE_EPOCH_SECONDS = DATE_PREFIX + "epochSeconds";
@@ -72,7 +75,12 @@ public class BlobController {
   public enum Orientation {
     ROTATE_000_CW(AffineTransform.getQuadrantRotateInstance(0), null),
     ROTATE_090_CW(AffineTransform.getQuadrantRotateInstance(1), PROPERTY_ORIENTATION_VALUE_90_CW),
+    ROTATE_180_CW(AffineTransform.getQuadrantRotateInstance(2), PROPERTY_ORIENTATION_VALUE_180_CW),
     ROTATE_270_CW(AffineTransform.getQuadrantRotateInstance(3), PROPERTY_ORIENTATION_VALUE_270_CW);
+
+    public final static List<Orientation> ORIENTATIONS = List.of(
+      ROTATE_000_CW, ROTATE_090_CW, ROTATE_180_CW, ROTATE_270_CW
+    );
 
     public final AffineTransform transform_;
     public final Optional<String> metaDataValue_;
@@ -82,18 +90,32 @@ public class BlobController {
       metaDataValue_ = Optional.ofNullable(metaDataValue);
     }
 
-    public void putMetaData(Map<String, String> metaDataSink) {
-      metaDataValue_.ifPresent(value -> metaDataSink.put(PROPERTY_ORIENTATION, value));
+    public void putMetaData(BiConsumer<String, String> putOperation) {
+      putOperation.accept(PROPERTY_ORIENTATION, metaDataValue_.orElse(null));
+    }
+
+    public Orientation turnClockwise() {
+      return getNext(1);
+    }
+
+    private Orientation getNext(int plusOrMinusOne) {
+      return ORIENTATIONS.get((ORIENTATIONS.indexOf(this) + plusOrMinusOne) % ORIENTATIONS.size());
+    }
+
+    public Orientation turnCounterclockwise() {
+      return getNext(-1);
     }
   }
 
   private final static Map<Integer, Orientation> ROTATION_TRANSFORMATIONS = new HashMap<>(Map.of(
     ORIENTATION_VALUE_ROTATE_90_CW,  Orientation.ROTATE_090_CW,
+    ORIENTATION_VALUE_ROTATE_180,    Orientation.ROTATE_180_CW,
     ORIENTATION_VALUE_ROTATE_270_CW, Orientation.ROTATE_270_CW
   ));
 
   private static final Map<String, Orientation> ORIENTATIONS_BY_STR = Map.of(
-    PROPERTY_ORIENTATION_VALUE_90_CW, Orientation.ROTATE_090_CW,
+    PROPERTY_ORIENTATION_VALUE_90_CW,  Orientation.ROTATE_090_CW,
+    PROPERTY_ORIENTATION_VALUE_180_CW, Orientation.ROTATE_180_CW,
     PROPERTY_ORIENTATION_VALUE_270_CW, Orientation.ROTATE_270_CW
   );
 
@@ -147,6 +169,17 @@ public class BlobController {
     final String patternSuffix = IntStream.of(folderPattern).mapToObj(String::valueOf).collect(Collectors.joining("-"));
     blobBasePath_ = new File(blobBasePath, String.join("-", BLOB_FOLDER_BASE_NAME, patternSuffix));
     blobBasePath.mkdirs();
+  }
+
+  /** @param direction change orientation property relativly in respect to {@link Orientation#ORIENTATIONS}. */
+  public void rotateBlob(Blob blob, int direction) {
+    Optional.ofNullable(blob.getProperty(PROPERTY_ORIENTATION))
+    .flatMap(propertyValue -> Optional.ofNullable(ORIENTATIONS_BY_STR.get(propertyValue)))
+    .orElse(Orientation.ROTATE_000_CW)
+    .getNext(direction)
+    .putMetaData(blob::addProperty);
+
+    App.getApp().storeEntity(blob);
   }
 
   /** @return the sourceFiles sha256sum */
@@ -293,7 +326,7 @@ public class BlobController {
     metaDataSink.put(PROPERTY_SIZE_WIDTH,  String.valueOf(srcImg.getWidth()));
     metaDataSink.put(PROPERTY_SIZE_HEIGHT, String.valueOf(srcImg.getHeight()));
     srcMetaData.ifPresent(metaData -> findDate(metaData, metaDataSink));
-    findOrientation(srcMetaData).ifPresent(value -> value.putMetaData(metaDataSink));
+    findOrientation(srcMetaData).ifPresent(value -> value.putMetaData(metaDataSink::put));
     return srcImg;
   }
 
