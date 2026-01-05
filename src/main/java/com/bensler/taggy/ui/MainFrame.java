@@ -96,7 +96,7 @@ public class MainFrame {
         imagesUiCtrl.getExportImageAction()
       ),
       imagesUiCtrl.getEditImageActions(),
-      new ActionGroup(imagesUiCtrl.getEditImageTagsAction(), imagesUiCtrl.getAddImagesTagsAction()),
+      imagesUiCtrl.getTagsActions(),
       new ActionGroup(imagesUiCtrl.getSlideshowAction())
     ), List.of(tagTree_, thumbnails_.getEntityComponent(), selectionTagPanel.getTagTree()))).createToolbar(), new CellConstraints(2, 2));
 

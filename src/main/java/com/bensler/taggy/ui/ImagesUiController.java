@@ -2,11 +2,12 @@ package com.bensler.taggy.ui;
 
 import static com.bensler.decaf.swing.action.FilteredAction.atLeastOneFilter;
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
+import static com.bensler.taggy.ui.Icons.EDIT_13;
 import static com.bensler.taggy.ui.Icons.EDIT_30;
 import static com.bensler.taggy.ui.Icons.EXPORT_FOLDER_13;
 import static com.bensler.taggy.ui.Icons.EXPORT_FOLDER_30;
-import static com.bensler.taggy.ui.Icons.IMAGES_48;
 import static com.bensler.taggy.ui.Icons.IMAGE_13;
+import static com.bensler.taggy.ui.Icons.IMAGE_48;
 import static com.bensler.taggy.ui.Icons.PLUS_10;
 import static com.bensler.taggy.ui.Icons.SLIDESHOW_13;
 import static com.bensler.taggy.ui.Icons.SLIDESHOW_48;
@@ -38,7 +39,7 @@ import com.bensler.taggy.persist.Blob;
 
 public class ImagesUiController {
 
-  private static final String TMP_DIR_NAME = "tmp";
+  private static final OverlayIcon EXPORT_ICON_48 = new OverlayIcon(IMAGE_48, new Overlay(EXPORT_FOLDER_30, SE));
 
   private final App app_;
   private final BlobController blobCtrl_;
@@ -51,6 +52,7 @@ public class ImagesUiController {
   private final UiAction exportImageAction_;
   private final UiAction deleteImageAction_;
   private final ActionGroup editImageActions_;
+  private final ActionGroup tagsActions_;
 
   public ImagesUiController(App app, JComponent dialogParentComp) {
     blobCtrl_ = (app_ = app).getBlobCtrl();
@@ -69,15 +71,24 @@ public class ImagesUiController {
       FilteredAction.many(Blob.class, atLeastOneFilter(), this::addTags)
     );
     exportImageAction_ = new UiAction(
-      new ActionAppearance(EXPORT_FOLDER_13, new OverlayIcon(IMAGES_48, new Overlay(EXPORT_FOLDER_30, SE)), "Export Image", "Export Image to local filesystem"),
+      new ActionAppearance(EXPORT_FOLDER_13, EXPORT_ICON_48, "Export Image", "Export Image to local filesystem"),
+
       FilteredAction.one(Blob.class, this::exportBlobUi)
     );
     deleteImageAction_ = new UiAction(
       new ActionAppearance(new OverlayIcon(IMAGE_13, new Overlay(X_10, SE)), null, "Delete Image(s)", "Remove currently selected Image(s)"),
       FilteredAction.many(Blob.class, atLeastOneFilter(), this::deleteImagesConfirm)
     );
+    tagsActions_ = new ActionGroup(
+      editImageTagsAction_,
+      addImagesTagsAction_
+    );
     editImageActions_ = new ActionGroup(
-      new ActionAppearance(new OverlayIcon(IMAGES_48, new Overlay(EDIT_30, SE)), null, null, "Edit Images"),
+      new ActionAppearance(
+        new OverlayIcon(IMAGE_13, new Overlay(EDIT_13, SE)),
+        new OverlayIcon(IMAGE_48, new Overlay(EDIT_30, SE)),
+        null, "Edit Images"
+      ),
       createAction(Icons.ROTATE_R_13, "Rotate Clockwise", 1),
       createAction(Icons.ROTATE_L_13, "Rotate Counterclockwise", -1)
     );
@@ -90,6 +101,16 @@ public class ImagesUiController {
     );
   }
 
+  public ActionGroup getAllActions() {
+    return new ActionGroup(
+      slideshowAction_,
+      tagsActions_,
+      exportImageAction_,
+      editImageActions_,
+      deleteImageAction_
+    );
+  }
+
   public ActionGroup getEditImageActions() {
     return editImageActions_;
   }
@@ -98,24 +119,12 @@ public class ImagesUiController {
     return slideshowAction_;
   }
 
-  public UiAction getEditImageTagsAction() {
-    return editImageTagsAction_;
-  }
-
-  public UiAction getAddImagesTagsAction() {
-    return addImagesTagsAction_;
+  public ActionGroup getTagsActions() {
+    return tagsActions_;
   }
 
   public UiAction getExportImageAction() {
     return exportImageAction_;
-  }
-
-  public UiAction getDeleteImageAction() {
-    return deleteImageAction_;
-  }
-
-  public ActionGroup getToolbarActions() {
-    return new ActionGroup(editImageTagsAction_, addImagesTagsAction_);
   }
 
   public DelegatingPrefPersister getExportPrefPersister() {
@@ -151,7 +160,7 @@ public class ImagesUiController {
       && (
         !(file = chooser.getSelectedFile()).exists()
         || new ConfirmationDialog(new DialogAppearance(
-          new OverlayIcon(IMAGES_48, new Overlay(EXPORT_FOLDER_30, SE)), "Confirmation: Overwrite File",
+          EXPORT_ICON_48, "Confirmation: Overwrite File",
           "File \"%s\" already exists. Do you really want to overwrite it?".formatted(file.getName())
         )).show(frame)
       )

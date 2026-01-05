@@ -13,7 +13,6 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
-import com.bensler.decaf.swing.action.ActionGroup;
 import com.bensler.decaf.swing.action.FocusedComponentActionController;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefPersister;
@@ -47,15 +46,7 @@ class MainThumbnailPanel extends JPanel {
     };
 
     imgUiCtrl_ = new ImagesUiController(app, thumbs_.getComponent());
-    new FocusedComponentActionController(new ActionGroup(
-      imgUiCtrl_.getSlideshowAction(),
-      new ActionGroup(
-        imgUiCtrl_.getEditImageTagsAction(),
-        imgUiCtrl_.getAddImagesTagsAction()
-      ),
-      imgUiCtrl_.getExportImageAction(),
-      imgUiCtrl_.getDeleteImageAction()
-    ), Set.of(thumbs_)).attachTo(thumbs_, overview -> {}, thumbs_::beforeCtxMenuOpen);
+    new FocusedComponentActionController(imgUiCtrl_.getAllActions(), Set.of(thumbs_)).attachTo(thumbs_, overview -> {}, thumbs_::beforeCtxMenuOpen);
     thumbs_.addSelectionListener((source, selection) -> selectionChanged(selection.size()));
 
     add(thumbs_.getScrollPane(), new CellConstraints(1, 1));
