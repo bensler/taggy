@@ -2,6 +2,7 @@ package com.bensler.taggy.ui;
 
 import static com.bensler.decaf.swing.action.FilteredAction.atLeastOneFilter;
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
+import static com.bensler.taggy.App.getApp;
 import static com.bensler.taggy.ui.Icons.EDIT_13;
 import static com.bensler.taggy.ui.Icons.EDIT_30;
 import static com.bensler.taggy.ui.Icons.EXPORT_FOLDER_13;
@@ -15,6 +16,7 @@ import static com.bensler.taggy.ui.Icons.TAG_SIMPLE_13;
 import static com.bensler.taggy.ui.Icons.X_10;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import javax.swing.ImageIcon;
@@ -41,7 +43,6 @@ public class ImagesUiController {
 
   private static final OverlayIcon EXPORT_ICON_48 = new OverlayIcon(IMAGE_48, new Overlay(EXPORT_FOLDER_30, SE));
 
-  private final App app_;
   private final BlobController blobCtrl_;
   private final JComponent dialogParentComp_;
   private final DelegatingPrefPersister lastExportFolder_;
@@ -55,12 +56,12 @@ public class ImagesUiController {
   private final ActionGroup tagsActions_;
 
   public ImagesUiController(App app, JComponent dialogParentComp) {
-    blobCtrl_ = (app_ = app).getBlobCtrl();
+    blobCtrl_ = app.getBlobCtrl();
     dialogParentComp_ = dialogParentComp;
     lastExportFolder_ = new DelegatingPrefPersister(new PrefKey(MainFrame.PREF_BASE_KEY, "lastExportFolder"));
     slideshowAction_ = new UiAction(
       new ActionAppearance(SLIDESHOW_13, SLIDESHOW_48, "Slide Show", "View Images in full detail"),
-      FilteredAction.many(Blob.class, atLeastOneFilter(), blobs -> app_.getMainFrame().getSlideshowFrame().show(blobs))
+      FilteredAction.many(Blob.class, atLeastOneFilter(), blobs -> app.getMainFrame().getSlideshowFrame().show(blobs))
     );
     editImageTagsAction_ = new UiAction(
       new ActionAppearance(TAG_SIMPLE_13, EditImageTagsDialog.ICON, "Edit Image Tags", "Edit Tags of this Image"),
@@ -97,8 +98,17 @@ public class ImagesUiController {
   private UiAction createAction(ImageIcon icon, String menuText, int direction) {
     return new UiAction(
       new ActionAppearance(icon, null, menuText, null),
-      FilteredAction.one(Blob.class, blob -> blobCtrl_.rotateBlob(blob, direction))
+      FilteredAction.one(Blob.class, blob -> rotateBlob(blob, direction))
     );
+  }
+
+  private void rotateBlob(Blob blob, int direction) {
+    try {
+      blobCtrl_.rotateBlob(blob, direction);
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
   }
 
   public ActionGroup getAllActions() {
@@ -145,10 +155,11 @@ public class ImagesUiController {
   }
 
   private void exportBlobUi(Blob blob) {
-    final PrefsStorage prefs = app_.getMainFrame().getPrefStorage();
-    final JFrame frame = app_.getMainFrameFrame();
+    final App app = getApp();
+    final PrefsStorage prefs = app.getMainFrame().getPrefStorage();
+    final JFrame frame = app.getMainFrameFrame();
     final JFileChooser chooser = new JFileChooser();
-    final BlobController blobCtrl = app_.getBlobCtrl();
+    final BlobController blobCtrl = app.getBlobCtrl();
     File file = new File(
       lastExportFolder_.get(prefs).orElseGet(() -> System.getProperty("user.home")),
       blobCtrl.getTagString(blob)

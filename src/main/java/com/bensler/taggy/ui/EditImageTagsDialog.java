@@ -2,6 +2,7 @@ package com.bensler.taggy.ui;
 
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
 import static com.bensler.decaf.util.prefs.DelegatingPrefPersister.createSplitPanePrefPersister;
+import static com.bensler.taggy.App.getApp;
 import static com.bensler.taggy.ui.Icons.IMAGE_48;
 import static com.bensler.taggy.ui.Icons.TAGS_36;
 import static javax.swing.JSplitPane.HORIZONTAL_SPLIT;
@@ -38,14 +39,12 @@ public class EditImageTagsDialog extends BasicContentPanel<Blob, Set<Tag>> {
   private final ImageComponent imgComp_;
   private final JSplitPane verticalSplitpane_;
   private final JSplitPane horizontalSplitpane_;
-  private final App app_;
 
   public EditImageTagsDialog() {
     super(new DialogAppearance(
       ICON,
       "Edit Image Tags", "Assign Tags to an Image"
     ), new FormLayout("f:p:g", "f:p:g"));
-    app_ = App.getApp();
     allTags_ = new AllTagsTreeFiltered(this::setAssignedTags);
     imgComp_ = new ImageComponent();
     assignedTags_ = new CheckboxTree<>(TagUi.NAME_VIEW, Tag.class);
@@ -65,7 +64,7 @@ public class EditImageTagsDialog extends BasicContentPanel<Blob, Set<Tag>> {
     final PrefKey baseKey = new PrefKey(App.PREFS_APP_ROOT, getClass());
 
     ctx.setPrefs(new PrefPersisterImpl(
-      app_.getPrefs(),
+      getApp().getPrefs(),
       new WindowPrefsPersister(baseKey, ctx_.getDialog()),
       createSplitPanePrefPersister(new PrefKey(baseKey, "verticalSplitpane"), verticalSplitpane_),
       createSplitPanePrefPersister(new PrefKey(baseKey, "horizontalSplitpane"), horizontalSplitpane_)
@@ -82,7 +81,7 @@ public class EditImageTagsDialog extends BasicContentPanel<Blob, Set<Tag>> {
     try {
       final Set<Tag> tags = blob.getTags();
 
-      imgComp_.setImage(app_.getBlobCtrl().loadRotated(blob));
+      imgComp_.setImage(getApp().getBlobCtrl().loadRotated(blob));
       allTags_.makeAllTagsVisible(tags);
       setAssignedTags(tags);
     } catch (Exception e) {

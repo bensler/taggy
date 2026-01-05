@@ -1,5 +1,6 @@
 package com.bensler.taggy.ui;
 
+import static com.bensler.taggy.App.getApp;
 import static com.bensler.taggy.imprt.ImportController.TYPE_BIN_PREFIX;
 import static com.bensler.taggy.imprt.ImportController.TYPE_IMG_PREFIX;
 import static com.bensler.taggy.persist.TagProperty.REPRESENTED_DATE;
@@ -171,15 +172,20 @@ public class BlobController {
     blobBasePath.mkdirs();
   }
 
-  /** @param direction change orientation property relativly in respect to {@link Orientation#ORIENTATIONS}. */
-  public void rotateBlob(Blob blob, int direction) {
-    Optional.ofNullable(blob.getProperty(PROPERTY_ORIENTATION))
+  /** @param direction change orientation property relativly in respect to {@link Orientation#ORIENTATIONS}.
+   */
+  public void rotateBlob(Blob blob, int direction) throws IOException {
+    final Orientation newOrientation = Optional.ofNullable(blob.getProperty(PROPERTY_ORIENTATION))
     .flatMap(propertyValue -> Optional.ofNullable(ORIENTATIONS_BY_STR.get(propertyValue)))
-    .orElse(Orientation.ROTATE_000_CW)
-    .getNext(direction)
-    .putMetaData(blob::addProperty);
+    .orElse(Orientation.ROTATE_000_CW);
 
-    App.getApp().storeEntity(blob);
+    newOrientation.getNext(direction).putMetaData(blob::addProperty);
+
+    final Blob newBlob = getApp().storeEntity(blob);
+    final String oldThumbSha = blob.getThumbnailSha();
+    getApp().getThumbnailer().createThumbnail(loadRotated(newBlob), newOrientation);
+    final String newThumbSha = blob.getThumbnailSha();
+
   }
 
   /** @return the sourceFiles sha256sum */
@@ -191,7 +197,7 @@ public class BlobController {
   }
 
   public void deleteBlob(Blob blob) {
-    final App app = App.getApp();
+    final App app = getApp();
     final DbAccess db = app.getDbAccess();
     final Set<Tag> tags;
     final String blobSha256sum = blob.getSha256sum();
@@ -299,7 +305,7 @@ public class BlobController {
   }
 
   public Blob importFile(File file, String type, Tag initialTag) throws IOException, ImageReadException {
-    final App app = App.getApp();
+    final App app = getApp();
     final Map<String, String> metaData = new HashMap<>();
     final File thumbnail = importFile(file, metaData);
     final String fileSha = storeBlob(file, true);
@@ -331,7 +337,7 @@ public class BlobController {
   }
 
   private File importFile(File srcFile, Map<String, String> metaDataSink) throws IOException, ImageReadException {
-    return App.getApp().getThumbnailer().createThumbnail(
+    return getApp().getThumbnailer().createThumbnail(
       readImageMetadata(srcFile, metaDataSink), findOrientation(metaDataSink.get(PROPERTY_ORIENTATION))
     );
   }
@@ -399,7 +405,7 @@ public class BlobController {
   }
 
   public void setTags(Blob blob, Set<Tag> newTags) {
-    final App app = App.getApp();
+    final App app = getApp();
     final DbAccess db = app.getDbAccess();
     final Set<Tag> oldTags = blob.getTags();
     final List<Tag> affectedTags = Stream.of(oldTags, newTags).flatMap(Set::stream)
@@ -420,7 +426,7 @@ public class BlobController {
   }
 
   public List<Blob> findOrphanBlobs() {
-    final DbAccess dbAccess = App.getApp().getDbAccess();
+    final DbAccess dbAccess = getApp().getDbAccess();
 
     try {
       return dbAccess.resolveAll(dbAccess.getBlobDbMapper().findOrphanBlobs().stream().map(id -> new EntityReference<>(Blob.class, id)).toList(), new ArrayList<Blob>());

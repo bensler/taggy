@@ -2,6 +2,7 @@ package com.bensler.taggy.ui;
 
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
 import static com.bensler.decaf.util.prefs.DelegatingPrefPersister.createSplitPanePrefPersister;
+import static com.bensler.taggy.App.getApp;
 import static com.bensler.taggy.ui.Icons.IMAGES_48;
 import static com.bensler.taggy.ui.Icons.PLUS_20;
 import static com.bensler.taggy.ui.Icons.TAGS_36;
@@ -41,15 +42,13 @@ public class AddImagesTagsDialog extends BasicContentPanel<List<Blob>, Set<Tag>>
   private final ThumbnailOverviewPanel images_;
   private final JSplitPane verticalSplitpane_;
   private final JSplitPane horizontalSplitpane_;
-  private final App app_;
 
   public AddImagesTagsDialog() {
     super(new DialogAppearance(
       ICON,
       "Add Images Tags", "Add Tags to multiple Images"
     ), new FormLayout("f:p:g", "f:p:g"));
-    app_ = App.getApp();
-    images_ = new ThumbnailOverviewPanel(app_, SCROLL_HORIZONTALLY);
+    images_ = new ThumbnailOverviewPanel(SCROLL_HORIZONTALLY);
     assignedTags_ = new CheckboxTree<>(TagUi.NAME_VIEW, Tag.class);
     assignedTags_.setVisibleRowCount(15, 1);
     assignedTags_.addCheckedListener(this::assignedTagsTreeChanged);
@@ -67,7 +66,7 @@ public class AddImagesTagsDialog extends BasicContentPanel<List<Blob>, Set<Tag>>
   protected void contextSet(Context ctx) {
     final PrefKey baseKey = new PrefKey(App.PREFS_APP_ROOT, getClass());
 
-    ctx.setPrefs(new PrefPersisterImpl(app_.getPrefs(),
+    ctx.setPrefs(new PrefPersisterImpl(getApp().getPrefs(),
       new WindowPrefsPersister(baseKey, ctx_.getDialog()),
       createSplitPanePrefPersister(new PrefKey(baseKey, "verticalSplitpane"), verticalSplitpane_),
       createSplitPanePrefPersister(new PrefKey(baseKey, "horizontalSplitpane"), horizontalSplitpane_)

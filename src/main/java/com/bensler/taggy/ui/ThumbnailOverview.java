@@ -27,17 +27,16 @@ import com.bensler.taggy.ui.ThumbnailOverviewPanel.ScrollingPolicy;
 
 public abstract class ThumbnailOverview implements EntityComponent<Blob>, FocusListener, EntityChangeListener<Blob> {
 
-  protected final App app_;
   protected final BlobController blobCtrl_;
   protected final ThumbnailOverviewPanel comp_;
   private final Set<FocusListener> focusListeners_;
 
   public ThumbnailOverview(App app) {
     focusListeners_ = new HashSet<>();
-    blobCtrl_ = (app_ = app).getBlobCtrl();
-    comp_ = new ThumbnailOverviewPanel(app, ScrollingPolicy.SCROLL_VERTICALLY);
+    blobCtrl_ = app.getBlobCtrl();
+    comp_ = new ThumbnailOverviewPanel(ScrollingPolicy.SCROLL_VERTICALLY);
     comp_.setFocusable();
-    app_.addEntityChangeListener(this, Blob.class);
+    app.addEntityChangeListener(this, Blob.class);
     comp_.addFocusListener(this);
   }
 

@@ -1,6 +1,7 @@
 package com.bensler.taggy.ui;
 
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
+import static com.bensler.taggy.App.getApp;
 import static com.bensler.taggy.ui.Icons.IMAGES_48;
 import static com.bensler.taggy.ui.Icons.IMAGE_48;
 import static com.bensler.taggy.ui.Icons.X_30;
@@ -31,18 +32,17 @@ public class DeleteImagesConfirmDialog extends BasicContentPanel<List<Blob>, Lis
   );
 
   private final ThumbnailOverviewPanel thumbs_;
-  private final App app_;
 
   public DeleteImagesConfirmDialog(int imageCount) {
     super((imageCount > 1) ? APPEARANCE_MULTI : APPEARANCE_SINGLE, new FormLayout("f:p:g", "f:p:g"));
-    thumbs_ = new ThumbnailOverviewPanel(app_ = App.getApp(), ScrollingPolicy.SCROLL_VERTICALLY);
+    thumbs_ = new ThumbnailOverviewPanel(ScrollingPolicy.SCROLL_VERTICALLY);
     add(thumbs_.getScrollpane(), new CellConstraints(1, 1));
   }
 
   @Override
   protected void contextSet(Context ctx) {
     ctx.setPrefs(new PrefPersisterImpl(
-      app_.getPrefs(), new WindowPrefsPersister(new PrefKey(App.PREFS_APP_ROOT, getClass()), ctx_.getDialog())
+      getApp().getPrefs(), new WindowPrefsPersister(new PrefKey(App.PREFS_APP_ROOT, getClass()), ctx_.getDialog())
     ));
     ctx_.setCancelButtonText("No");
     ctx_.setOkButtonText("Yes");

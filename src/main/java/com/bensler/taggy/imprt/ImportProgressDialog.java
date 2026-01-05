@@ -42,8 +42,8 @@ class ImportProgressDialog extends JDialog {
   ImportProgressDialog(ImportDialog parent, List<FileToImport> filesToImport, Tag initialTag) {
     super(parent, "Importing Files", true);
     final App app = App.getApp();
-    parent_ = parent;
 
+    parent_ = parent;
     importController_ = app.getImportCtrl();
     initialTag_ = initialTag;
     filesToImport_ = new LinkedList<>(filesToImport);
@@ -53,7 +53,7 @@ class ImportProgressDialog extends JDialog {
       "3dlu, f:p:g, 3dlu",
       "3dlu, f:p:g, 3dlu, p, 3dlu, p, 3dlu"
     ));
-    thumbs_ = new ThumbnailOverviewPanel(app, SCROLL_HORIZONTALLY);
+    thumbs_ = new ThumbnailOverviewPanel(SCROLL_HORIZONTALLY);
     thumbs_.setPreferredScrollableViewportSize(1, 3);
     mainPanel.add(thumbs_.getScrollpane(), new CellConstraints(2, 2));
     fileToProcessCount_ = filesToImport_.size();

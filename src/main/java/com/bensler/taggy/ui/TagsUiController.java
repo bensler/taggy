@@ -2,6 +2,7 @@ package com.bensler.taggy.ui;
 
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
 import static com.bensler.decaf.util.function.ForEachMapperAdapter.forEachMapper;
+import static com.bensler.taggy.App.getApp;
 import static com.bensler.taggy.persist.TagProperty.REPRESENTED_DATE;
 import static com.bensler.taggy.ui.Icons.EDIT_13;
 import static com.bensler.taggy.ui.Icons.PLUS_10;
@@ -49,7 +50,6 @@ public class TagsUiController {
   public static final DateTimeFormatter UI_WEEK_DAY_FORMATTER = DateTimeFormatter.ofPattern("d (E)");
   public static final String VALUE_DATE_ROOT = "dateRoot";
 
-  private final App app_;
   private final Hierarchy<Tag> allTags_;
   private final Map<String, Tag> dateTags_;
 
@@ -59,9 +59,8 @@ public class TagsUiController {
   private final UiAction deleteTagAction_;
 
   public TagsUiController(App app) {
-    app_ = app;
     allTags_ = new Hierarchy<>();
-    dateTags_ = app_.getDbAccess().loadAll(Tag.class).stream()
+    dateTags_ = app.getDbAccess().loadAll(Tag.class).stream()
       .map(forEachMapper(allTags_::add))
       .map(tag -> new Pair<>(tag.getProperty(REPRESENTED_DATE), tag))
       .filter(pair -> (pair.getLeft() != null))
@@ -145,27 +144,30 @@ public class TagsUiController {
 
   private void deleteTag(Tag tag) {
     final Set<Blob> blobs;
-    final DbAccess db = app_.getDbAccess();
+    final App app = getApp();
+    final DbAccess db = app.getDbAccess();
 
     db.runInTxn(() -> db.deleteNoTxn(tag));
     blobs = db.refreshAll(tag.getBlobs());
-    app_.entityRemoved(tag);
-    app_.entitiesChanged(blobs);
+    app.entityRemoved(tag);
+    app.entitiesChanged(blobs);
     allTags_.removeNode(tag);
     removeFromDateTags(tag);
   }
 
   private Tag persistNewTag(Tag newTag) {
-    final Tag createdTag = app_.getDbAccess().storeObject(newTag);
+    final App app = getApp();
+    final Tag createdTag = app.getDbAccess().storeObject(newTag);
 
     allTags_.add(createdTag);
-    app_.entityCreated(createdTag);
+    app.entityCreated(createdTag);
     addToDateTags(createdTag);
     return createdTag;
   }
 
   private Tag updateTag(TagHeadData tagHeadData) {
-    final DbAccess db = app_.getDbAccess();
+    final App app = getApp();
+    final DbAccess db = app.getDbAccess();
     final Tag editedTag;
     final Tag oldTag = db.resolve(tagHeadData.subject_);
 
@@ -174,7 +176,7 @@ public class TagsUiController {
     allTags_.add(editedTag);
     removeFromDateTags(oldTag);
     addToDateTags(editedTag);
-    app_.entityChanged(editedTag);
+    app.entityChanged(editedTag);
     return editedTag;
   }
 
@@ -191,19 +193,19 @@ public class TagsUiController {
   }
 
   private void createTagUi(Optional<Tag> parentTag) {
-    new OkCancelDialog<>(app_.getMainFrameFrame(), new TagDialog.Create(getAllTags())).show(
+    new OkCancelDialog<>(getApp().getMainFrameFrame(), new TagDialog.Create(getAllTags())).show(
       parentTag, this::persistNewTag
     );
   }
 
   private void createTimelineUi() {
-    new OkCancelDialog<>(app_.getMainFrameFrame(), new CreateTimelineTagDialog(this)).show(
+    new OkCancelDialog<>(getApp().getMainFrameFrame(), new CreateTimelineTagDialog(this)).show(
       null, this::persistNewTag
     );
   }
 
   private void editTagUi(Tag tag) {
-    new OkCancelDialog<>(app_.getMainFrameFrame(), new TagDialog.Edit(getAllTags())).show(
+    new OkCancelDialog<>(getApp().getMainFrameFrame(), new TagDialog.Edit(getAllTags())).show(
       tag, this::updateTag
     );
   }
@@ -214,7 +216,7 @@ public class TagsUiController {
       "Do you really want to delete Tag \"%s\" under \"%s\"?".formatted(
         tag.getName(), Optional.ofNullable(tag.getParent()).map(Tag::getName).orElse("Root")
       )
-    )).show(app_.getMainFrameFrame())) {
+    )).show(getApp().getMainFrameFrame())) {
       deleteTag(tag);
     }
   }

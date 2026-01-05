@@ -2,6 +2,7 @@ package com.bensler.taggy.imprt;
 
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
 import static com.bensler.decaf.util.function.ForEachMapperAdapter.forEachMapper;
+import static com.bensler.taggy.App.getApp;
 import static com.bensler.taggy.ui.Icons.IMAGES_48;
 import static com.bensler.taggy.ui.Icons.PLUS_30;
 
@@ -27,7 +28,6 @@ import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
 import com.bensler.decaf.util.prefs.DelegatingPrefPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefPersister;
-import com.bensler.taggy.App;
 import com.bensler.taggy.imprt.FileToImport.ImportObstacle;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.Tag;
@@ -56,13 +56,11 @@ public class ImportController {
     null, ICON_LARGE, null, "Scan for new Images to import."
   );
 
-  private final App app_;
   private final UiAction actionImport_;
   private final Map<File, String> fileShaMap_;
   private File importDir_;
 
-  public ImportController(App app, File dataDir) {
-    app_ = app;
+  public ImportController(File dataDir) {
     importDir_ = new File(dataDir, IMPORT_DIR);
     importDir_.mkdirs();
     actionImport_ = new UiAction(
@@ -76,7 +74,7 @@ public class ImportController {
   }
 
   private void showImportDialog() {
-    new ImportDialog(app_).setVisible(true);
+    new ImportDialog(getApp()).setVisible(true);
   }
 
   File getImportDir() {
@@ -131,7 +129,7 @@ public class ImportController {
     final String type = file.getType();
 
     try {
-      final Blob blob = app_.getBlobCtrl().importFile(file.getFile(), type, initialTag);
+      final Blob blob = getApp().getBlobCtrl().importFile(file.getFile(), type, initialTag);
 
       return new FileToImport(file, blob.getSha256sum(), ImportObstacle.DUPLICATE, "just imported", type, blob);
     } catch (IOException | ImageReadException e) {

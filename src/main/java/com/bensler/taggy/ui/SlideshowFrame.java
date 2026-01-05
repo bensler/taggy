@@ -37,7 +37,7 @@ public class SlideshowFrame extends JFrame {
 
     setIconImages(List.of(SLIDESHOW_48.getImage()));
     imageComponent_ = new ImageComponent();
-    thumbs_ = new ThumbnailOverviewPanel(app, ScrollingPolicy.SCROLL_HORIZONTALLY);
+    thumbs_ = new ThumbnailOverviewPanel(ScrollingPolicy.SCROLL_HORIZONTALLY);
     thumbs_.setFocusable();
     thumbs_.addSelectionListener((source, selection) -> setBlob(thumbs_.getSingleSelection()));
     final JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true, imageComponent_, thumbs_.getScrollpane());

@@ -1,5 +1,6 @@
 package com.bensler.taggy.ui;
 
+import static com.bensler.taggy.App.getApp;
 import static com.bensler.taggy.imprt.Thumbnailer.THUMBNAIL_SIZE;
 import static java.awt.BasicStroke.CAP_BUTT;
 import static java.awt.BasicStroke.JOIN_BEVEL;
@@ -45,7 +46,6 @@ import com.bensler.decaf.swing.awt.ColorHelper;
 import com.bensler.decaf.swing.selection.EntitySelectionListener;
 import com.bensler.decaf.swing.view.SimplePropertyGetter;
 import com.bensler.decaf.util.entity.EntityReference;
-import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
 
 public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
@@ -118,8 +118,6 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
   private final Color backgroundSelectionColor_;
   private final Color backgroundSelectionColorUnfocused_;
 
-  private final App app_;
-  private final BlobController blobCtrl_;
   private final List<Blob> blobs_;
   private final Map<Blob, ImageIcon> images_;
   private Dimension gridOffsetPx;
@@ -130,9 +128,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
   private final Set<EntitySelectionListener<Blob>> selectionListeners_;
   private Dimension prefViewPortSize_;
 
-  public ThumbnailOverviewPanel(App app, ScrollingPolicy scrollingPolicy) {
-    app_ = app;
-    blobCtrl_ = app_.getBlobCtrl();
+  public ThumbnailOverviewPanel(ScrollingPolicy scrollingPolicy) {
     blobs_ = new ArrayList<>();
     images_ = new HashMap<>();
     selection_ = new ArrayList<>();
@@ -151,7 +147,6 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     );
     scrollPane_.getViewport().setBackground(getBackground());
     setPreferredScrollableViewportSize(1, 3);
-
   }
 
   public void scrollToEnd() {
@@ -261,7 +256,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
   /** @return if it was already contained before */
   private boolean addImageInternally(Blob blob) {
     try {
-      images_.put(blob, new ImageIcon(ImageIO.read(blobCtrl_.getFile(blob.getThumbnailSha()))));
+      images_.put(blob, new ImageIcon(ImageIO.read(getApp().getBlobCtrl().getFile(blob.getThumbnailSha()))));
     } catch (IOException e) {
       // TODO display error thumb
       e.printStackTrace();

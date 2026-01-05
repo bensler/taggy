@@ -79,7 +79,7 @@ public class App {
     prefs_ = new PrefsStorage(new File(getBaseDir(), "prefs.xml"));
     blobCtrl_ = new BlobController(dataDir, FOLDER_PATTERN);
     tagCtrl_ = new TagsUiController(this);
-    importCtrl_ = new ImportController(this, getBaseDir());
+    importCtrl_ = new ImportController(getBaseDir());
     thumbnailer_ = new Thumbnailer(dataDir);
     resizeThread_ = new ResizeThread();
     mainFrame_ = new MainFrame(this);

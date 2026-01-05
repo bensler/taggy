@@ -2,6 +2,7 @@ package com.bensler.taggy.ui;
 
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
 import static com.bensler.decaf.util.prefs.DelegatingPrefPersister.createSplitPanePrefPersister;
+import static com.bensler.taggy.App.getApp;
 import static com.bensler.taggy.ui.Icons.IMAGE_48;
 import static com.bensler.taggy.ui.Icons.TAGS_36;
 import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
@@ -44,7 +45,6 @@ public class MainFrame {
 
   public static final PrefKey PREF_BASE_KEY = new PrefKey(App.PREFS_APP_ROOT, MainFrame.class);
 
-  private final App app_;
   private final JFrame frame_;
   private final PrefPersisterImpl prefs_;
   private final EntityTree<Tag> tagTree_;
@@ -57,8 +57,7 @@ public class MainFrame {
   private SlideshowFrame slideshowFrame_;
 
   public MainFrame(App app) {
-    app_ = app;
-    tagCtrl_ = app_.getTagCtrl();
+    tagCtrl_ = app.getTagCtrl();
     frame_ = new JFrame("Taggy");
     frame_.setIconImages(List.of(createImage()));
     final JPanel mainPanel = new JPanel(new FormLayout(
@@ -67,13 +66,13 @@ public class MainFrame {
     ));
 
     final SelectedBlobsDetailPanel selectionTagPanel = new SelectedBlobsDetailPanel(this);
-    (thumbnails_ = new MainThumbnailPanel(app_)).addSelectionListener(selectionTagPanel::setData);
+    (thumbnails_ = new MainThumbnailPanel(app)).addSelectionListener(selectionTagPanel::setData);
     final ImagesUiController imagesUiCtrl = thumbnails_.getImagesUiCtrl();
     tagTree_ = new EntityTree<>(TagUi.NAME_VIEW, Tag.class);
     tagTree_.setVisibleRowCount(20, .5f);
     tagTree_.addSelectionListener((source, selection) -> displayThumbnailsOfSelectedTag(selection));
     tagTree_.setCtxActions(new FocusedComponentActionController(tagCtrl_.getAllTagActions(), Set.of(tagTree_)));
-    app_.addEntityChangeListener(treeAdapter_ = new EntityChangeListenerTreeAdapter<>(tagTree_), Tag.class);
+    app.addEntityChangeListener(treeAdapter_ = new EntityChangeListenerTreeAdapter<>(tagTree_), Tag.class);
     frame_.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     tagCtrl_.setAllTags(tagTree_);
     final JSplitPane leftSplitpane = new JSplitPane(HORIZONTAL_SPLIT, true,
@@ -88,10 +87,10 @@ public class MainFrame {
     mainPanel.add((actionCtrl_ = new FocusedComponentActionController(new ActionGroup(
       new ActionGroup(tagCtrl_.getNewTagAction(), tagCtrl_.getEditTagAction()),
       new ActionGroup(
-        app_.getImportCtrl().getImportAction(),
+        app.getImportCtrl().getImportAction(),
         new UiAction(
           new ActionAppearance(OrphanDialog.ICON, null, null, "Show Images without any Tags assigned"),
-          FilteredAction.many(Void.class, FilteredAction.allwaysOnFilter(), entities -> new OrphanDialog(app_).showDialog())
+          FilteredAction.many(Void.class, FilteredAction.allwaysOnFilter(), entities -> new OrphanDialog(app).showDialog())
         ),
         imagesUiCtrl.getExportImageAction()
       ),
@@ -104,7 +103,7 @@ public class MainFrame {
     frame_.setContentPane(mainPanel);
     frame_.pack();
     new WindowClosingTrigger(frame_, evt -> frameClosing());
-    prefs_ = new PrefPersisterImpl(app_.getPrefs(), Stream.concat(
+    prefs_ = new PrefPersisterImpl(app.getPrefs(), Stream.concat(
       thumbnails_.getPrefPersisters().stream(),
       Stream.of(
         new WindowPrefsPersister(PREF_BASE_KEY, frame_),
@@ -130,13 +129,15 @@ public class MainFrame {
   }
 
   private void frameClosing() {
+    final App app = getApp();
+
     if (slideshowFrame_ != null) {
       slideshowFrame_.close();
     }
-    app_.getResizeThread().terminate();
+    app.getResizeThread().terminate();
     prefs_.store();
     try {
-      app_.getPrefs().store();
+      app.getPrefs().store();
     } catch (Exception e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
@@ -161,7 +162,7 @@ public class MainFrame {
 
   public SlideshowFrame getSlideshowFrame() {
     if (slideshowFrame_ == null) {
-      slideshowFrame_ = new SlideshowFrame(app_);
+      slideshowFrame_ = new SlideshowFrame(getApp());
     }
     return slideshowFrame_;
   }
