@@ -41,6 +41,10 @@ public class Blob extends AbstractEntity<Blob> {
     return type_;
   }
 
+  public Set<EntityReference<Tag>> getTagRefs() {
+    return Set.copyOf(tags_);
+  }
+
   public Set<Tag> getTags() {
     return DbAccess.INSTANCE.get().resolveAll(tags_, new HashSet<>());
   }
@@ -88,6 +92,10 @@ public class Blob extends AbstractEntity<Blob> {
     } else {
       properties_.remove(name);
     }
+  }
+
+  public Map<String, String> getMetaData() {
+    return Map.copyOf(properties_);
   }
 
 }

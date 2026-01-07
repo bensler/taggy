@@ -175,17 +175,18 @@ public class BlobController {
   /** @param direction change orientation property relativly in respect to {@link Orientation#ORIENTATIONS}.
    */
   public void rotateBlob(Blob blob, int direction) throws IOException {
-    final Orientation newOrientation = Optional.ofNullable(blob.getProperty(PROPERTY_ORIENTATION))
+    Optional.ofNullable(blob.getProperty(PROPERTY_ORIENTATION))
     .flatMap(propertyValue -> Optional.ofNullable(ORIENTATIONS_BY_STR.get(propertyValue)))
-    .orElse(Orientation.ROTATE_000_CW);
+    .orElse(Orientation.ROTATE_000_CW)
+    .getNext(direction).putMetaData(blob::addProperty);
 
-    newOrientation.getNext(direction).putMetaData(blob::addProperty);
-
-    final Blob newBlob = getApp().storeEntity(blob);
     final String oldThumbSha = blob.getThumbnailSha();
-    getApp().getThumbnailer().createThumbnail(loadRotated(newBlob), newOrientation);
-    final String newThumbSha = blob.getThumbnailSha();
+    final String newThumbSha = storeBlob(getApp().getThumbnailer().createThumbnail(loadRotated(blob), Orientation.ROTATE_000_CW), false);
 
+    getApp().storeEntity(new Blob(
+      blob.getId(), blob.getSha256sum(), newThumbSha, blob.getType(), blob.getMetaData(), blob.getTagRefs()
+    ));
+    getFile(oldThumbSha).delete();
   }
 
   /** @return the sourceFiles sha256sum */
@@ -285,7 +286,7 @@ public class BlobController {
 
   public BufferedImage loadRotated(Blob blob) throws IOException {
     return rotate(
-      ImageIO.read( getFile(blob.getSha256sum())),
+      ImageIO.read(getFile(blob.getSha256sum())),
       findOrientation(blob.getProperty(PROPERTY_ORIENTATION)),
       (transform, srcImg) -> transform.createCompatibleDestImage(srcImg, null)
     );
