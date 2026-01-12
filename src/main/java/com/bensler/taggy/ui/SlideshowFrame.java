@@ -72,6 +72,8 @@ public class SlideshowFrame extends JFrame {
           e.printStackTrace();
         }
       }, "Taggy.Slideshow.ImageLoader").start();
+    } else {
+      imageComponent_.setImage(ImageComponent.EMPTY_IMAGE);
     }
   }
 
@@ -88,7 +90,9 @@ public class SlideshowFrame extends JFrame {
   public void show(List<Blob> blobs) {
     setVisible(true);
     thumbs_.setData(blobs);
-    setBlob(blobs.get(0));
+    if (!blobs.isEmpty()) {
+      thumbs_.select(blobs.getFirst());
+    }
   }
 
 }

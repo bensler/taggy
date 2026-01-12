@@ -1,7 +1,9 @@
 package com.bensler.taggy.ui;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.MouseWheelEvent;
@@ -19,6 +21,22 @@ import com.bensler.taggy.App;
 
 public class ImageComponent extends JComponent {
 
+  private static final BufferedImage createEmptyImage() {
+    final BufferedImage emptyImg = new BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB);
+    final Graphics2D g2d = emptyImg.createGraphics();
+
+    try { // transparent black --vvvvvv
+      g2d.setColor(new Color(0, 0, 0, 0));
+      g2d.fillRect(0,  0, 100, 100);
+    } finally {
+      g2d.dispose();
+    }
+    return emptyImg;
+  }
+
+  /** 100x100 transparent black */
+  static final BufferedImage EMPTY_IMAGE = createEmptyImage();
+
   private ResizeThread resizeThread_;
   private BufferedImage img_;
   private Image drawImg_;
@@ -29,7 +47,7 @@ public class ImageComponent extends JComponent {
   private double zoomFactor_;
 
   public ImageComponent() {
-    setImage(new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB));
+    setImage(EMPTY_IMAGE);
     addMouseWheelListener(this::mouseWheelWheeled);
     new MouseDragCtrl(this, this::mouseDragging, this::mouseDragged);
     resizeThread_ = App.getApp().getResizeThread();
@@ -128,7 +146,7 @@ public class ImageComponent extends JComponent {
     final int newWidth = (int)Math.round(img_.getWidth()  * zoomFactor);
     final int newHeight = (int)Math.round(img_.getHeight() * zoomFactor);
 
-    drawImg_= Scalr.resize(img_, Method.SPEED, Mode.FIT_EXACT, newWidth, newHeight, new BufferedImageOp[0]);
+    drawImg_ = Scalr.resize(img_, Method.SPEED, Mode.FIT_EXACT, newWidth, newHeight, new BufferedImageOp[0]);
     resizeThread_.enqueue(this, img_, drawImgSize_ = new Dimension(newWidth, newHeight));
     zoomFactor_ = zoomFactor;
   }

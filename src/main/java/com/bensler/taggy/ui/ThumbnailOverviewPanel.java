@@ -23,6 +23,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -255,11 +256,13 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
 
   /** @return if it was already contained before */
   private boolean addImageInternally(Blob blob) {
+    final File file = getApp().getBlobCtrl().getFile(blob.getThumbnailSha());
+
     try {
-      images_.put(blob, new ImageIcon(ImageIO.read(getApp().getBlobCtrl().getFile(blob.getThumbnailSha()))));
-    } catch (IOException e) {
-      // TODO display error thumb
-      e.printStackTrace();
+      images_.put(blob, new ImageIcon(ImageIO.read(file)));
+    } catch (IOException ioe) {
+      // TODO
+      new Exception("trouble reading thumb file %s".formatted(file), ioe).printStackTrace();
     }
 
     final int oldIndex = blobs_.indexOf(blob);
