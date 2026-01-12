@@ -2,6 +2,8 @@ package com.bensler.taggy.ui;
 
 import static com.bensler.decaf.util.prefs.DelegatingPrefPersister.createSplitPanePrefPersister;
 import static com.bensler.taggy.ui.Icons.SLIDESHOW_48;
+import static com.bensler.taggy.ui.ThumbnailEntityListenerAdapter.Operation.ADD_OR_UPDATE;
+import static com.bensler.taggy.ui.ThumbnailEntityListenerAdapter.Operation.REMOVE;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -25,6 +27,7 @@ public class SlideshowFrame extends JFrame {
 
   private final ImageComponent imageComponent_;
   private final ThumbnailOverviewPanel thumbs_;
+  private final ThumbnailEntityListenerAdapter blobChangeListener_; // prevent GC from eating it
   private final PrefPersisterImpl prefs_;
 
   public SlideshowFrame(App app) {
@@ -40,6 +43,11 @@ public class SlideshowFrame extends JFrame {
     thumbs_ = new ThumbnailOverviewPanel(ScrollingPolicy.SCROLL_HORIZONTALLY);
     thumbs_.setFocusable();
     thumbs_.addSelectionListener((source, selection) -> setBlob(thumbs_.getSingleSelection()));
+    blobChangeListener_ = new ThumbnailEntityListenerAdapter(
+      app, thumbs_,
+      blob -> thumbs_.contains(blob).isPresent() ? ADD_OR_UPDATE : REMOVE
+    );
+
     final JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true, imageComponent_, thumbs_.getScrollpane());
     splitPane.setResizeWeight(1);
     mainPanel.add(splitPane, new CellConstraints(2, 2));

@@ -183,10 +183,10 @@ public class BlobController {
     final String oldThumbSha = blob.getThumbnailSha();
     final String newThumbSha = storeBlob(getApp().getThumbnailer().createThumbnail(loadRotated(blob), Orientation.ROTATE_000_CW), false);
 
+    getFile(oldThumbSha).delete();
     getApp().storeEntity(new Blob(
       blob.getId(), blob.getSha256sum(), newThumbSha, blob.getType(), blob.getMetaData(), blob.getTagRefs()
     ));
-    getFile(oldThumbSha).delete();
   }
 
   /** @return the sourceFiles sha256sum */

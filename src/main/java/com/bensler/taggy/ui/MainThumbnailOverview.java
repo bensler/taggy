@@ -1,6 +1,8 @@
 package com.bensler.taggy.ui;
 
 import static com.bensler.taggy.ui.MainFrame.PREF_BASE_KEY;
+import static com.bensler.taggy.ui.ThumbnailEntityListenerAdapter.Operation.ADD_OR_UPDATE;
+import static com.bensler.taggy.ui.ThumbnailEntityListenerAdapter.Operation.REMOVE;
 
 import java.util.Collection;
 import java.util.List;
@@ -25,6 +27,7 @@ import com.jgoodies.forms.layout.FormLayout;
 class MainThumbnailPanel extends JPanel {
 
   private final ThumbnailOverview thumbs_;
+  private final ThumbnailEntityListenerAdapter blobChangeListener_; // prevent GC from eating it
   private final JLabel statusLabel_;
   private final ImagesUiController imgUiCtrl_;
   private Optional<Tag> currentTag_;
@@ -32,19 +35,13 @@ class MainThumbnailPanel extends JPanel {
 
   MainThumbnailPanel(App app) {
     super(new FormLayout("f:p:g", "f:p:g, 3dlu, f:p"));
-    thumbs_ = new ThumbnailOverview(app) {
-      @Override
-      protected void blobChanged(Blob blob) {
-        currentTag_.ifPresent(tag -> {
-          if (blob.containsTag(tag)) {
-            addImage(blob);
-          } else {
-            removeImage(blob);
-          }
-        });
-      }
-    };
+    currentTag_ = Optional.empty();
+    thumbs_ = new ThumbnailOverview(app.getBlobCtrl());
 
+    blobChangeListener_ = new ThumbnailEntityListenerAdapter(
+      app, thumbs_.getComponent(),
+      blob -> currentTag_.isPresent() && blob.containsTag(currentTag_.get()) ? ADD_OR_UPDATE : REMOVE
+    );
     imgUiCtrl_ = new ImagesUiController(app, thumbs_.getComponent());
     new FocusedComponentActionController(imgUiCtrl_.getAllActions(), Set.of(thumbs_)).attachTo(thumbs_, overview -> {}, thumbs_::beforeCtxMenuOpen);
     thumbs_.addSelectionListener((source, selection) -> selectionChanged(selection.size()));

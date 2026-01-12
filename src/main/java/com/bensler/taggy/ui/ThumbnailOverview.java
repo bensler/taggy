@@ -20,23 +20,20 @@ import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.decaf.util.prefs.DelegatingPrefPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefsStorage;
-import com.bensler.taggy.App;
-import com.bensler.taggy.EntityChangeListener;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.ui.ThumbnailOverviewPanel.ScrollingPolicy;
 
-public abstract class ThumbnailOverview implements EntityComponent<Blob>, FocusListener, EntityChangeListener<Blob> {
+public class ThumbnailOverview implements EntityComponent<Blob>, FocusListener {
 
   protected final BlobController blobCtrl_;
   protected final ThumbnailOverviewPanel comp_;
   private final Set<FocusListener> focusListeners_;
 
-  public ThumbnailOverview(App app) {
+  public ThumbnailOverview(BlobController blobCtrl) {
     focusListeners_ = new HashSet<>();
-    blobCtrl_ = app.getBlobCtrl();
+    blobCtrl_ = blobCtrl;
     comp_ = new ThumbnailOverviewPanel(ScrollingPolicy.SCROLL_VERTICALLY);
     comp_.setFocusable();
-    app.addEntityChangeListener(this, Blob.class);
     comp_.addFocusListener(this);
   }
 
@@ -110,34 +107,9 @@ public abstract class ThumbnailOverview implements EntityComponent<Blob>, FocusL
     comp_.clear();
   }
 
-  public void addImage(Blob blob) {
-    comp_.addImage(blob);
-  }
-
-  public void removeImage(Blob blob) {
-    comp_.removeImage(blob);
-  }
-
   @Override
   public void addFocusListener(FocusListener listener) {
     focusListeners_.add(Objects.requireNonNull(listener));
-  }
-
-  @Override
-  public void entityCreated(Blob blob) {
-    blobChanged(blob);
-  }
-
-  @Override
-  public void entityChanged(Blob blob) {
-    blobChanged(blob);
-  }
-
-  protected abstract void blobChanged(Blob blob);
-
-  @Override
-  public void entityRemoved(Blob entity) {
-    contains(entity).ifPresent(this::removeImage);
   }
 
   private void trySelect(List<EntityReference<Blob>> blobRefs) {
