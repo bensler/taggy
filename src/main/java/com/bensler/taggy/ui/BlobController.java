@@ -100,7 +100,9 @@ public class BlobController {
     }
 
     private Orientation getNext(int plusOrMinusOne) {
-      return ORIENTATIONS.get((ORIENTATIONS.indexOf(this) + plusOrMinusOne) % ORIENTATIONS.size());
+      final int size = ORIENTATIONS.size();
+
+      return ORIENTATIONS.get((ORIENTATIONS.indexOf(this) + plusOrMinusOne + size) % size);
     }
 
     public Orientation turnCounterclockwise() {
