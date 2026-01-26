@@ -55,7 +55,7 @@ class ImportProgressDialog extends JDialog {
     ));
     thumbs_ = new ThumbnailOverviewPanel(SCROLL_HORIZONTALLY);
     thumbs_.setPreferredScrollableViewportSize(1, 3);
-    mainPanel.add(thumbs_.getScrollpane(), new CellConstraints(2, 2));
+    mainPanel.add(thumbs_.getScrollPane(), new CellConstraints(2, 2));
     fileToProcessCount_ = filesToImport_.size();
     progress_ = new JProgressBar(0, fileToProcessCount_) {
       @Override

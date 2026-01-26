@@ -29,10 +29,10 @@ public class ThumbnailOverview implements EntityComponent<Blob>, FocusListener {
   protected final ThumbnailOverviewPanel comp_;
   private final Set<FocusListener> focusListeners_;
 
-  public ThumbnailOverview(BlobController blobCtrl) {
+  public ThumbnailOverview(ScrollingPolicy scrollingPolicy, BlobController blobCtrl) {
     focusListeners_ = new HashSet<>();
     blobCtrl_ = blobCtrl;
-    comp_ = new ThumbnailOverviewPanel(ScrollingPolicy.SCROLL_VERTICALLY);
+    comp_ = new ThumbnailOverviewPanel(scrollingPolicy);
     comp_.setFocusable();
     comp_.addFocusListener(this);
   }
@@ -91,7 +91,7 @@ public class ThumbnailOverview implements EntityComponent<Blob>, FocusListener {
 
   @Override
   public JScrollPane getScrollPane() {
-    return comp_.getScrollpane();
+    return comp_.getScrollPane();
   }
 
   @Override

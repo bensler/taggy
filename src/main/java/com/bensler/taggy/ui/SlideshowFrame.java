@@ -8,12 +8,14 @@ import static com.bensler.taggy.ui.ThumbnailEntityListenerAdapter.Operation.REMO
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
 
+import com.bensler.decaf.swing.action.FocusedComponentActionController;
 import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefPersisterImpl;
@@ -26,7 +28,7 @@ import com.jgoodies.forms.layout.FormLayout;
 public class SlideshowFrame extends JFrame {
 
   private final ImageComponent imageComponent_;
-  private final ThumbnailOverviewPanel thumbs_;
+  private final ThumbnailOverview thumbs_;
   private final ThumbnailEntityListenerAdapter blobChangeListener_; // prevent GC from eating it
   private final PrefPersisterImpl prefs_;
 
@@ -40,15 +42,15 @@ public class SlideshowFrame extends JFrame {
 
     setIconImages(List.of(SLIDESHOW_48.getImage()));
     imageComponent_ = new ImageComponent();
-    thumbs_ = new ThumbnailOverviewPanel(ScrollingPolicy.SCROLL_HORIZONTALLY);
-    thumbs_.setFocusable();
+    thumbs_ = new ThumbnailOverview(ScrollingPolicy.SCROLL_HORIZONTALLY, app.getBlobCtrl());
     thumbs_.addSelectionListener((source, selection) -> setBlob(thumbs_.getSingleSelection()));
     blobChangeListener_ = new ThumbnailEntityListenerAdapter(
-      app, thumbs_,
+      app, thumbs_.getComponent(),
       blob -> thumbs_.contains(blob).isPresent() ? ADD_OR_UPDATE : REMOVE
     );
+    new FocusedComponentActionController(new ImagesUiController(app, thumbs_.getComponent()).getAllActions(), Set.of(thumbs_)).attachTo(thumbs_, overview -> {}, thumbs_::beforeCtxMenuOpen);
 
-    final JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true, imageComponent_, thumbs_.getScrollpane());
+    final JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true, imageComponent_, thumbs_.getScrollPane());
     splitPane.setResizeWeight(1);
     mainPanel.add(splitPane, new CellConstraints(2, 2));
     setContentPane(mainPanel);

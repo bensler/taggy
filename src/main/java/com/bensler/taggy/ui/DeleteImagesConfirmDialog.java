@@ -36,7 +36,7 @@ public class DeleteImagesConfirmDialog extends BasicContentPanel<List<Blob>, Lis
   public DeleteImagesConfirmDialog(int imageCount) {
     super((imageCount > 1) ? APPEARANCE_MULTI : APPEARANCE_SINGLE, new FormLayout("f:p:g", "f:p:g"));
     thumbs_ = new ThumbnailOverviewPanel(ScrollingPolicy.SCROLL_VERTICALLY);
-    add(thumbs_.getScrollpane(), new CellConstraints(1, 1));
+    add(thumbs_.getScrollPane(), new CellConstraints(1, 1));
   }
 
   @Override

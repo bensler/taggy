@@ -21,6 +21,7 @@ import com.bensler.decaf.util.prefs.PrefPersister;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.Tag;
+import com.bensler.taggy.ui.ThumbnailOverviewPanel.ScrollingPolicy;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
@@ -36,7 +37,7 @@ class MainThumbnailPanel extends JPanel {
   MainThumbnailPanel(App app) {
     super(new FormLayout("f:p:g", "f:p:g, 3dlu, f:p"));
     currentTag_ = Optional.empty();
-    thumbs_ = new ThumbnailOverview(app.getBlobCtrl());
+    thumbs_ = new ThumbnailOverview(ScrollingPolicy.SCROLL_VERTICALLY, app.getBlobCtrl());
 
     blobChangeListener_ = new ThumbnailEntityListenerAdapter(
       app, thumbs_.getComponent(),

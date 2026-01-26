@@ -22,6 +22,7 @@ import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.taggy.App;
+import com.bensler.taggy.ui.ThumbnailOverviewPanel.ScrollingPolicy;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
@@ -45,7 +46,7 @@ public class OrphanDialog extends JDialog {
     setTitle(appearance.getWindowTitle());
     mainPanel.add(new HeaderPanel(appearance).getComponent(), new CellConstraints(1, 1, 3, 1));
     blobCtrl_ = app.getBlobCtrl();
-    thumbViewer_ = new ThumbnailOverview(blobCtrl_);
+    thumbViewer_ = new ThumbnailOverview(ScrollingPolicy.SCROLL_VERTICALLY, blobCtrl_);
     blobChangeListener_ = new ThumbnailEntityListenerAdapter(
       app, thumbViewer_.getComponent(),
       blob -> blob.isUntagged() ? ADD_OR_UPDATE : REMOVE

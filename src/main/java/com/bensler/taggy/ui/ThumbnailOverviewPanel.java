@@ -154,7 +154,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     scrollRectToVisible(scrollingPolicy_.getScrollToEndTarget(this));
   }
 
-  public JScrollPane getScrollpane() {
+  public JScrollPane getScrollPane() {
     return scrollPane_;
   }
 

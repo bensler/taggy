@@ -53,7 +53,7 @@ public class AddImagesTagsDialog extends BasicContentPanel<List<Blob>, Set<Tag>>
     assignedTags_.setVisibleRowCount(15, 1);
     assignedTags_.addCheckedListener(this::assignedTagsTreeChanged);
     allTags_ = new AllTagsTreeFiltered(this::setAssignedTags);
-    verticalSplitpane_ = new JSplitPane(VERTICAL_SPLIT, true, images_.getScrollpane(), assignedTags_.getScrollPane());
+    verticalSplitpane_ = new JSplitPane(VERTICAL_SPLIT, true, images_.getScrollPane(), assignedTags_.getScrollPane());
     verticalSplitpane_.setResizeWeight(.5f);
     horizontalSplitpane_ = new JSplitPane(HORIZONTAL_SPLIT, true, allTags_.getComponent(), verticalSplitpane_);
     horizontalSplitpane_.setResizeWeight(.5f);

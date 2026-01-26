@@ -332,6 +332,16 @@ public class BlobController {
     final Optional<JpegImageMetadata> srcMetaData = getMetaData(srcFile);
     final BufferedImage srcImg = ImageIO.read(new FileInputStream(srcFile));
 
+    srcMetaData.ifPresent(md -> {
+      md.getExif().getAllFields().forEach(field -> {
+        try {
+          System.out.println("#### %s (%s): %s".formatted(field.getTagName(), field.getFieldTypeName(), String.valueOf(field.getValue())));
+        } catch (ImageReadException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+      });
+    });
     metaDataSink.put(PROPERTY_SIZE_WIDTH,  String.valueOf(srcImg.getWidth()));
     metaDataSink.put(PROPERTY_SIZE_HEIGHT, String.valueOf(srcImg.getHeight()));
     srcMetaData.ifPresent(metaData -> findDate(metaData, metaDataSink));
