@@ -17,6 +17,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -35,6 +36,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
@@ -43,6 +45,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import javax.imageio.ImageIO;
+import javax.swing.SwingUtilities;
 
 import org.apache.commons.imaging.ImageReadException;
 import org.apache.commons.imaging.Imaging;
@@ -307,20 +310,26 @@ public class BlobController {
     );
   }
 
-  public Blob importFile(File file, String type, Tag initialTag) throws IOException, ImageReadException {
+  public Blob importFile(File file, String type, Tag initialTag) throws IOException, ImageReadException, InvocationTargetException, InterruptedException {
     final App app = getApp();
     final Map<String, String> metaData = new HashMap<>();
     final File thumbnail = importFile(file, metaData);
     final String fileSha = storeBlob(file, true);
     final String thumbSha = storeBlob(thumbnail, false);
     final Set<Tag> tags = new HashSet<>();
+    final AtomicReference<Blob> newBlob = new AtomicReference<>();
 
     Optional.ofNullable(metaData.get(PROPERTY_DATE_YMD))
       .map(app.getTagCtrl()::getDateTag)
       .ifPresent(tags::add);
     Optional.ofNullable(initialTag).ifPresent(tags::add);
     metaData.put(PROPERTY_FILENAME, file.getName());
-    return app.storeEntity(new Blob(null, fileSha, thumbSha, type, metaData, EntityReference.createCollection(tags, new HashSet<>())));
+    SwingUtilities.invokeAndWait(() -> {
+      newBlob.set(app.storeEntity(new Blob(null, fileSha, thumbSha, type, metaData, EntityReference.createCollection(tags, new HashSet<>()))));
+      // reload all referenced tags as they changed implicitly as well and notify listeners
+      app.entitiesChanged(app.getDbAccess().refreshAll(tags));
+    });
+    return newBlob.get();
   }
 
   private Optional<JpegImageMetadata> getMetaData(File srcFile) throws ImageReadException, IOException {
@@ -332,16 +341,6 @@ public class BlobController {
     final Optional<JpegImageMetadata> srcMetaData = getMetaData(srcFile);
     final BufferedImage srcImg = ImageIO.read(new FileInputStream(srcFile));
 
-    srcMetaData.ifPresent(md -> {
-      md.getExif().getAllFields().forEach(field -> {
-        try {
-          System.out.println("#### %s (%s): %s".formatted(field.getTagName(), field.getFieldTypeName(), String.valueOf(field.getValue())));
-        } catch (ImageReadException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        }
-      });
-    });
     metaDataSink.put(PROPERTY_SIZE_WIDTH,  String.valueOf(srcImg.getWidth()));
     metaDataSink.put(PROPERTY_SIZE_HEIGHT, String.valueOf(srcImg.getHeight()));
     srcMetaData.ifPresent(metaData -> findDate(metaData, metaDataSink));

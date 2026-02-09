@@ -8,7 +8,6 @@ import static com.bensler.taggy.ui.Icons.PLUS_30;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -17,8 +16,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.apache.commons.imaging.ImageReadException;
 
 import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.FilteredAction;
@@ -132,7 +129,7 @@ public class ImportController {
       final Blob blob = getApp().getBlobCtrl().importFile(file.getFile(), type, initialTag);
 
       return new FileToImport(file, blob.getSha256sum(), ImportObstacle.DUPLICATE, "just imported", type, blob);
-    } catch (IOException | ImageReadException e) {
+    } catch (Exception e) {
       e.printStackTrace();
       return new FileToImport(file, file.getShaSum(), ImportObstacle.IMPORT_ERROR, e.getMessage(), file.getType(), null);
     }
