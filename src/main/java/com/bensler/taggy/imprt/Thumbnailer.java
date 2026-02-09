@@ -13,7 +13,7 @@ import org.imgscalr.Scalr;
 import org.imgscalr.Scalr.Method;
 import org.imgscalr.Scalr.Mode;
 
-import com.bensler.taggy.App;
+import com.bensler.taggy.ui.BlobController;
 import com.bensler.taggy.ui.BlobController.Orientation;
 
 public class Thumbnailer {
@@ -60,8 +60,8 @@ public class Thumbnailer {
     return outputFile;
   }
 
-  public File createThumbnail(BufferedImage srcImg, Orientation orientation) throws IOException {
-    return writeImgToFile(App.getApp().getBlobCtrl().rotate(
+  public File createThumbnail(BlobController blobCtrl, BufferedImage srcImg, Orientation orientation) throws IOException {
+    return writeImgToFile(blobCtrl.rotate(
       scaleImage(srcImg), orientation,
       (transform, img) -> {
         final Rectangle2D rotatedBounds = transform.getBounds2D(img);

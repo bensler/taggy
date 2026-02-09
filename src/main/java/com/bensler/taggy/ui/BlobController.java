@@ -57,6 +57,7 @@ import org.apache.commons.imaging.formats.tiff.taginfos.TagInfoAscii;
 
 import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.taggy.App;
+import com.bensler.taggy.imprt.Thumbnailer;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.persist.Tag;
@@ -186,7 +187,7 @@ public class BlobController {
     .getNext(direction).putMetaData(blob::addProperty);
 
     final String oldThumbSha = blob.getThumbnailSha();
-    final String newThumbSha = storeBlob(getApp().getThumbnailer().createThumbnail(loadRotated(blob), Orientation.ROTATE_000_CW), false);
+    final String newThumbSha = storeBlob(getApp().getThumbnailer().createThumbnail(this, loadRotated(blob), Orientation.ROTATE_000_CW), false);
 
     getFile(oldThumbSha).delete();
     getApp().storeEntity(new Blob(
@@ -221,7 +222,7 @@ public class BlobController {
     }
   }
 
-  private void deleteFile(String shasum) {
+  public void deleteFile(String shasum) {
     try {
       Files.deleteIfExists(getFile(shasum).toPath());
     } catch (IOException e) {
@@ -313,7 +314,7 @@ public class BlobController {
   public Blob importFile(File file, String type, Tag initialTag) throws IOException, ImageReadException, InvocationTargetException, InterruptedException {
     final App app = getApp();
     final Map<String, String> metaData = new HashMap<>();
-    final File thumbnail = importFile(file, metaData);
+    final File thumbnail = createThumbnail(app.getThumbnailer(), file, metaData);
     final String fileSha = storeBlob(file, true);
     final String thumbSha = storeBlob(thumbnail, false);
     final Set<Tag> tags = new HashSet<>();
@@ -348,9 +349,9 @@ public class BlobController {
     return srcImg;
   }
 
-  private File importFile(File srcFile, Map<String, String> metaDataSink) throws IOException, ImageReadException {
-    return getApp().getThumbnailer().createThumbnail(
-      readImageMetadata(srcFile, metaDataSink), findOrientation(metaDataSink.get(PROPERTY_ORIENTATION))
+  public File createThumbnail(Thumbnailer thumbnailer, File srcFile, Map<String, String> metaDataSink) throws IOException, ImageReadException {
+    return thumbnailer.createThumbnail(
+      this, readImageMetadata(srcFile, metaDataSink), findOrientation(metaDataSink.get(PROPERTY_ORIENTATION))
     );
   }
 

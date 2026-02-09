@@ -8,14 +8,19 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashMap;
 import java.util.concurrent.Semaphore;
 import java.util.stream.IntStream;
 
+import org.apache.commons.imaging.ImageReadException;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
 
+import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.taggy.App;
 import com.bensler.taggy.imprt.Thumbnailer;
+import com.bensler.taggy.persist.Blob;
+import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.ui.BlobController;
 
 public class V008__CreateThumbnails extends BaseJavaMigration {
@@ -33,6 +38,7 @@ public class V008__CreateThumbnails extends BaseJavaMigration {
   @Override
   public void migrate(Context context) throws SQLException, InterruptedException {
     final Connection connection = context.getConnection();
+    final DbAccess db = new DbAccess(connection);
     final int workerCount = 4;
     final Semaphore semaphore = new Semaphore(workerCount);
     final long startMillis = System.currentTimeMillis();
@@ -40,11 +46,13 @@ public class V008__CreateThumbnails extends BaseJavaMigration {
     try (
       PreparedStatement updateStatement = connection.prepareStatement("UPDATE blob SET thumbnail_sha = ? WHERE id = ?");
       Statement statement = connection.createStatement();
-      ResultSet result = statement.executeQuery("SELECT b.id, b.sha256sum FROM blob b WHERE b.thumbnail_sha IS NULL ORDER BY b.id ASC")
+      ResultSet result = statement.executeQuery(
+        "SELECT b.id FROM blob b WHERE (b.thumbnail_sha IS NULL) OR (b.thumbnail_sha = 'deleted') ORDER BY b.id ASC"
+      )
     ) {
       final Source source = new Source(result, updateStatement);
 
-      IntStream.range(0, workerCount).forEach(anInt -> new Worker(anInt, source, semaphore));
+      IntStream.range(0, workerCount).forEach(anInt -> new Worker(anInt, db, source, semaphore));
       semaphore.acquire(workerCount);
       updateStatement.executeBatch();
     };
@@ -63,10 +71,10 @@ public class V008__CreateThumbnails extends BaseJavaMigration {
       updateStatement = pUpdateStatement;
     }
 
-    synchronized WorkPackage requestWork() {
+    synchronized Integer requestNextBlobId() {
       try {
         if (result.next()) {
-          return new WorkPackage(result.getInt(1), result.getString(2));
+          return result.getInt(1);
         }
       } catch (SQLException sqle) { /* no more rows available*/ }
       return null;
@@ -85,9 +93,11 @@ public class V008__CreateThumbnails extends BaseJavaMigration {
     private final Source source;
     private final Semaphore semaphore;
     private final String workerName;
+    private final DbAccess db_;
 
-    Worker(int workerId, Source pSource, Semaphore pSemaphore) {
+    Worker(int workerId, DbAccess db, Source pSource, Semaphore pSemaphore) {
       source = pSource;
+      db_ = db;
       try {
         (semaphore = pSemaphore).acquire();
         workerName = "worker-" + workerId;
@@ -99,37 +109,26 @@ public class V008__CreateThumbnails extends BaseJavaMigration {
 
     @Override
     public void run() {
-      WorkPackage workPackage;
+      Integer blobId;
 
-      while ((workPackage = source.requestWork()) != null) {
+      while ((blobId = source.requestNextBlobId()) != null) {
         try {
-          doWork(workPackage);
+          doWork(blobId);
         } catch (Exception e) {
-          System.out.println("%s # %s failure".formatted(workerName, workPackage.id));
+          System.out.println("%s # %s failure".formatted(workerName, blobId));
           e.printStackTrace();
         }
       }
       semaphore.release();
     }
 
-    private void doWork(WorkPackage workPackage) throws SQLException, IOException {
-      final File thunbnail = null;
+    private void doWork(int blobId) throws SQLException, IOException, ImageReadException {
+      final Blob blob = db_.resolve(new EntityReference<>(Blob.class, blobId));
+      final File file = blobCtrl_.getFile(blob.getSha256sum());
+      final File thumbnail = blobCtrl_.createThumbnail(thumbnailer_, file, new HashMap<>());
 
-//      thunbnail = thumbnailer_.scaleRotateImage(blobCtrl_.getFile(workPackage.shaHash), new HashMap<>());
-      source.workDone(workPackage.id, blobCtrl_.storeBlob(thunbnail, false));
-      System.out.println("%s processed %d".formatted(workerName, workPackage.id));
-    }
-
-  }
-
-  static class WorkPackage {
-
-    final int id;
-    final String shaHash;
-
-    WorkPackage(int pId, String pShaHash) {
-      id = pId;
-      shaHash = pShaHash;
+      source.workDone(blobId, blobCtrl_.storeBlob(thumbnail, false));
+      System.out.println("%s processed %d".formatted(workerName, blobId));
     }
 
   }
