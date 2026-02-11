@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
@@ -44,7 +45,6 @@ import javax.swing.Scrollable;
 import javax.swing.UIManager;
 
 import com.bensler.decaf.swing.awt.ColorHelper;
-import com.bensler.decaf.swing.selection.EntitySelectionListener;
 import com.bensler.decaf.swing.view.SimplePropertyGetter;
 import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.taggy.persist.Blob;
@@ -126,7 +126,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
   private final ScrollingPolicy scrollingPolicy_;
 
   private final List<Blob> selection_;
-  private final Set<EntitySelectionListener<Blob>> selectionListeners_;
+  private final Set<Consumer<List<Blob>>> selectionListeners_;
   private Dimension prefViewPortSize_;
 
   public ThumbnailOverviewPanel(ScrollingPolicy scrollingPolicy) {
@@ -424,14 +424,13 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     @Override
     public void close() {
       if (fireSelectionEventUnconditionally_ || (!oldSelection_.equals(selection_))) {
-        // TODO ------------------------------------------- vvvv
-        selectionListeners_.forEach(l -> l.selectionChanged(null, selection_));
+        selectionListeners_.forEach(l -> l.accept(selection_));
         repaint();
       }
     }
   }
 
-  public void addSelectionListener(EntitySelectionListener<Blob> listener) {
+  void addSelectionListener(Consumer<List<Blob>> listener) {
     selectionListeners_.add(requireNonNull(listener));
   }
 

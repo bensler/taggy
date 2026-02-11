@@ -66,7 +66,7 @@ public class ThumbnailOverview implements EntityComponent<Blob>, FocusListener {
 
   @Override
   public void addSelectionListener(EntitySelectionListener<Blob> listener) {
-    comp_.addSelectionListener((source, selection) -> listener.selectionChanged(this, selection));
+    comp_.addSelectionListener(selection -> listener.selectionChanged(this, selection));
   }
 
   @Override
