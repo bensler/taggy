@@ -21,7 +21,6 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
@@ -45,6 +44,7 @@ import javax.swing.Scrollable;
 import javax.swing.UIManager;
 
 import com.bensler.decaf.swing.awt.ColorHelper;
+import com.bensler.decaf.swing.awt.SimpleMouseAdapter;
 import com.bensler.decaf.swing.view.SimplePropertyGetter;
 import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.taggy.persist.Blob;
@@ -171,12 +171,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
         repaint();
       }
     });
-    addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseClicked(MouseEvent evt) {
-        ThumbnailOverviewPanel.this.mouseClicked(evt);
-      }
-    });
+    addMouseListener(SimpleMouseAdapter.clicked(evt -> mouseClicked(evt)));
     addKeyListener(new KeyAdapter() {
       @Override
       public void keyPressed(KeyEvent evt) {
