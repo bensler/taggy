@@ -14,6 +14,7 @@ import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -247,7 +248,7 @@ class ImportDialog extends JDialog {
 
       while ((fileSize > 2048) && ((unitIndex + 1) < UNITS.length )) {
         fileSize = fileSize >> 10;
-      unitIndex++;
+        unitIndex++;
       }
       return String.valueOf(fileSize) + " " + UNITS[unitIndex];
     }
@@ -257,9 +258,16 @@ class ImportDialog extends JDialog {
     }
   }
 
-  void fileToUpdateChanged(FileToImport file) {
+  void fileImported(FileToImport doneFile) {
+    final List<FileToImport> changedFiles = new ArrayList<>(List.of(doneFile));
+
+    changedFiles.addAll(ImportController.markDuplicates(files_.getValues(), doneFile.getShaSum()));
+    fileToUpdateChanged(changedFiles);
+  }
+
+  void fileToUpdateChanged(List<FileToImport> doneFiles) {
     SwingUtilities.invokeLater(() -> {
-      files_.addOrUpdateData(List.of(file));
+      files_.addOrUpdateData(doneFiles);
       files_.fireSelectionChanged();
     });
   }
@@ -268,7 +276,7 @@ class ImportDialog extends JDialog {
     synchronized (filesToSha_) {
       lastProcessedItem.ifPresent(file -> {
         filesToSha_.remove(file);
-        fileToUpdateChanged(file);
+        fileToUpdateChanged(List.of(file));
       });
       return (!filesToSha_.isEmpty()) ? Optional.of(filesToSha_.getFirst()) : Optional.empty();
     }

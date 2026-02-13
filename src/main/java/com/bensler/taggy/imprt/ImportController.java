@@ -53,6 +53,14 @@ public class ImportController {
     null, ICON_LARGE, null, "Scan for new Images to import."
   );
 
+  static List<FileToImport> markDuplicates(List<FileToImport> allFiles, String sha) {
+    return allFiles.stream()
+    .filter(FileToImport::isImportable)
+    .filter(aFile -> aFile.getShaSum().equals(sha))
+    .map(forEachMapper(aFile -> aFile.setImportObstacle(ImportObstacle.DUPLICATE, null)))
+    .toList();
+  }
+
   private final UiAction actionImport_;
   private final Map<File, String> fileShaMap_;
   private File importDir_;

@@ -124,18 +124,21 @@ class ImportProgressDialog extends JDialog {
 
   Optional<FileToImport> getNextToImport(Optional<FileToImport> lastProcessedItem) {
     synchronized (filesToImport_) {
-      lastProcessedItem.ifPresent(file -> {
-        final Blob blob = file.getBlob();
+      lastProcessedItem.ifPresent(lastProcessedFile -> {
+        final Blob blob = lastProcessedFile.getBlob();
+        final int filesToImportSize;
 
-        filesToImport_.remove(file);
-        parent_.fileToUpdateChanged(file);
-          SwingUtilities.invokeLater(() -> {
-            progress_.setValue(fileToProcessCount_ - filesToImport_.size());
-            if (blob != null) {
-              thumbs_.addImage(blob);
-              thumbs_.scrollToEnd();
-            }
-          });
+        filesToImport_.remove(lastProcessedFile);
+        filesToImport_.removeAll(ImportController.markDuplicates(filesToImport_, lastProcessedFile.getShaSum()));
+        filesToImportSize = filesToImport_.size();
+        parent_.fileImported(lastProcessedFile);
+        SwingUtilities.invokeLater(() -> {
+          progress_.setValue(fileToProcessCount_ - filesToImportSize);
+          if (blob != null) {
+            thumbs_.addImage(blob);
+            thumbs_.scrollToEnd();
+          }
+        });
       });
       adjustButtonText();
       return (filesToImport_.isEmpty() || canceled_) ? Optional.empty() : Optional.of(filesToImport_.getFirst());
