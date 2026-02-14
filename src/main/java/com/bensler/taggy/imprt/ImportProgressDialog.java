@@ -115,13 +115,17 @@ class ImportProgressDialog extends JDialog {
   private void cancelButtonPressed() {
     synchronized (filesToImport_) {
       if (filesToImport_.isEmpty() || canceled_) {
-        setVisible(false);
-        dispose();
+        closeDialog();
       } else {
         canceled_ = true;
         adjustButtonText();
       }
     }
+  }
+
+  private void closeDialog() {
+    setVisible(false);
+    dispose();
   }
 
   private void adjustButtonText() {
@@ -162,6 +166,9 @@ class ImportProgressDialog extends JDialog {
 
       while ((fileInProgress = getNextToImport(fileInProgress)).isPresent()) {
         fileInProgress = Optional.of(importController_.importFile(fileInProgress.get(), initialTag_));
+      }
+      if (autoCloseCb_.isSelected()) {
+        SwingUtilities.invokeLater(() -> closeDialog());
       }
     }
   }
