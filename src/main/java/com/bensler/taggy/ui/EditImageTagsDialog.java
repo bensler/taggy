@@ -41,10 +41,7 @@ public class EditImageTagsDialog extends BasicContentPanel<Blob, Set<Tag>> {
   private final JSplitPane horizontalSplitpane_;
 
   public EditImageTagsDialog() {
-    super(new DialogAppearance(
-      ICON,
-      "Edit Image Tags", "Assign Tags to an Image"
-    ), new FormLayout("f:p:g", "f:p:g"));
+    super(new DialogAppearance(ICON, "Edit Image Tags", "Assign Tags to an Image"), new FormLayout("f:p:g", "f:p:g"));
     allTags_ = new AllTagsTreeFiltered(this::setAssignedTags);
     imgComp_ = new ImageComponent();
     assignedTags_ = new CheckboxTree<>(TagUi.NAME_VIEW, Tag.class);

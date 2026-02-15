@@ -1,6 +1,7 @@
 package com.bensler.taggy.ui;
 
 import static com.bensler.decaf.swing.text.TextfieldListener.addTextfieldListener;
+import static com.bensler.taggy.App.getApp;
 import static com.jgoodies.forms.layout.CellConstraints.DEFAULT;
 import static com.jgoodies.forms.layout.CellConstraints.FILL;
 
@@ -11,6 +12,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import com.bensler.decaf.swing.action.FocusedComponentActionController;
 import com.bensler.decaf.swing.tree.CheckboxTree;
 import com.bensler.decaf.swing.tree.CheckboxTree.CheckedListener;
 import com.bensler.decaf.util.tree.Hierarchical;
@@ -25,6 +27,8 @@ public class AllTagsTreeFiltered {
   private final CheckboxTree<Tag> tagTree_;
   private final Set<Tag> allTags_;
   private final JPanel component_;
+  @SuppressWarnings("unused") // save it from GC
+  private final EntityChangeListenerTreeAdapter<Tag> treeAdapter_;
 
   public AllTagsTreeFiltered(CheckedListener<Tag> listener) {
     final App app = App.getApp();
@@ -33,6 +37,8 @@ public class AllTagsTreeFiltered {
     app.getTagCtrl().setAllTags(tagTree_);
     allTags_ = tagTree_.getData().getMembers();
     tagTree_.addCheckedListener(listener);
+    tagTree_.setCtxActions(new FocusedComponentActionController(getApp().getTagCtrl().getAllTagActions(), Set.of(tagTree_)));
+    getApp().addEntityChangeListener(treeAdapter_ = new EntityChangeListenerTreeAdapter<>(tagTree_), Tag.class);
 
     final JTextField filterTf = new JTextField(5);
     component_ = new JPanel(new FormLayout("3dlu, p, 3dlu, f:p:g", "3dlu, p, 3dlu, f:p:g"));

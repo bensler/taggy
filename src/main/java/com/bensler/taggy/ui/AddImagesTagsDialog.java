@@ -44,10 +44,7 @@ public class AddImagesTagsDialog extends BasicContentPanel<List<Blob>, Set<Tag>>
   private final JSplitPane horizontalSplitpane_;
 
   public AddImagesTagsDialog() {
-    super(new DialogAppearance(
-      ICON,
-      "Add Images Tags", "Add Tags to multiple Images"
-    ), new FormLayout("f:p:g", "f:p:g"));
+    super(new DialogAppearance(ICON, "Add Images Tags", "Add Tags to multiple Images"), new FormLayout("f:p:g", "f:p:g"));
     images_ = new ThumbnailOverviewPanel(SCROLL_HORIZONTALLY);
     assignedTags_ = new CheckboxTree<>(TagUi.NAME_VIEW, Tag.class);
     assignedTags_.setVisibleRowCount(15, 1);
