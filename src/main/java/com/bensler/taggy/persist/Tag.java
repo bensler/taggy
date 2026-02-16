@@ -1,6 +1,5 @@
 package com.bensler.taggy.persist;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
@@ -38,8 +37,8 @@ public class Tag extends AbstractEntity<Tag> implements Hierarchical<Tag>, Named
     super(Tag.class, id);
     parent_ = parent;
     name_ = name;
-    properties_ = new HashMap<>(properties);
-    blobs_ = new HashSet<>(blobs);
+    properties_ = Map.copyOf(properties);
+    blobs_ = Set.copyOf(blobs);
   }
 
   @Override
@@ -52,6 +51,10 @@ public class Tag extends AbstractEntity<Tag> implements Hierarchical<Tag>, Named
     return name_;
   }
 
+  public Set<EntityReference<Blob>> getBlobRefs() {
+    return blobs_;
+  }
+
   public Set<Blob> getBlobs() {
     return DbAccess.INSTANCE.get().resolveAll(blobs_, new HashSet<>());
   }
@@ -61,7 +64,7 @@ public class Tag extends AbstractEntity<Tag> implements Hierarchical<Tag>, Named
   }
 
   public Set<TagProperty> getPropertyKeys() {
-    return Set.copyOf(properties_.keySet());
+    return properties_.keySet();
   }
 
   public boolean containsProperty(TagProperty key) {
@@ -69,7 +72,7 @@ public class Tag extends AbstractEntity<Tag> implements Hierarchical<Tag>, Named
   }
 
   public Map<TagProperty, String> getProperties() {
-    return Map.copyOf(properties_);
+    return properties_;
   }
 
 }

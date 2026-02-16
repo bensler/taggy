@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.bensler.decaf.util.entity.Entity;
 import com.bensler.decaf.util.entity.EntityReference;
 
 public class BlobDbMapper extends AbstractDbMapper<Blob> {
@@ -99,10 +100,10 @@ public class BlobDbMapper extends AbstractDbMapper<Blob> {
       stmt.execute();
     }
     insertProperties(blob, blob.getId());
-    updateTags(blobId, blob.getTags());
+    updateTags(blobId, blob.getTagRefs());
   }
 
-  private void updateTags(Integer blobId, Set<Tag> tags) throws SQLException {
+  private void updateTags(Integer blobId, Collection<EntityReference<Tag>> tags) throws SQLException {
     try (PreparedStatement stmt = db_.session_.prepareStatement("DELETE FROM blob_tag_xref WHERE blob_id=?")) {
       stmt.setInt(1, blobId);
       stmt.execute();
@@ -126,10 +127,10 @@ public class BlobDbMapper extends AbstractDbMapper<Blob> {
     }
   }
 
-  private void insertTags(Integer blobId, Collection<Tag> tags) throws SQLException {
+  private <E extends Entity<E>> void insertTags(Integer blobId, Collection<EntityReference<E>> tags) throws SQLException {
     if (!tags.isEmpty()) {
       try (PreparedStatement stmt = db_.session_.prepareStatement("INSERT INTO blob_tag_xref (blob_id,tag_id) VALUES (?,?)")) {
-        for (Tag tag : tags) {
+        for (EntityReference<?> tag : tags) {
           stmt.setInt(1, blobId);
           stmt.setInt(2, tag.getId());
           stmt.addBatch();
@@ -154,7 +155,7 @@ public class BlobDbMapper extends AbstractDbMapper<Blob> {
       }
     }
     insertProperties(blob, newId);
-    insertTags(newId, blob.getTags());
+    insertTags(newId, blob.getTagRefs());
     return newId;
   }
 
@@ -183,7 +184,7 @@ public class BlobDbMapper extends AbstractDbMapper<Blob> {
   }
 
   public void setTags(EntityReference<Blob> blobRef, Set<Tag> tags) throws SQLException {
-    updateTags(blobRef.getId(), tags);
+    updateTags(blobRef.getId(), EntityReference.createCollection(tags, new HashSet<>()));
   }
 
 }

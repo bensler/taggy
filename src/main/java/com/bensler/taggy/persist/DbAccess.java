@@ -65,10 +65,14 @@ public class DbAccess {
   }
 
   public <E extends Entity<E>> Set<E> refreshAll(Collection<E> entities) {
+    return refreshAllRefs(entities.stream().map(entity -> new EntityReference<>(entity)).toList());
+  }
+
+  public <E extends Entity<E>> Set<E> refreshAllRefs(Collection<EntityReference<E>> refs) {
     final Set<E> result = new HashSet<>();
 
-    if (!entities.isEmpty()) {
-      loadAll(entities.stream().map(entity -> new EntityReference<>(entity)).toList(), result);
+    if (!refs.isEmpty()) {
+      loadAll(refs, result);
     }
     return result;
   }

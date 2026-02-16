@@ -212,7 +212,7 @@ public class BlobController {
 
     try {
       db.runInTxn(() -> db.deleteNoTxn(blob));
-      tags = db.refreshAll(blob.getTags());
+      tags = db.refreshAllRefs(blob.getTagRefs());
       Optional.ofNullable(blobSha256sum).ifPresent(this::deleteFile);
       Optional.ofNullable(thumbnailSha).ifPresent(this::deleteFile);
       app.entityRemoved(blob);

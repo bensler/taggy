@@ -11,6 +11,7 @@ import static com.bensler.taggy.ui.Icons.TAG_SIMPLE_13;
 import static com.bensler.taggy.ui.Icons.TIMELINE_13;
 import static com.bensler.taggy.ui.Icons.X_10;
 import static com.bensler.taggy.ui.Icons.X_30;
+import static com.bensler.taggy.ui.ThumbnailOverviewPanel.ScrollingPolicy.SCROLL_HORIZONTALLY;
 
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
@@ -148,7 +149,7 @@ public class TagsUiController {
     final DbAccess db = app.getDbAccess();
 
     db.runInTxn(() -> db.deleteNoTxn(tag));
-    blobs = db.refreshAll(tag.getBlobs());
+    blobs = db.refreshAllRefs(tag.getBlobRefs());
     app.entityRemoved(tag);
     app.entitiesChanged(blobs);
     allTags_.removeNode(tag);
@@ -211,12 +212,29 @@ public class TagsUiController {
   }
 
   private void deleteTagUi(Tag tag) {
-    if (new ConfirmationDialog(new DialogAppearance(
-      new OverlayIcon(TAG_48, new Overlay(X_30, SE)), "Confirmation: Delete Tag",
-      "Do you really want to delete Tag \"%s\" under \"%s\"?".formatted(
-        tag.getName(), Optional.ofNullable(tag.getParent()).map(Tag::getName).orElse("Root")
-      )
-    )).show(getApp().getMainFrameFrame())) {
+    final OverlayIcon icon = new OverlayIcon(TAG_48, new Overlay(X_30, SE));
+    final ConfirmationDialog confDlg;
+    final int imgCount = tag.getBlobRefs().size();
+
+    if (imgCount > 0) {
+      final ThumbnailOverviewPanel thumbs = new ThumbnailOverviewPanel(SCROLL_HORIZONTALLY);
+
+      thumbs.setData(tag.getBlobs());
+      confDlg = new ConfirmationDialog(new DialogAppearance(
+        icon, "Confirmation: Delete Tag",
+        "Do you really want to delete Tag \"%s\"? It has %s image%s assigned.".formatted(
+          tag.getName(), imgCount, ((imgCount > 1) ? "s" : "")
+        )
+      ), thumbs.getScrollPane());
+    } else {
+      confDlg = new ConfirmationDialog(new DialogAppearance(
+        icon, "Confirmation: Delete Tag",
+        "Do you really want to delete Tag \"%s\" under \"%s\"?".formatted(
+          tag.getName(), Optional.ofNullable(tag.getParent()).map(Tag::getName).orElse("Root")
+        )
+      ));
+    }
+    if (confDlg.confirm(getApp().getMainFrameFrame())) {
       deleteTag(tag);
     }
   }

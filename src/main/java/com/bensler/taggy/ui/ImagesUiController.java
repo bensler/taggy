@@ -173,7 +173,7 @@ public class ImagesUiController {
         || new ConfirmationDialog(new DialogAppearance(
           EXPORT_ICON_48, "Confirmation: Overwrite File",
           "File \"%s\" already exists. Do you really want to overwrite it?".formatted(file.getName())
-        )).show(frame)
+        )).confirm(frame)
       )
     ) {
       lastExportFolder_.put(prefs, file.getParent());

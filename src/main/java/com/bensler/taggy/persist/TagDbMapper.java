@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.bensler.decaf.util.entity.Entity;
 import com.bensler.decaf.util.entity.EntityReference;
 
 public class TagDbMapper extends AbstractDbMapper<Tag> {
@@ -133,7 +134,7 @@ public class TagDbMapper extends AbstractDbMapper<Tag> {
       stmt.setInt(1, tagId);
       stmt.execute();
     }
-    insertBlobs(tagId, tag.getBlobs());
+    insertBlobs(tagId, tag.getBlobRefs());
   }
 
   private void insertProperties(Tag tag, Integer tagId) throws SQLException {
@@ -152,10 +153,10 @@ public class TagDbMapper extends AbstractDbMapper<Tag> {
     }
   }
 
-  private void insertBlobs(Integer tagId, Collection<Blob> blobs) throws SQLException {
+  private <E extends Entity<E>> void insertBlobs(Integer tagId, Collection<EntityReference<E>> blobs) throws SQLException {
     if (!blobs.isEmpty()) {
       try (PreparedStatement stmt = db_.session_.prepareStatement("INSERT INTO blob_tag_xref (blob_id,tag_id) VALUES (?,?)")) {
-        for (Blob blob : blobs) {
+        for (EntityReference<?> blob : blobs) {
           stmt.setInt(1, blob.getId());
           stmt.setInt(2, tagId);
           stmt.addBatch();
@@ -179,7 +180,7 @@ public class TagDbMapper extends AbstractDbMapper<Tag> {
       }
     }
     insertProperties(tag, newId);
-    insertBlobs(newId, tag.getBlobs());
+    insertBlobs(newId, tag.getBlobRefs());
     return newId;
   }
 
