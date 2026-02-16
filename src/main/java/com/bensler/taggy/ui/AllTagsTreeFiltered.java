@@ -1,7 +1,6 @@
 package com.bensler.taggy.ui;
 
 import static com.bensler.decaf.swing.text.TextfieldListener.addTextfieldListener;
-import static com.bensler.taggy.App.getApp;
 import static com.jgoodies.forms.layout.CellConstraints.DEFAULT;
 import static com.jgoodies.forms.layout.CellConstraints.FILL;
 
@@ -37,8 +36,8 @@ public class AllTagsTreeFiltered {
     app.getTagCtrl().setAllTags(tagTree_);
     allTags_ = tagTree_.getData().getMembers();
     tagTree_.addCheckedListener(listener);
-    tagTree_.setCtxActions(new FocusedComponentActionController(getApp().getTagCtrl().getAllTagActions(), Set.of(tagTree_)));
-    getApp().addEntityChangeListener(treeAdapter_ = new EntityChangeListenerTreeAdapter<>(tagTree_), Tag.class);
+    tagTree_.setCtxActions(new FocusedComponentActionController(app.getTagCtrl().getAllTagActions(), Set.of(tagTree_), false));
+    app.addEntityChangeListener(treeAdapter_ = new EntityChangeListenerTreeAdapter<>(tagTree_), Tag.class);
 
     final JTextField filterTf = new JTextField(5);
     component_ = new JPanel(new FormLayout("3dlu, p, 3dlu, f:p:g", "3dlu, p, 3dlu, f:p:g"));
