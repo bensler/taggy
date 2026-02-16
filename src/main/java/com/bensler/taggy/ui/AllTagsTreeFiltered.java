@@ -83,7 +83,7 @@ public class AllTagsTreeFiltered {
   public void makeAllTagsVisible(Set<Tag> tags) {
     setCheckedNodes(tags);
     tagTree_.expandCollapseAll(false);
-    tagTree_.setCheckedNodes(tags);
+    setCheckedNodes(tags);
     tags.forEach(tag -> tagTree_.expandCollapse(tag, true));
   }
 
