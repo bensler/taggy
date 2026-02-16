@@ -26,8 +26,6 @@ public class AllTagsTreeFiltered {
   private final CheckboxTree<Tag> tagTree_;
   private final Set<Tag> allTags_;
   private final JPanel component_;
-  @SuppressWarnings("unused") // save it from GC
-  private final EntityChangeListenerTreeAdapter<Tag> treeAdapter_;
 
   public AllTagsTreeFiltered(CheckedListener<Tag> listener) {
     final App app = App.getApp();
@@ -37,7 +35,7 @@ public class AllTagsTreeFiltered {
     allTags_ = tagTree_.getData().getMembers();
     tagTree_.addCheckedListener(listener);
     tagTree_.setCtxActions(new FocusedComponentActionController(app.getTagCtrl().getAllTagActions(), Set.of(tagTree_), false));
-    app.addEntityChangeListener(treeAdapter_ = new EntityChangeListenerTreeAdapter<>(tagTree_), Tag.class);
+    app.addEntityChangeListener(app.putZombie(this, new EntityChangeListenerTreeAdapter<>(tagTree_)), Tag.class);
 
     final JTextField filterTf = new JTextField(5);
     component_ = new JPanel(new FormLayout("3dlu, p, 3dlu, f:p:g", "3dlu, p, 3dlu, f:p:g"));

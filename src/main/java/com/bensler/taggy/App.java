@@ -55,6 +55,7 @@ public class App {
     return app_;
   }
 
+  private final ZombieBox zombieBox_;
   private final DbConnector db_;
   private final PrefsStorage prefs_;
   private final BlobController blobCtrl_;
@@ -73,6 +74,7 @@ public class App {
 
     final File dataDir = getDataDir();
     entityChangeListeners_ = new HashMap<>();
+    zombieBox_ = new ZombieBox();
     db_ = new SqliteDbConnector(dataDir, "taggy.sqlite.db");
     db_.performFlywayMigration();
     dbAccess_ = new DbAccess(db_.getSession());
@@ -123,6 +125,16 @@ public class App {
 
   public void run() {
     mainFrame_.show();
+  }
+
+  /**
+   * Keeps <code>value</code> alive as long as <code>key</code> is alive (not yet gc'ed)
+   *
+   * @return the <code>value</code> param
+   */
+  public <V> V putZombie(Object key, V value) {
+    zombieBox_.put(key, value);
+    return value;
   }
 
   public <E> void addEntityChangeListener(EntityChangeListener<E> listener, Class<E> clazz) {

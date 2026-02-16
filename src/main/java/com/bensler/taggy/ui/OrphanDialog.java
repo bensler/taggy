@@ -31,7 +31,6 @@ public class OrphanDialog extends JDialog {
   public static final OverlayIcon ICON = new OverlayIcon(IMAGE_48, new Overlay(TAGS_MISSING_36, SE));
 
   private final ThumbnailOverview thumbViewer_;
-  private final ThumbnailEntityListenerAdapter blobChangeListener_; // prevent GC from eating it
   private final PrefPersisterImpl prefs_;
   private final BlobController blobCtrl_;
 
@@ -47,10 +46,10 @@ public class OrphanDialog extends JDialog {
     mainPanel.add(new HeaderPanel(appearance).getComponent(), new CellConstraints(1, 1, 3, 1));
     blobCtrl_ = app.getBlobCtrl();
     thumbViewer_ = new ThumbnailOverview(ScrollingPolicy.SCROLL_VERTICALLY, blobCtrl_);
-    blobChangeListener_ = new ThumbnailEntityListenerAdapter(
+    app.putZombie(this, new ThumbnailEntityListenerAdapter(
       app, thumbViewer_.getComponent(),
       blob -> blob.isUntagged() ? ADD_OR_UPDATE : REMOVE
-    );
+    ));
     mainPanel.add(thumbViewer_.getScrollPane(), new CellConstraints(2, 3));
 
     final ImagesUiController imgUiCtrl_ = new ImagesUiController(app, thumbViewer_.getComponent());

@@ -50,10 +50,6 @@ public class MainFrame {
   private final EntityTree<Tag> tagTree_;
   private final MainThumbnailPanel thumbnails_;
   private final TagsUiController tagCtrl_;
-  @SuppressWarnings("unused") // save it from GC
-  private final EntityChangeListenerTreeAdapter<Tag> treeAdapter_;
-  @SuppressWarnings("unused") // save it from GC
-  private final FocusedComponentActionController actionCtrl_;
   private SlideshowFrame slideshowFrame_;
 
   public MainFrame(App app) {
@@ -72,7 +68,7 @@ public class MainFrame {
     tagTree_.setVisibleRowCount(20, .5f);
     tagTree_.addSelectionListener((source, selection) -> displayThumbnailsOfSelectedTag(selection));
     tagTree_.setCtxActions(new FocusedComponentActionController(tagCtrl_.getAllTagActions(), Set.of(tagTree_)));
-    app.addEntityChangeListener(treeAdapter_ = new EntityChangeListenerTreeAdapter<>(tagTree_), Tag.class);
+    app.addEntityChangeListener(app.putZombie(this, new EntityChangeListenerTreeAdapter<>(tagTree_)), Tag.class);
     frame_.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     tagCtrl_.setAllTags(tagTree_);
     final JSplitPane leftSplitpane = new JSplitPane(HORIZONTAL_SPLIT, true,
@@ -84,7 +80,7 @@ public class MainFrame {
     rightSplitpane.setResizeWeight(1);
     mainPanel.add(rightSplitpane, new CellConstraints(2, 4));
 
-    mainPanel.add((actionCtrl_ = new FocusedComponentActionController(new ActionGroup(
+    mainPanel.add((app.putZombie(this,  new FocusedComponentActionController(new ActionGroup(
       new ActionGroup(tagCtrl_.getNewTagAction(), tagCtrl_.getEditTagAction()),
       new ActionGroup(
         app.getImportCtrl().getImportAction(),
@@ -97,7 +93,7 @@ public class MainFrame {
       imagesUiCtrl.getEditImageActions(),
       imagesUiCtrl.getTagsActions(),
       new ActionGroup(imagesUiCtrl.getSlideshowAction())
-    ), List.of(tagTree_, thumbnails_.getEntityComponent(), selectionTagPanel.getTagTree()))).createToolbar(), new CellConstraints(2, 2));
+    ), List.of(tagTree_, thumbnails_.getEntityComponent(), selectionTagPanel.getTagTree())))).createToolbar(), new CellConstraints(2, 2));
 
     mainPanel.setPreferredSize(new Dimension(750, 750));
     frame_.setContentPane(mainPanel);

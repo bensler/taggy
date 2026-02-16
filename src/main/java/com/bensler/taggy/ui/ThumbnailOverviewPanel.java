@@ -110,7 +110,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
   private final static int GAP = 4;
   private final static int INSET = 5;
   private final static int TILE_SIZE = THUMBNAIL_SIZE + (2 * INSET);
-  private final static BasicStroke STROKE_SOLID = new BasicStroke(1.0f);
+//  private final static BasicStroke STROKE_SOLID = new BasicStroke(1.0f);
   private final static BasicStroke STROKE_DASH = new BasicStroke(
     1.0f, CAP_BUTT, JOIN_BEVEL, 0.0f, new float[] {4.0f, 4.0f}, 0
   );

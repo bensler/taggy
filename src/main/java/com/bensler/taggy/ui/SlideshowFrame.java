@@ -29,7 +29,6 @@ public class SlideshowFrame extends JFrame {
 
   private final ImageComponent imageComponent_;
   private final ThumbnailOverview thumbs_;
-  private final ThumbnailEntityListenerAdapter blobChangeListener_; // prevent GC from eating it
   private final PrefPersisterImpl prefs_;
 
   public SlideshowFrame(App app) {
@@ -44,10 +43,10 @@ public class SlideshowFrame extends JFrame {
     imageComponent_ = new ImageComponent();
     thumbs_ = new ThumbnailOverview(ScrollingPolicy.SCROLL_HORIZONTALLY, app.getBlobCtrl());
     thumbs_.addSelectionListener((source, selection) -> setBlob(thumbs_.getSingleSelection()));
-    blobChangeListener_ = new ThumbnailEntityListenerAdapter(
+    app.putZombie(this, new ThumbnailEntityListenerAdapter(
       app, thumbs_.getComponent(),
       blob -> thumbs_.contains(blob).isPresent() ? ADD_OR_UPDATE : REMOVE
-    );
+    ));
     new FocusedComponentActionController(new ImagesUiController(app, thumbs_.getComponent()).getAllActions(), Set.of(thumbs_)).attachTo(thumbs_, overview -> {}, thumbs_::beforeCtxMenuOpen);
 
     final JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true, imageComponent_, thumbs_.getScrollPane());

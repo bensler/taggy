@@ -28,7 +28,6 @@ import com.jgoodies.forms.layout.FormLayout;
 class MainThumbnailPanel extends JPanel {
 
   private final ThumbnailOverview thumbs_;
-  private final ThumbnailEntityListenerAdapter blobChangeListener_; // prevent GC from eating it
   private final JLabel statusLabel_;
   private final ImagesUiController imgUiCtrl_;
   private Optional<Tag> currentTag_;
@@ -39,10 +38,10 @@ class MainThumbnailPanel extends JPanel {
     currentTag_ = Optional.empty();
     thumbs_ = new ThumbnailOverview(ScrollingPolicy.SCROLL_VERTICALLY, app.getBlobCtrl());
 
-    blobChangeListener_ = new ThumbnailEntityListenerAdapter(
+    app.putZombie(this, new ThumbnailEntityListenerAdapter(
       app, thumbs_.getComponent(),
       blob -> currentTag_.isPresent() && blob.containsTag(currentTag_.get()) ? ADD_OR_UPDATE : REMOVE
-    );
+    ));
     imgUiCtrl_ = new ImagesUiController(app, thumbs_.getComponent());
     new FocusedComponentActionController(imgUiCtrl_.getAllActions(), Set.of(thumbs_)).attachTo(thumbs_, overview -> {}, thumbs_::beforeCtxMenuOpen);
     thumbs_.addSelectionListener((source, selection) -> selectionChanged(selection.size()));
