@@ -37,7 +37,7 @@ public class AddImagesTagsDialog extends BasicContentPanel<List<Blob>, Set<Tag>>
 
   public static final OverlayIcon ICON = new OverlayIcon(IMAGES_48, new Overlay(TAGS_36, SE), new Overlay(PLUS_20, SE));
 
-  private final AllTagsTreeFiltered allTags_;
+  private final AllTagsCheckboxTreeFiltered allTags_;
   private final CheckboxTree<Tag> assignedTags_;
   private final ThumbnailOverviewPanel images_;
   private final JSplitPane verticalSplitpane_;
@@ -49,7 +49,7 @@ public class AddImagesTagsDialog extends BasicContentPanel<List<Blob>, Set<Tag>>
     assignedTags_ = new CheckboxTree<>(TagUi.NAME_VIEW, Tag.class);
     assignedTags_.setVisibleRowCount(15, 1);
     assignedTags_.addCheckedListener(this::assignedTagsTreeChanged);
-    allTags_ = new AllTagsTreeFiltered(this::setAssignedTags);
+    allTags_ = new AllTagsCheckboxTreeFiltered(this::setAssignedTags);
     verticalSplitpane_ = new JSplitPane(VERTICAL_SPLIT, true, images_.getScrollPane(), assignedTags_.getScrollPane());
     verticalSplitpane_.setResizeWeight(.5f);
     horizontalSplitpane_ = new JSplitPane(HORIZONTAL_SPLIT, true, allTags_.getComponent(), verticalSplitpane_);

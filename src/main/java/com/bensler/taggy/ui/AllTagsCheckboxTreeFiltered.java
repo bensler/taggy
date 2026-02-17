@@ -21,13 +21,13 @@ import com.bensler.taggy.persist.Tag;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class AllTagsTreeFiltered {
+public class AllTagsCheckboxTreeFiltered {
 
   private final CheckboxTree<Tag> tagTree_;
   private final Set<Tag> allTags_;
   private final JPanel component_;
 
-  public AllTagsTreeFiltered(CheckedListener<Tag> listener) {
+  public AllTagsCheckboxTreeFiltered(CheckedListener<Tag> listener) {
     final App app = App.getApp();
     tagTree_ = new CheckboxTree<>(TagUi.NAME_VIEW, Tag.class);
     tagTree_.setVisibleRowCount(20, 1);
@@ -81,7 +81,6 @@ public class AllTagsTreeFiltered {
   }
 
   public void makeAllTagsVisible(Set<Tag> tags) {
-    setCheckedNodes(tags);
     tagTree_.expandCollapseAll(false);
     setCheckedNodes(tags);
     tags.forEach(tag -> tagTree_.expandCollapse(tag, true));

@@ -34,7 +34,7 @@ public class EditImageTagsDialog extends BasicContentPanel<Blob, Set<Tag>> {
 
   public static final OverlayIcon ICON = new OverlayIcon(IMAGE_48, new Overlay(TAGS_36, SE));
 
-  private final AllTagsTreeFiltered allTags_;
+  private final AllTagsCheckboxTreeFiltered allTags_;
   private final CheckboxTree<Tag> assignedTags_;
   private final ImageComponent imgComp_;
   private final JSplitPane verticalSplitpane_;
@@ -42,7 +42,7 @@ public class EditImageTagsDialog extends BasicContentPanel<Blob, Set<Tag>> {
 
   public EditImageTagsDialog() {
     super(new DialogAppearance(ICON, "Edit Image Tags", "Assign Tags to an Image"), new FormLayout("f:p:g", "f:p:g"));
-    allTags_ = new AllTagsTreeFiltered(this::setAssignedTags);
+    allTags_ = new AllTagsCheckboxTreeFiltered(this::setAssignedTags);
     imgComp_ = new ImageComponent();
     assignedTags_ = new CheckboxTree<>(TagUi.NAME_VIEW, Tag.class);
     assignedTags_.setVisibleRowCount(15, 1);
