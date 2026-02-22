@@ -59,16 +59,12 @@ public class Tag extends AbstractEntity<Tag> implements Hierarchical<Tag>, Named
     return DbAccess.INSTANCE.get().resolveAll(blobs_, new HashSet<>());
   }
 
-  public String getProperty(TagProperty key) {
-    return properties_.get(key);
-  }
-
   public Set<TagProperty> getPropertyKeys() {
     return properties_.keySet();
   }
 
-  public boolean containsProperty(TagProperty key) {
-    return properties_.containsKey(key);
+  public Optional<String> containsProperty(TagProperty key) {
+    return Optional.ofNullable(properties_.get(key));
   }
 
   public Map<TagProperty, String> getProperties() {

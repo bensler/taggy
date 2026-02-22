@@ -19,15 +19,15 @@ public final class TagUi {
   public static final EntityPropertyComparator<Tag, String> NAME_COMPARATOR = new EntityPropertyComparator<>(Tag::getName, COLLATOR_COMPARATOR);
 
   public static final EntityPropertyComparator<Tag, String> DATE_COMPARATOR = new EntityPropertyComparator<>(
-    tag -> tag.getProperty(REPRESENTED_DATE), new ComparableComparator<>()
+    tag -> tag.containsProperty(REPRESENTED_DATE).orElse(""), new ComparableComparator<>()
   );
 
-  public static final FilterOne<Tag> TIMELINE_TAG_FILTER = tag -> tag.containsProperty(REPRESENTED_DATE);
+  public static final FilterOne<Tag> TIMELINE_TAG_FILTER = tag -> tag.containsProperty(REPRESENTED_DATE).isPresent();
 
   public static final FilterOne<Tag> TAG_FILTER = tag -> !TIMELINE_TAG_FILTER.matches(tag);
 
   public static final SimpleCellRenderer<Tag, String> CELL_RENDERER = new SimpleCellRenderer<>(
-    null, (tag, name) -> tag.containsProperty(REPRESENTED_DATE) ? Icons.TIMELINE_13 : Icons.TAG_SIMPLE_13
+    null, (tag, name) -> tag.containsProperty(REPRESENTED_DATE).map(_ -> Icons.TIMELINE_13).orElse(Icons.TAG_SIMPLE_13)
   );
 
   public static final PropertyViewImpl<Tag, String> NAME_VIEW = new PropertyViewImpl<>(

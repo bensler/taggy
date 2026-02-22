@@ -33,13 +33,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -452,11 +450,11 @@ public class BlobController {
   public String getTagString(Blob blob) {
     final Set<Tag> tags = blob.getTags();
     final String dateStr = tags.stream()
-      .map(tag -> tag.getProperty(REPRESENTED_DATE))
-      .filter(Predicate.not(Objects::isNull)).findFirst()
+      .flatMap(tag -> tag.containsProperty(REPRESENTED_DATE).stream())
+      .findFirst()
       .map(str -> str.concat("_")).orElse("");
     final String tagsStr = tags.stream()
-      .filter(tag -> !tag.containsProperty(REPRESENTED_DATE))
+      .filter(tag -> tag.containsProperty(REPRESENTED_DATE).isEmpty())
       .map(Tag::getName)
       .collect(Collectors.joining("-"));
     final String typeStr = Arrays.asList(blob.getType().split("\\.")).getLast().toLowerCase();

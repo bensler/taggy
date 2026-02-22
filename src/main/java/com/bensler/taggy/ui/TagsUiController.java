@@ -63,9 +63,9 @@ public class TagsUiController {
     allTags_ = new Hierarchy<>();
     dateTags_ = app.getDbAccess().loadAll(Tag.class).stream()
       .map(forEachMapper(allTags_::add))
-      .map(tag -> new Pair<>(tag.getProperty(REPRESENTED_DATE), tag))
-      .filter(pair -> (pair.getLeft() != null))
-      .collect(Collectors.toMap(Pair::getLeft, Pair::getRight, HashMap::new));
+      .map(tag -> new Pair<>(tag.containsProperty(REPRESENTED_DATE), tag))
+      .filter(pair -> pair.getLeft().isPresent())
+      .collect(Collectors.toMap(pair -> pair.getLeft().get(), Pair::getRight, HashMap::new));
     editTagAction_ = new UiAction(
       new ActionAppearance(new OverlayIcon(TAG_SIMPLE_13, new Overlay(EDIT_13, SE)), TagDialog.Edit.ICON, "Edit Tag", "Edit currently selected Tag"),
       FilteredAction.one(Tag.class, TagUi.TAG_FILTER, this::editTagUi)
@@ -182,11 +182,11 @@ public class TagsUiController {
   }
 
   private void removeFromDateTags(Tag tag) {
-    Optional.ofNullable(tag.getProperty(REPRESENTED_DATE)).ifPresent(dateTags_::remove);
+    tag.containsProperty(REPRESENTED_DATE).ifPresent(dateTags_::remove);
   }
 
   private void addToDateTags(Tag tag) {
-    Optional.ofNullable(tag.getProperty(REPRESENTED_DATE)).ifPresent(dateStr -> dateTags_.put(dateStr, tag));
+    tag.containsProperty(REPRESENTED_DATE).ifPresent(dateStr -> dateTags_.put(dateStr, tag));
   }
 
   private boolean isLeaf(Tag tag) {

@@ -1,6 +1,7 @@
 package com.bensler.taggy.ui;
 
 import static com.bensler.decaf.swing.text.TextfieldListener.addTextfieldListener;
+import static com.bensler.taggy.persist.TagProperty.REPRESENTED_DATE;
 import static com.jgoodies.forms.layout.CellConstraints.DEFAULT;
 import static com.jgoodies.forms.layout.CellConstraints.FILL;
 
@@ -51,7 +52,7 @@ public class AllTagsCheckboxTreeFiltered {
     final boolean filtering = !matchStr.isEmpty();
     final Hierarchy<Tag> allTags = new Hierarchy<>(allTags_);
     final Hierarchy<Tag> filteredTags = new Hierarchy<>(allTags_.stream()
-      .filter(tag -> tag.getName().toLowerCase().contains(matchStr))
+      .filter(tag -> matchTag(tag, matchStr))
       .flatMap(tag -> allTags.getSubHierarchyMembers(tag).stream())
       .flatMap(tag -> Hierarchical.toPath(tag).stream())
       .distinct().collect(Collectors.toSet())
@@ -62,6 +63,13 @@ public class AllTagsCheckboxTreeFiltered {
     if (!filtering) {
       tagTree_.getCheckedNodes().forEach(tag -> tagTree_.expandCollapse(tag, true));
     }
+  }
+
+  private boolean matchTag(Tag tag, String pattern) {
+    return (
+      tag.getName().toLowerCase().contains(pattern)
+      || tag.containsProperty(REPRESENTED_DATE).stream().allMatch(dateStr -> dateStr.contains(pattern))
+    );
   }
 
   public JPanel getComponent() {

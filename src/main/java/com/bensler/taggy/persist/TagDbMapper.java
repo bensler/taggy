@@ -145,7 +145,7 @@ public class TagDbMapper extends AbstractDbMapper<Tag> {
         for (TagProperty property : propertyKeys) {
           stmt.setInt(1, tagId);
           stmt.setString(2, property.name());
-          stmt.setString(3, tag.getProperty(property));
+          stmt.setString(3, tag.containsProperty(property).orElse(""));
           stmt.addBatch();
         }
         stmt.executeBatch();
