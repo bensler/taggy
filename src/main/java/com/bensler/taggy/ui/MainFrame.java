@@ -70,7 +70,7 @@ public class MainFrame {
     tagTree_.setCtxActions(new FocusedComponentActionController(tagCtrl_.getAllTagActions(), Set.of(tagTree_)));
     app.addEntityChangeListener(app.putZombie(this, new EntityChangeListenerTreeAdapter<>(tagTree_)), Tag.class);
     frame_.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-    tagCtrl_.setAllTags(tagTree_);
+    tagTree_.setData(tagCtrl_.getAllTags());
     final JSplitPane leftSplitpane = new JSplitPane(HORIZONTAL_SPLIT, true,
       tagTree_.getScrollPane(), thumbnails_
     );

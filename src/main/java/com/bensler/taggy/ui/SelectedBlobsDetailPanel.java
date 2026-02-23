@@ -30,7 +30,6 @@ import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefPersister;
 import com.bensler.decaf.util.prefs.PrefsStorage;
 import com.bensler.decaf.util.tree.Hierarchical;
-import com.bensler.decaf.util.tree.Hierarchy;
 import com.bensler.taggy.imprt.ImportController;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.Tag;
@@ -85,7 +84,7 @@ public class SelectedBlobsDetailPanel {
       .distinct()
       .collect(Collectors.toSet());
 
-    tagTree_.setData(new Hierarchy<>(allTags));
+    tagTree_.setData(allTags);
     tagTree_.expandCollapseAll(true);
 
     if (blobs.size() == 1) {

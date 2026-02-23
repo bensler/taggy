@@ -26,7 +26,6 @@ import com.bensler.decaf.swing.tree.CheckboxTree;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.decaf.util.tree.Hierarchical;
-import com.bensler.decaf.util.tree.Hierarchy;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.Tag;
@@ -87,10 +86,10 @@ public class AddImagesTagsDialog extends BasicContentPanel<List<Blob>, Set<Tag>>
   }
 
   private void setAssignedTags(Set<Tag> checkedTags) {
-    assignedTags_.setData(new Hierarchy<>(checkedTags.stream()
+    assignedTags_.setData(checkedTags.stream()
       .flatMap(tag -> Hierarchical.toPath(tag).stream())
       .distinct()
-      .collect(Collectors.toSet())));
+      .collect(Collectors.toSet()));
     assignedTags_.setCheckedNodes(checkedTags);
     assignedTags_.expandCollapseAll(true);
   }

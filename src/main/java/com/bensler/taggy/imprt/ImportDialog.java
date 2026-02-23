@@ -48,7 +48,6 @@ import com.bensler.decaf.swing.view.SimpleCellRenderer;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.decaf.util.tree.Hierarchical;
-import com.bensler.decaf.util.tree.Hierarchy;
 import com.bensler.taggy.App;
 import com.bensler.taggy.imprt.FileToImport.ImportObstacle;
 import com.bensler.taggy.persist.DbAccess;
@@ -231,7 +230,7 @@ class ImportDialog extends JDialog {
         collector.add(newInitialTag);
       } while((newInitialTag = newInitialTag.getParent()) != null);
     });
-    initialTag_.setData(new Hierarchy<>(collector));
+    initialTag_.setData(collector);
     initialTag_.expandCollapseAll(true);
   }
 
@@ -336,7 +335,7 @@ class ImportDialog extends JDialog {
   }
 
   private void displaySrcFolder() {
-    srcFolder_.setData(new Hierarchy<>(Hierarchical.toPath(new UiFile(importController_.getImportDir()))));
+    srcFolder_.setData(Hierarchical.toPath(new UiFile(importController_.getImportDir())));
     srcFolder_.expandCollapseAll(true);
   }
 

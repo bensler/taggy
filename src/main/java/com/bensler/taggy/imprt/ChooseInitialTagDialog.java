@@ -32,7 +32,7 @@ public class ChooseInitialTagDialog extends BasicContentPanel<Tag, Tag> {
     allTags_ = new EntityTree<>(TagUi.NAME_VIEW, Tag.class);
     allTags_.setVisibleRowCount(20, 1);
     add(allTags_.getScrollPane(), new CellConstraints(1, 1));
-    App.getApp().getTagCtrl().setAllTags(allTags_);
+    allTags_.setData(App.getApp().getTagCtrl().getAllTags());
   }
 
   @Override

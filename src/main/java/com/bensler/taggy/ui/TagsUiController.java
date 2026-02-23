@@ -2,6 +2,7 @@ package com.bensler.taggy.ui;
 
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
 import static com.bensler.decaf.util.function.ForEachMapperAdapter.forEachMapper;
+import static com.bensler.decaf.util.stream.Collectors.toMap;
 import static com.bensler.taggy.App.getApp;
 import static com.bensler.taggy.persist.TagProperty.REPRESENTED_DATE;
 import static com.bensler.taggy.ui.Icons.EDIT_13;
@@ -21,6 +22,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.ActionGroup;
@@ -31,9 +33,8 @@ import com.bensler.decaf.swing.awt.OverlayIcon.Overlay;
 import com.bensler.decaf.swing.dialog.ConfirmationDialog;
 import com.bensler.decaf.swing.dialog.DialogAppearance;
 import com.bensler.decaf.swing.dialog.OkCancelDialog;
-import com.bensler.decaf.swing.tree.EntityTree;
 import com.bensler.decaf.util.Pair;
-import com.bensler.decaf.util.stream.Collectors;
+import com.bensler.decaf.util.tree.Hierarchical;
 import com.bensler.decaf.util.tree.Hierarchy;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
@@ -65,7 +66,7 @@ public class TagsUiController {
       .map(forEachMapper(allTags_::add))
       .map(tag -> new Pair<>(tag.containsProperty(REPRESENTED_DATE), tag))
       .filter(pair -> pair.getLeft().isPresent())
-      .collect(Collectors.toMap(pair -> pair.getLeft().get(), Pair::getRight, HashMap::new));
+      .collect(toMap(pair -> pair.getLeft().get(), Pair::getRight, HashMap::new));
     editTagAction_ = new UiAction(
       new ActionAppearance(new OverlayIcon(TAG_SIMPLE_13, new Overlay(EDIT_13, SE)), TagDialog.Edit.ICON, "Edit Tag", "Edit currently selected Tag"),
       FilteredAction.one(Tag.class, TagUi.TAG_FILTER, this::editTagUi)
@@ -81,6 +82,25 @@ public class TagsUiController {
     deleteTagAction_ = new UiAction(
       new ActionAppearance(new OverlayIcon(TAG_SIMPLE_13, new Overlay(X_10, SE)), null, "Delete Tag", "Remove currently selected Tag"),
       FilteredAction.one(Tag.class, this::isLeaf, this::deleteTagUi)
+    );
+  }
+
+  public Set<Tag> getAllTagsFiltered(String filterStr) {
+    final String matchStr = filterStr.toLowerCase().trim();
+    final Set<Tag> allNodes = allTags_.getMembers();
+
+    System.out.println("###############");
+    return allNodes.stream()
+    .filter(tag -> matchTag(tag, matchStr))
+    .flatMap(tag -> allTags_.getSubHierarchyMembers(tag).stream())
+    .flatMap(tag -> Hierarchical.toPath(tag).stream())
+    .distinct().collect(Collectors.toSet());
+  }
+
+  private boolean matchTag(Tag tag, String pattern) {
+    return (
+      tag.getName().toLowerCase().contains(pattern)
+      || tag.containsProperty(REPRESENTED_DATE).stream().anyMatch(dateStr -> dateStr.contains(pattern))
     );
   }
 
@@ -135,12 +155,8 @@ public class TagsUiController {
     return persistNewTag(new Tag(datesRootTag, propertyDateYear, Map.of(REPRESENTED_DATE, propertyDateYear)));
   }
 
-  public void setAllTags(EntityTree<Tag> tree) {
-    tree.setData(allTags_);
-  }
-
-  private Hierarchy<Tag> getAllTags() {
-    return new Hierarchy<>(allTags_.getMembers());
+  public Set<Tag> getAllTags() {
+    return allTags_.getMembers();
   }
 
   private void deleteTag(Tag tag) {
@@ -194,7 +210,7 @@ public class TagsUiController {
   }
 
   private void createTagUi(Optional<Tag> parentTag) {
-    new OkCancelDialog<>(getApp().getMainFrameFrame(), new TagDialog.Create(getAllTags())).show(
+    new OkCancelDialog<>(getApp().getMainFrameFrame(), new TagDialog.Create()).show(
       parentTag, this::persistNewTag
     );
   }
@@ -206,7 +222,7 @@ public class TagsUiController {
   }
 
   private void editTagUi(Tag tag) {
-    new OkCancelDialog<>(getApp().getMainFrameFrame(), new TagDialog.Edit(getAllTags())).show(
+    new OkCancelDialog<>(getApp().getMainFrameFrame(), new TagDialog.Edit()).show(
       tag, this::updateTag
     );
   }

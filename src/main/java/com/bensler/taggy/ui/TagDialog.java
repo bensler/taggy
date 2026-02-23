@@ -33,12 +33,12 @@ public abstract class TagDialog<IN, OUT> extends BasicContentPanel<IN, OUT> {
   protected final JTextField nameTextfield_;
   protected final Hierarchy<Tag> allTags_;
 
-  protected TagDialog(Hierarchy<Tag> allTags, DialogAppearance appearance) {
+  protected TagDialog(DialogAppearance appearance) {
     super(appearance, new FormLayout(
       "r:p, 3dlu, f:p:g",
       "f:p:g, 3dlu, c:p"
     ));
-    allTags_ = allTags;
+    allTags_ = new Hierarchy<>(App.getApp().getTagCtrl().getAllTags());
 
     final CellConstraints cc = new CellConstraints();
 
@@ -92,8 +92,8 @@ public abstract class TagDialog<IN, OUT> extends BasicContentPanel<IN, OUT> {
 
     public final static OverlayIcon ICON = new OverlayIcon(TAG_48, new Overlay(PLUS_30, SE));
 
-    public Create(Hierarchy<Tag> allTags) {
-      super(allTags, new DialogAppearance(ICON, "Create Tag", "Create a New Tag", true));
+    public Create() {
+      super(new DialogAppearance(ICON, "Create Tag", "Create a New Tag", true));
     }
 
     @Override
@@ -113,8 +113,8 @@ public abstract class TagDialog<IN, OUT> extends BasicContentPanel<IN, OUT> {
 
     public static final OverlayIcon ICON = new OverlayIcon(TAG_48, new Overlay(EDIT_30, SE));
 
-    public Edit(Hierarchy<Tag> allTags) {
-      super(allTags, new DialogAppearance(ICON, "Edit Tag", "Edit an existing Tag", true));
+    public Edit() {
+      super(new DialogAppearance(ICON, "Edit Tag", "Edit an existing Tag", true));
     }
 
     @Override
