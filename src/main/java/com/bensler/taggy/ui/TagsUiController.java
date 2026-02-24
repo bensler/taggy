@@ -89,7 +89,6 @@ public class TagsUiController {
     final String matchStr = filterStr.toLowerCase().trim();
     final Set<Tag> allNodes = allTags_.getMembers();
 
-    System.out.println("###############");
     return allNodes.stream()
     .filter(tag -> matchTag(tag, matchStr))
     .flatMap(tag -> allTags_.getSubHierarchyMembers(tag).stream())

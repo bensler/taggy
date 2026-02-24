@@ -70,9 +70,10 @@ public class MainFrame {
     tagTree_.setCtxActions(new FocusedComponentActionController(tagCtrl_.getAllTagActions(), Set.of(tagTree_)));
     app.addEntityChangeListener(app.putZombie(this, new EntityChangeListenerTreeAdapter<>(tagTree_)), Tag.class);
     frame_.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-    tagTree_.setData(tagCtrl_.getAllTags());
+
+    final AllTagsTreeFiltered filteredTagsTree = new AllTagsTreeFiltered(app, tagTree_);
     final JSplitPane leftSplitpane = new JSplitPane(HORIZONTAL_SPLIT, true,
-      tagTree_.getScrollPane(), thumbnails_
+      filteredTagsTree.getComponent(), thumbnails_
     );
     final JSplitPane rightSplitpane = new JSplitPane(HORIZONTAL_SPLIT, true,
       leftSplitpane, selectionTagPanel.getComponent()
