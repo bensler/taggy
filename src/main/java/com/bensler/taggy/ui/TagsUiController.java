@@ -89,11 +89,15 @@ public class TagsUiController {
     final String matchStr = filterStr.toLowerCase().trim();
     final Set<Tag> allNodes = allTags_.getMembers();
 
-    return allNodes.stream()
-    .filter(tag -> matchTag(tag, matchStr))
-    .flatMap(tag -> allTags_.getSubHierarchyMembers(tag).stream())
-    .flatMap(tag -> Hierarchical.toPath(tag).stream())
-    .distinct().collect(Collectors.toSet());
+    if (matchStr.isEmpty()) {
+      return allNodes;
+    } else {
+      return allNodes.stream()
+      .filter(tag -> matchTag(tag, matchStr))
+      .flatMap(tag -> allTags_.getSubHierarchyMembers(tag).stream())
+      .flatMap(tag -> Hierarchical.toPath(tag).stream())
+      .distinct().collect(Collectors.toSet());
+    }
   }
 
   private boolean matchTag(Tag tag, String pattern) {

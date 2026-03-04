@@ -39,8 +39,10 @@ public class AllTagsTreeFiltered {
     final String matchStr = filterStr.toLowerCase().trim();
     final boolean filtering = !matchStr.isEmpty();
 
-    tagTree_.setData(filtering ? tagCtrl_.getAllTagsFiltered(filterStr) : tagCtrl_.getAllTags());
-    tagTree_.expandCollapseAll(filtering);
+    tagTree_.setData(tagCtrl_.getAllTagsFiltered(filterStr));
+    if (filtering) {
+      tagTree_.expandCollapseAll(filtering);
+    }
   }
 
   public JPanel getComponent() {
