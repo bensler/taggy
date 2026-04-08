@@ -116,22 +116,6 @@ CREATE INDEX "idx_entity_relationship_type_name"        ON "entity_relationship"
 CREATE INDEX "idx_entity_relationship_source_entity_id" ON "entity_relationship" ("source_entity_id");
 CREATE INDEX "idx_entity_relationship_target_entity_id" ON "entity_relationship" ("target_entity_id");
 
---INSERT INTO "entity_type" (
---  "name",                             "parent_name"
---) VALUES 
---  ("com.bensler.taggy.persist.Tag",   null),
---  ("com.bensler.taggy.persist.Blob",  null),
---  ("com.bensler.taggy.persist.Image", "com.bensler.taggy.persist.Blob");
-
---INSERT INTO "entity_property" (
---  "id", "entity_type_name",              "name", "entity_property_type_name"
---) VALUES
--- (  10, "com.bensler.taggy.persist.Tag",   "name",           "String"),
--- (  11, "com.bensler.taggy.persist.Tag",   "parent",         "Entity"),
--- (  20, "com.bensler.taggy.persist.Blob",  "file",           "String"),
--- (  21, "com.bensler.taggy.persist.Blob",  "type",           "String"),
--- (  30, "com.bensler.taggy.persist.Image", "fullScaleImage", "Entity");
-
 --INSERT INTO "entity_relationship_type" (
 --  "name"
 --) VALUES
