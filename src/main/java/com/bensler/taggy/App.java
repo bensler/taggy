@@ -20,6 +20,8 @@ import com.bensler.taggy.imprt.ImportController;
 import com.bensler.taggy.imprt.Thumbnailer;
 import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.persist.DbConnector;
+import com.bensler.taggy.persist.DbSetup;
+import com.bensler.taggy.persist.EntityPropertyType;
 import com.bensler.taggy.persist.SqliteDbConnector;
 import com.bensler.taggy.persist.v1.BlobDbMapper;
 import com.bensler.taggy.persist.v1.TagDbMapper;
@@ -84,6 +86,10 @@ public class App {
     dbAccess_ = new DbAccess(con);
     final TagDbMapper tagDbMapper = dbAccess_.registerMapper(new TagDbMapper(dbAccess_));
     final BlobDbMapper blobDbMapper = dbAccess_.registerMapper(new BlobDbMapper(dbAccess_));
+
+    dbAccess_.runInTxn(() -> EntityPropertyType.persist(dbAccess_));
+    dbAccess_.runInTxn(() -> new DbSetup(dbAccess_));
+
     prefs_ = new PrefsStorage(new File(getBaseDir(), "prefs.xml"));
     blobCtrl_ = new BlobController(blobDbMapper, dataDir, FOLDER_PATTERN);
     tagCtrl_ = new TagsUiController(tagDbMapper, this);
