@@ -84,7 +84,7 @@ public class DbSetup {
             generatedKeys = stmt.executeQuery();
             generatedKeys.next();
             if (propIdCollector.containsKey(prop)) {
-              throw new IllegalStateException("Duplicate use of property \"%s:%s\"".formatted(prop.getName(),prop.getType().name()));
+              throw new IllegalStateException("Duplicate use of property \"%s:%s\" in EntityType \"%s\" ".formatted(prop.getName(), prop.getType().name(), typeName));
             } else {
               propIdCollector.put(prop, generatedKeys.getInt(1));
             }
