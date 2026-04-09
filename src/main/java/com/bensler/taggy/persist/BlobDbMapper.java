@@ -22,16 +22,7 @@ public class BlobDbMapper extends AbstractDbMapper<Blob> {
   }
 
   @Override
-  public List<Blob> loadAll() {
-    return loadAllBlobs(Set.of());
-  }
-
-  @Override
-  public List<Blob> loadAll(Collection<Integer> ids) {
-    return ids.isEmpty() ? List.of() : loadAllBlobs(ids);
-  }
-
-  private List<Blob> loadAllBlobs(Collection<Integer> ids) {
+  protected List<Blob> loadAllEntities(Collection<Integer> ids) {
     final Map<Integer, Map<String, String>> properties = new HashMap<>();
     final Map<Integer, Set<EntityReference<Tag>>> tags = new HashMap<>();
     final List<Blob> blobs = new ArrayList<>();

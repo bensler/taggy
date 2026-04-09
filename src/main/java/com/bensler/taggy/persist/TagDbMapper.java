@@ -35,16 +35,7 @@ public class TagDbMapper extends AbstractDbMapper<Tag> {
   }
 
   @Override
-  public List<Tag> loadAll() {
-    return loadAllTags(Set.of());
-  }
-
-  @Override
-  public List<Tag> loadAll(Collection<Integer> ids) {
-    return ids.isEmpty() ? List.of() : loadAllTags(ids);
-  }
-
-  private List<Tag> loadAllTags(Collection<Integer> ids) {
+  protected List<Tag> loadAllEntities(Collection<Integer> ids) {
     final Map<Integer, Map<TagProperty, String>> properties = new HashMap<>();
     final Map<Integer, Set<EntityReference<Blob>>> blobs = new HashMap<>();
     final List<Tag> tags = new ArrayList<>();

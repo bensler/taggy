@@ -4,6 +4,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -17,18 +18,26 @@ public abstract class AbstractDbMapper<E extends Entity<E>> implements DbMapper<
     db_ = db;
   }
 
+  @Override
+  public List<E> loadAll() {
+    return loadAllEntities(Set.of());
+  }
+
+  @Override
+  public List<E> loadAll(Collection<Integer> ids) {
+    return ids.isEmpty() ? List.of() : loadAllEntities(ids);
+  }
+
+  protected abstract List<E> loadAllEntities(Collection<Integer> ids);
+
   protected PreparedStatement prepareStmt(String sql, Collection<Integer> ids, String whereClause) throws SQLException {
     final List<Integer> idList = List.copyOf(ids);
     final PreparedStatement stmt = db_.session_.prepareStatement(sql + (idList.isEmpty() ? "" : " WHERE " + whereClause.formatted(
       IntStream.range(0, idList.size()).mapToObj(id -> "?").collect(Collectors.joining(","))
     )));
 
-    try {
-      for (int i = 0; i < idList.size(); i++) {
-        stmt.setInt(i + 1, idList.get(i));
-      }
-    } catch (SQLException sqle) {
-      throw new RuntimeException(sqle);
+    for (int i = 0; i < idList.size(); i++) {
+      stmt.setInt(i + 1, idList.get(i));
     }
     return stmt;
   }
