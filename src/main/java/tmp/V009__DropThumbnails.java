@@ -18,7 +18,7 @@ public class V009__DropThumbnails extends BaseJavaMigration {
   @Override
   public void migrate(Context context) throws Exception {
     final File dataDir = App.getDataDir();
-    final BlobController blobCtrl = new BlobController(dataDir, new int[] {1, 1});
+    final BlobController blobCtrl = new BlobController(null, dataDir, new int[] {1, 1});
     final Connection connection = context.getConnection();
 
     try (
