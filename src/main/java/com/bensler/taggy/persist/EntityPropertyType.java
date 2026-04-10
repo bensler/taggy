@@ -1,5 +1,6 @@
 package com.bensler.taggy.persist;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,12 +15,12 @@ public enum EntityPropertyType {
   ENTITY,
   BLOB;
 
-  public static void persist(DbAccess db) throws SQLException {
+  public static void persist(Connection con) throws SQLException {
     final Set<EntityPropertyType> dbValues = new HashSet<>();
     final List<EntityPropertyType> values = List.of(EntityPropertyType.values());
 
     try (
-      PreparedStatement stmt = db.session_.prepareStatement("SELECT name FROM entity_property_type");
+      PreparedStatement stmt = con.prepareStatement("SELECT name FROM entity_property_type");
       ResultSet result = stmt.executeQuery();
     ) {
       while (result.next()) {
@@ -28,7 +29,7 @@ public enum EntityPropertyType {
     }
     if (dbValues.size() < values.size()) {
       try (
-        PreparedStatement stmt = db.session_.prepareStatement("INSERT INTO entity_property_type (name) VALUES (?)");
+        PreparedStatement stmt = con.prepareStatement("INSERT INTO entity_property_type (name) VALUES (?)");
       ) {
         for (EntityPropertyType type : values) {
           if (!dbValues.contains(type)) {
