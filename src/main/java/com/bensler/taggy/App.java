@@ -87,8 +87,8 @@ public class App {
     final TagDbMapper tagDbMapper = dbAccess_.registerMapper(new TagDbMapper(dbAccess_));
     final BlobDbMapper blobDbMapper = dbAccess_.registerMapper(new BlobDbMapper(dbAccess_));
 
-    dbAccess_.runInTxn(() -> EntityPropertyType.persist(dbAccess_));
-    dbAccess_.runInTxn(() -> new DbSetup(dbAccess_));
+    dbAccess_.runInTxn(() -> EntityPropertyType.persist(con));
+    dbAccess_.runInTxn(() -> new DbSetup(con));
 
     prefs_ = new PrefsStorage(new File(getBaseDir(), "prefs.xml"));
     blobCtrl_ = new BlobController(blobDbMapper, dataDir, FOLDER_PATTERN);

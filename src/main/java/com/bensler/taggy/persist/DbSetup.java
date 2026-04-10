@@ -5,6 +5,7 @@ import static com.bensler.taggy.persist.EntityPropertyType.STRING;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -40,17 +41,17 @@ public class DbSetup {
 
   private final Map<EntityProperty, Integer> propertyIds_;
 
-  public DbSetup(DbAccess db) throws SQLException {
-    propertyIds_ = setupPropertyIds(db, List.of(E_TAG, E_BLOB, E_IMAGE));
+  public DbSetup(Connection con) throws SQLException {
+    propertyIds_ = setupPropertyIds(con, List.of(E_TAG, E_BLOB, E_IMAGE));
   }
 
-  private Map<EntityProperty, Integer> setupPropertyIds(DbAccess db, List<EntityType<?>> types) throws SQLException {
+  private Map<EntityProperty, Integer> setupPropertyIds(Connection con, List<EntityType<?>> types) throws SQLException {
     final Map<EntityProperty, Integer> propIdCollector = new HashMap<>();
-    final Map<String, EntityType<?>> typesByName = setupEntityIds(db, types);
+    final Map<String, EntityType<?>> typesByName = setupEntityIds(con, types);
     final Map<String, Set<EntityProperty>> propsToInsert = types.stream().collect(toMap(EntityType::getClassName, EntityType::getProperties));
 
     try (
-      PreparedStatement stmt = db.session_.prepareStatement("SELECT id, entity_type_name, name, entity_property_type_name FROM entity_property");
+      PreparedStatement stmt = con.prepareStatement("SELECT id, entity_type_name, name, entity_property_type_name FROM entity_property");
       ResultSet result = stmt.executeQuery();
     ) {
       while (result.next()) {
@@ -69,7 +70,7 @@ public class DbSetup {
     }
     if (propsToInsert.values().stream().flatMap(Set::stream).findAny().isPresent()) {
       try (
-        PreparedStatement stmt = db.session_.prepareStatement(
+        PreparedStatement stmt = con.prepareStatement(
           "INSERT INTO entity_property (entity_type_name, name, entity_property_type_name) VALUES (?, ?, ?) RETURNING id", Statement.RETURN_GENERATED_KEYS
         );
       ) {
@@ -95,12 +96,12 @@ public class DbSetup {
     return propIdCollector;
   }
 
-  private Map<String, EntityType<?>> setupEntityIds(DbAccess db, List<EntityType<?>> types) throws SQLException {
+  private Map<String, EntityType<?>> setupEntityIds(Connection con, List<EntityType<?>> types) throws SQLException {
     final Map<String, EntityType<?>> typesByName = types.stream().collect(toMap(EntityType::getClassName, identity()));
 
     types = new ArrayList<>(types);
     try (
-      PreparedStatement stmt = db.session_.prepareStatement("SELECT name, parent_name FROM entity_type");
+      PreparedStatement stmt = con.prepareStatement("SELECT name, parent_name FROM entity_type");
       ResultSet result = stmt.executeQuery();
     ) {
       while (result.next()) {
@@ -117,7 +118,7 @@ public class DbSetup {
     }
     if (!types.isEmpty()) {
       try (
-        PreparedStatement stmt = db.session_.prepareStatement("INSERT INTO entity_type (name, parent_name) VALUES (?, ?)");
+        PreparedStatement stmt = con.prepareStatement("INSERT INTO entity_type (name, parent_name) VALUES (?, ?)");
       ) {
         for (EntityType<?> type : types) {
           stmt.setString(1, type.getClassName());
