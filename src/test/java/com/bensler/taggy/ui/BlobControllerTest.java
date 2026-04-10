@@ -32,13 +32,13 @@ class BlobControllerTest {
 
   @Test
   void createBlobController_happyCase() {
-    assertDoesNotThrow(() -> new BlobController(tmpDir, new int[] {2, 2, 2}));
+    assertDoesNotThrow(() -> new BlobController(null, tmpDir, new int[] {2, 2, 2}));
   }
 
   @Test
   void createBlobController_tmpDirDoesNotExist() {
     final IllegalArgumentException iae = assertThrows(IllegalArgumentException.class, () ->
-      new BlobController(new File(tmpDir, "subDir"), new int[] {2, 2, 2})
+      new BlobController(null, new File(tmpDir, "subDir"), new int[] {2, 2, 2})
     );
 
     final String iaeMessage = iae.getMessage();
@@ -52,7 +52,7 @@ class BlobControllerTest {
     final File file = new File(tmpDir, "SampleContent.bin");
     Files.copy(new ByteArrayInputStream(SAMPLE_CONTENT), file.toPath());
 
-    final String hash = new BlobController(tmpDir, new int[] {2, 2, 2}).hashFile(file);
+    final String hash = new BlobController(null, tmpDir, new int[] {2, 2, 2}).hashFile(file);
 
     assertEquals(SAMPLE_CONNTENT_HASH, hash);
   }
@@ -62,7 +62,7 @@ class BlobControllerTest {
   void storeFile(boolean keepSource) throws NoSuchAlgorithmException, IOException {
     final File sourceFile = new File(tmpDir, "sourceFile.dat");
     Files.write(sourceFile.toPath(), SAMPLE_CONTENT);
-    final BlobController uut = new BlobController(tmpDir, new int[] {2, 2, 2});
+    final BlobController uut = new BlobController(null, tmpDir, new int[] {2, 2, 2});
     // act
     final String sourceHash = uut.storeBlob(sourceFile, keepSource);
     final File storedBlob = uut.getFile(sourceHash);
@@ -86,7 +86,7 @@ class BlobControllerTest {
 
     tmpDirFile.createNewFile();
     final IllegalArgumentException iae = assertThrows(IllegalArgumentException.class, () ->
-      new BlobController(tmpDirFile, new int[] {2, 2, 2})
+      new BlobController(null, tmpDirFile, new int[] {2, 2, 2})
     );
 
     final String iaeMessage = iae.getMessage();
@@ -97,7 +97,7 @@ class BlobControllerTest {
   @Test
   void createBlobController_folderPathComponentMustBeLargerThanZero() {
     final IllegalArgumentException iae = assertThrows(IllegalArgumentException.class, () ->
-      new BlobController(tmpDir, new int[] {1, 0, 2})
+      new BlobController(null, tmpDir, new int[] {1, 0, 2})
     );
 
     assertEquals("All folderPattern elements must be larger than 1. \"0\" violates that.", iae.getMessage());
@@ -106,7 +106,7 @@ class BlobControllerTest {
   @Test
   void createBlobController_sumOfFolderPathComponentsTooLarge() {
     final IllegalArgumentException iae = assertThrows(IllegalArgumentException.class, () ->
-      new BlobController(tmpDir, new int[] {1, 2, 4, 8, 16, 32, 5})
+      new BlobController(null, tmpDir, new int[] {1, 2, 4, 8, 16, 32, 5})
     );
 
     assertEquals("Sum of folderPattern array is 68 but must be <=64.", iae.getMessage());
