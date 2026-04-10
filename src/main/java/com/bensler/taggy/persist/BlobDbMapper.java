@@ -15,14 +15,14 @@ import java.util.Set;
 import com.bensler.decaf.util.entity.Entity;
 import com.bensler.decaf.util.entity.EntityReference;
 
-public class BlobDbMapper extends AbstractDbMapper<Blob> {
+public class BlobDbMapper extends DbMapper<Blob> {
 
   BlobDbMapper(DbAccess db) {
     super(db);
   }
 
   @Override
-  protected List<Blob> loadAllEntities(Collection<Integer> ids) {
+  public List<Blob> loadAllEntities(List<Integer> ids) {
     final Map<Integer, Map<String, String>> properties = new HashMap<>();
     final Map<Integer, Set<EntityReference<Tag>>> tags = new HashMap<>();
     final List<Blob> blobs = new ArrayList<>();
@@ -50,14 +50,12 @@ public class BlobDbMapper extends AbstractDbMapper<Blob> {
       ) {
         while (result.next()) {
           final Integer blobId = result.getInt(1);
-          final Blob blob = new Blob(
+
+          blobs.add(new Blob(
             blobId, result.getString(2), result.getString(3), result.getString(4),
             properties.computeIfAbsent(blobId, lBlobId -> Map.of()),
             tags.computeIfAbsent(blobId, lBlobId -> Set.of())
-          );
-
-          db_.addToCache(blob);
-          blobs.add(blob);
+          ));
         }
         return blobs;
       }

@@ -45,14 +45,7 @@ public class DbAccess {
   }
 
   public <E extends Entity<E>> List<E> loadAll(Class<E> clazz) {
-    return mapper_.get(clazz).loadAll().stream()
-      .map(clazz::cast)
-      .map(forEachMapper(entity -> entityCache_.put(new EntityReference<>(entity), entity)))
-      .toList();
-  }
-
-  public <E extends Entity<E>> void addToCache(E entity) {
-    entityCache_.put(new EntityReference<>(entity), entity);
+    return loadEntities(clazz, List.of());
   }
 
   public void deleteNoTxn(Entity<?> entity) throws SQLException {
@@ -94,11 +87,25 @@ public class DbAccess {
     return resolve(ref.get());
   }
 
-  public <E extends Entity<E>> E load(EntityReference<E> reference) {
-    final Class<E> entityClass = reference.getEntityClass();
-    final List<?> entities = mapper_.get(entityClass).loadAll(List.of(reference.getId()));
+  private <E extends Entity<E>> void addToCache(E entity) {
+    entityCache_.put(new EntityReference<>(entity), entity);
+  }
 
-    return (!entities.isEmpty() ? entityClass.cast(entities.get(0)) : null);
+  private <E extends Entity<E>> List<E> loadEntities(Class<E> entityClass, List<Integer> refs) {
+    return mapper_.get(entityClass).loadAllEntities(refs).stream()
+    .map(entityClass::cast)
+    .map(forEachMapper(this::addToCache))
+    .toList();
+  }
+
+  public <E extends Entity<E>> E load(EntityReference<E> reference) {
+    final List<E> entities = loadEntities(reference.getEntityClass(), List.of(reference.getId()));
+
+    if (entities.isEmpty()) {
+      throw new IllegalStateException("Could not resolve \"%s\"".formatted(reference));
+    } else {
+      return entities.get(0);
+    }
   }
 
   public <ENTITY extends Entity<ENTITY>, CIN extends Collection<EntityReference<ENTITY>>, COUT extends Collection<ENTITY>> COUT resolveAll(
@@ -120,17 +127,12 @@ public class DbAccess {
     CIN references, COUT collector
   ) {
     if (!references.isEmpty()) {
-      loadAll(references.iterator().next().getEntityClass(), references, collector);
+      collector.addAll(loadEntities(
+        references.iterator().next().getEntityClass(),
+        references.stream().map(EntityReference::getId).toList()
+      ));
     }
     return collector;
-  }
-
-  <ENTITY extends Entity<ENTITY>, CIN extends Collection<EntityReference<ENTITY>>, COUT extends Collection<ENTITY>> void loadAll(
-    Class<ENTITY> entityClass, CIN references, COUT collector
-  ) {
-    collector.addAll(mapper_.get(entityClass).loadAll(
-      references.stream().map(EntityReference::getId).toList()
-    ).stream().map(entityClass::cast).toList());
   }
 
   public <E extends Entity<E>> E resolve(EntityReference<E> entityRef) {

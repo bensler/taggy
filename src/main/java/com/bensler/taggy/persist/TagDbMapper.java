@@ -15,7 +15,7 @@ import java.util.Set;
 import com.bensler.decaf.util.entity.Entity;
 import com.bensler.decaf.util.entity.EntityReference;
 
-public class TagDbMapper extends AbstractDbMapper<Tag> {
+public class TagDbMapper extends DbMapper<Tag> {
 
   public static class TagHeadData {
 
@@ -35,7 +35,7 @@ public class TagDbMapper extends AbstractDbMapper<Tag> {
   }
 
   @Override
-  protected List<Tag> loadAllEntities(Collection<Integer> ids) {
+  public List<Tag> loadAllEntities(List<Integer> ids) {
     final Map<Integer, Map<TagProperty, String>> properties = new HashMap<>();
     final Map<Integer, Set<EntityReference<Blob>>> blobs = new HashMap<>();
     final List<Tag> tags = new ArrayList<>();
@@ -64,15 +64,13 @@ public class TagDbMapper extends AbstractDbMapper<Tag> {
         while (result.next()) {
           final Integer tagId = result.getInt(1);
           final Integer parentId = (Integer)result.getObject(3);
-          final Tag tag = new Tag(
+
+          tags.add(new Tag(
             tagId, ((parentId != null) ? new EntityReference<>(Tag.class, parentId) : null),
             result.getString(2),
             properties.computeIfAbsent(tagId, lTagId -> Map.of()),
             blobs.computeIfAbsent(tagId, lTagId -> Set.of())
-          );
-
-          db_.addToCache(tag);
-          tags.add(tag);
+          ));
         }
         return tags;
       }
