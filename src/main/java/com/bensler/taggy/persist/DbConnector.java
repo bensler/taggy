@@ -15,29 +15,29 @@ import org.flywaydb.core.api.output.MigrateResult;
 
 public class DbConnector {
 
-  protected final String dbUrl;
-  protected final String migrationPath;
-  protected final Connection session;
+  protected final String dbUrl_;
+  protected final String migrationPath_;
+  protected final Connection connection_;
 
-  protected DbConnector(String pDbUrl, String pMigrationPath) throws SQLException {
+  protected DbConnector(String dbUrl, String migrationPath) throws SQLException {
     final Properties props = new Properties();
 
     props.put("foreign_keys", TRUE.toString());
-    session = DriverManager.getConnection(dbUrl = pDbUrl, props);
+    connection_ = DriverManager.getConnection(dbUrl_ = dbUrl, props);
     // first start on an non existing data dir
-    final File dbFile = new File(new LinkedList<>(Arrays.asList(dbUrl.split(":"))).getLast());
+    final File dbFile = new File(new LinkedList<>(Arrays.asList(dbUrl_.split(":"))).getLast());
     if (!dbFile.exists()) {
       dbFile.getParentFile().mkdirs();
     }
-    migrationPath = pMigrationPath;
+    migrationPath_ = migrationPath;
   }
 
-  public synchronized Connection getSession() {
-    return session;
+  public synchronized Connection getConnection() {
+    return connection_;
   }
 
   public MigrateResult performFlywayMigration() {
-    return Flyway.configure().locations(migrationPath).dataSource(dbUrl, "", "").load().migrate();
+    return Flyway.configure().locations(migrationPath_).dataSource(dbUrl_, "", "").load().migrate();
   }
 
 }

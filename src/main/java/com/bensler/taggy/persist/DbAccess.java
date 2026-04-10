@@ -1,10 +1,12 @@
 package com.bensler.taggy.persist;
 
 import static com.bensler.decaf.util.function.ForEachMapperAdapter.forEachMapper;
+import static java.util.function.Function.identity;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import com.bensler.decaf.util.entity.Entity;
 import com.bensler.decaf.util.entity.EntityReference;
@@ -23,25 +26,13 @@ public class DbAccess {
 
   private final Map<EntityReference<?>, Entity<?>> entityCache_;
   private final Map<Class<?>, DbMapper<?>> mapper_;
+  private final Connection connection_;
 
-  final Connection session_;
-
-  public DbAccess(Connection session) throws SQLException {
-    (session_ = session).setAutoCommit(false);
+  public DbAccess(Connection connection, DbMapper<?>... mappers) throws SQLException {
+    (connection_ = connection).setAutoCommit(false);
     entityCache_ = new HashMap<>();
-    mapper_ = Map.of(
-      Tag.class, new TagDbMapper(session),
-      Blob.class, new BlobDbMapper(session)
-    );
+    mapper_ = Arrays.stream(mappers).collect(Collectors.toMap(DbMapper::getEntityClass, identity()));
     INSTANCE.set(this);
-  }
-
-  public BlobDbMapper getBlobDbMapper() {
-    return (BlobDbMapper)mapper_.get(Blob.class);
-  }
-
-  public TagDbMapper getTagDbMapper() {
-    return (TagDbMapper)mapper_.get(Tag.class);
   }
 
   public <E extends Entity<E>> List<E> loadAll(Class<E> clazz) {
@@ -144,7 +135,7 @@ public class DbAccess {
   public void runInTxn(PersistentWrite write) {
     try {
       write.runInTxn();
-      session_.commit();
+      connection_.commit();
     } catch (SQLException sqle) {
       rollback();
       throw new RuntimeException(sqle);
@@ -154,14 +145,14 @@ public class DbAccess {
 
   public void rollback() {
     try {
-      session_.rollback();
+      connection_.rollback();
     } catch (SQLException sqle) {
       throw new RuntimeException(sqle);
     }
   }
 
   public PreparedStatement prepareStatement(String sql) throws SQLException {
-    return session_.prepareStatement(sql);
+    return connection_.prepareStatement(sql);
   }
 
 }

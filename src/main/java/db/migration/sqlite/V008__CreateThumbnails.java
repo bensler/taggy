@@ -20,29 +20,31 @@ import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.taggy.App;
 import com.bensler.taggy.imprt.Thumbnailer;
 import com.bensler.taggy.persist.Blob;
+import com.bensler.taggy.persist.BlobDbMapper;
 import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.ui.BlobController;
 
 public class V008__CreateThumbnails extends BaseJavaMigration {
 
   private final File dataDir_;
-  private final BlobController blobCtrl_;
   private final Thumbnailer thumbnailer_;
+  private BlobController blobCtrl_;
 
-  public V008__CreateThumbnails() throws NoSuchAlgorithmException {
+  public V008__CreateThumbnails() {
     dataDir_ = App.getDataDir();
-    blobCtrl_ = new BlobController(dataDir_, new int[] {1, 1});
     thumbnailer_ = new Thumbnailer(dataDir_);
   }
 
   @Override
-  public void migrate(Context context) throws SQLException, InterruptedException {
+  public void migrate(Context context) throws SQLException, InterruptedException, NoSuchAlgorithmException {
     final Connection connection = context.getConnection();
-    final DbAccess db = new DbAccess(connection);
+    final BlobDbMapper blobDbMapper = new BlobDbMapper(connection);
+    final DbAccess db = new DbAccess(connection, blobDbMapper);
     final int workerCount = 4;
     final Semaphore semaphore = new Semaphore(workerCount);
     final long startMillis = System.currentTimeMillis();
 
+    blobCtrl_ = new BlobController(blobDbMapper, dataDir_, new int[] {1, 1});
     try (
       PreparedStatement updateStatement = connection.prepareStatement("UPDATE blob SET thumbnail_sha = ? WHERE id = ?");
       Statement statement = connection.createStatement();

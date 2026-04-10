@@ -40,6 +40,7 @@ import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.persist.Tag;
+import com.bensler.taggy.persist.TagDbMapper;
 import com.bensler.taggy.persist.TagDbMapper.TagHeadData;
 
 public class TagsUiController {
@@ -52,6 +53,7 @@ public class TagsUiController {
   public static final DateTimeFormatter UI_WEEK_DAY_FORMATTER = DateTimeFormatter.ofPattern("d (E)");
   public static final String VALUE_DATE_ROOT = "dateRoot";
 
+  private final TagDbMapper dbMapper_;
   private final Hierarchy<Tag> allTags_;
   private final Map<String, Tag> dateTags_;
 
@@ -60,7 +62,8 @@ public class TagsUiController {
   private final UiAction newTimelineTagAction_;
   private final UiAction deleteTagAction_;
 
-  public TagsUiController(App app) {
+  public TagsUiController(TagDbMapper tagDbMapper, App app) {
+    dbMapper_ = tagDbMapper;
     allTags_ = new Hierarchy<>();
     dateTags_ = app.getDbAccess().loadAll(Tag.class).stream()
       .map(forEachMapper(allTags_::add))
@@ -191,7 +194,7 @@ public class TagsUiController {
     final Tag editedTag;
     final Tag oldTag = db.resolve(tagHeadData.subject_);
 
-    db.runInTxn(() -> db.getTagDbMapper().updateHeadData(tagHeadData));
+    db.runInTxn(() -> dbMapper_.updateHeadData(tagHeadData));
     editedTag =  db.refresh(tagHeadData.subject_);
     allTags_.add(editedTag);
     removeFromDateTags(oldTag);

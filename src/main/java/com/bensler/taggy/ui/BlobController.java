@@ -57,6 +57,7 @@ import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.taggy.App;
 import com.bensler.taggy.imprt.Thumbnailer;
 import com.bensler.taggy.persist.Blob;
+import com.bensler.taggy.persist.BlobDbMapper;
 import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.persist.Tag;
 
@@ -136,12 +137,14 @@ public class BlobController {
   public static final String BLOB_FOLDER_BASE_NAME = "blobs";
   public static final String DIGEST_TYPE_SHA_256 = "SHA-256";
 
+  private final BlobDbMapper dbMapper_;
   private final List<Fragment> pathFragments_;
   private final File blobBasePath_;
   private final MessageDigest digest_;
   private final byte[] buffer_;
 
-  public BlobController(File blobBasePath, int[] folderPattern) throws NoSuchAlgorithmException {
+  public BlobController(BlobDbMapper dbMapper, File blobBasePath, int[] folderPattern) throws NoSuchAlgorithmException {
+    dbMapper_ = dbMapper;
     buffer_ = new byte[1_000_000];
     digest_ = MessageDigest.getInstance(DIGEST_TYPE_SHA_256);
     final int digestStringLength = digest_.getDigestLength() * 2;
@@ -425,7 +428,7 @@ public class BlobController {
     final Blob newBlob;
     final Set<Tag> updatedTags;
 
-    db.runInTxn(() -> db.getBlobDbMapper().setTags(blobRef, newTags));
+    db.runInTxn(() -> dbMapper_.setTags(blobRef, newTags));
     newBlob = db.refresh(blobRef);
     updatedTags = db.refreshAll(affectedTags);
     app.entityChanged(newBlob);
@@ -440,11 +443,15 @@ public class BlobController {
     final DbAccess dbAccess = getApp().getDbAccess();
 
     try {
-      return dbAccess.resolveAll(dbAccess.getBlobDbMapper().findOrphanBlobs().stream().map(id -> new EntityReference<>(Blob.class, id)).toList(), new ArrayList<Blob>());
+      return dbAccess.resolveAll(dbMapper_.findOrphanBlobs().stream().map(id -> new EntityReference<>(Blob.class, id)).toList(), new ArrayList<Blob>());
     } catch (SQLException sqle) {
       // TODO Auto-generated catch block
       throw new RuntimeException(sqle);
     }
+  }
+
+  public boolean doesBlobExist(String shaHash) throws SQLException {
+    return dbMapper_.doesBlobExist(shaHash);
   }
 
   public String getTagString(Blob blob) {

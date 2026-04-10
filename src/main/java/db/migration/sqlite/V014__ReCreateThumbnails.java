@@ -20,7 +20,7 @@ public class V014__ReCreateThumbnails extends BaseJavaMigration {
 
   public V014__ReCreateThumbnails() throws NoSuchAlgorithmException {
     dataDir_ = App.getDataDir();
-    blobCtrl_ = new BlobController(dataDir_, new int[] {1, 1});
+    blobCtrl_ = new BlobController(null, dataDir_, new int[] {1, 1});
   }
 
   @Override

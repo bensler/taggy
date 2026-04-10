@@ -19,7 +19,7 @@ public class V004__StoreFilesBasedOnSha256Sum extends BaseJavaMigration {
   public void migrate(Context context) throws Exception {
     final Connection connection = context.getConnection();
     final long startMillis = System.currentTimeMillis();
-    final BlobController blobCtrl = new BlobController(App.getDataDir(), new int[] {1, 1});
+    final BlobController blobCtrl = new BlobController(null, App.getDataDir(), new int[] {1, 1});
 
     try (
       Statement statement = connection.createStatement();

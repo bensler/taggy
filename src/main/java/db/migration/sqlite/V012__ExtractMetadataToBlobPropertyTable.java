@@ -28,7 +28,7 @@ public class V012__ExtractMetadataToBlobPropertyTable extends BaseJavaMigration 
 
   public V012__ExtractMetadataToBlobPropertyTable() throws NoSuchAlgorithmException {
     dataDir_ = App.getDataDir();
-    blobCtrl_ = new BlobController(dataDir_, new int[] {1, 1});
+    blobCtrl_ = new BlobController(null, dataDir_, new int[] {1, 1});
   }
 
   @Override

@@ -30,8 +30,8 @@ public class TagDbMapper extends DbMapper<Tag> {
     }
   }
 
-  TagDbMapper(Connection con) {
-    super(con);
+  public TagDbMapper(Connection con) {
+    super(Tag.class, con);
   }
 
   @Override

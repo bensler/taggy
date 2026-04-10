@@ -1,6 +1,7 @@
 package com.bensler.taggy;
 
 import java.io.File;
+import java.sql.Connection;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -17,9 +18,11 @@ import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefsStorage;
 import com.bensler.taggy.imprt.ImportController;
 import com.bensler.taggy.imprt.Thumbnailer;
+import com.bensler.taggy.persist.BlobDbMapper;
 import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.persist.DbConnector;
 import com.bensler.taggy.persist.SqliteDbConnector;
+import com.bensler.taggy.persist.TagDbMapper;
 import com.bensler.taggy.ui.BlobController;
 import com.bensler.taggy.ui.MainFrame;
 import com.bensler.taggy.ui.ResizeThread;
@@ -77,10 +80,13 @@ public class App {
     zombieBox_ = new ZombieBox();
     db_ = new SqliteDbConnector(dataDir, "taggy.sqlite.db");
     db_.performFlywayMigration();
-    dbAccess_ = new DbAccess(db_.getSession());
+    final Connection con = db_.getConnection();
+    final TagDbMapper tagDbMapper = new TagDbMapper(con);
+    final BlobDbMapper blobDbMapper = new BlobDbMapper(con);
+    dbAccess_ = new DbAccess(con, tagDbMapper, blobDbMapper);
     prefs_ = new PrefsStorage(new File(getBaseDir(), "prefs.xml"));
-    blobCtrl_ = new BlobController(dataDir, FOLDER_PATTERN);
-    tagCtrl_ = new TagsUiController(this);
+    blobCtrl_ = new BlobController(blobDbMapper, dataDir, FOLDER_PATTERN);
+    tagCtrl_ = new TagsUiController(tagDbMapper, this);
     importCtrl_ = new ImportController(getBaseDir());
     thumbnailer_ = new Thumbnailer(dataDir);
     resizeThread_ = new ResizeThread();

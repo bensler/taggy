@@ -50,7 +50,6 @@ import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.decaf.util.tree.Hierarchical;
 import com.bensler.taggy.App;
 import com.bensler.taggy.imprt.FileToImport.ImportObstacle;
-import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.persist.Tag;
 import com.bensler.taggy.ui.BlobController;
 import com.bensler.taggy.ui.Icons;
@@ -76,7 +75,6 @@ class ImportDialog extends JDialog {
 
   private final ImportController importController_;
   private final BlobController blobCtrl_;
-  private final DbAccess db_;
   private final EntityTable<FileToImport> files_;
   private final EntityTree<UiFile> srcFolder_;
   private final JButton srcFolderButton_;
@@ -92,7 +90,6 @@ class ImportDialog extends JDialog {
     super(app.getMainFrameFrame(), true);
     importController_ = app.getImportCtrl();
     blobCtrl_ = app.getBlobCtrl();
-    db_ = app.getDbAccess();
     final JPanel mainPanel = new JPanel(new FormLayout(
       "3dlu, f:p:g, 3dlu",
       "f:p, 3dlu, f:p:g, 3dlu"
@@ -321,7 +318,7 @@ class ImportDialog extends JDialog {
             fileToImport.setShaSum(shaSum);
             importController_.putShaSum(file, shaSum);
           }
-          if (db_.getBlobDbMapper().doesBlobExist(shaSum)) {
+          if (blobCtrl_.doesBlobExist(shaSum)) {
             fileToImport.setImportObstacle(ImportObstacle.DUPLICATE, null);
           } else {
             fileToImport.setImportObstacle(null, null);

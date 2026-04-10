@@ -11,10 +11,16 @@ import com.bensler.decaf.util.entity.Entity;
 
 public abstract class DbMapper<E extends Entity<E>> {
 
+  protected final Class<E> entityClass_;
   protected final Connection con_;
 
-  protected DbMapper(Connection con) {
+  protected DbMapper(Class<E> entityClass, Connection con) {
+    entityClass_= entityClass;
     con_ = con;
+  }
+
+  public Class<E> getEntityClass() {
+    return entityClass_;
   }
 
   public abstract void remove(Integer id) throws SQLException;

@@ -17,8 +17,8 @@ import com.bensler.decaf.util.entity.EntityReference;
 
 public class BlobDbMapper extends DbMapper<Blob> {
 
-  BlobDbMapper(Connection con) {
-    super(con);
+  public BlobDbMapper(Connection con) {
+    super(Blob.class, con);
   }
 
   @Override
