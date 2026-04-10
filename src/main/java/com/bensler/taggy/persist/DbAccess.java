@@ -30,8 +30,8 @@ public class DbAccess {
     (session_ = session).setAutoCommit(false);
     entityCache_ = new HashMap<>();
     mapper_ = Map.of(
-      Tag.class, new TagDbMapper(this),
-      Blob.class, new BlobDbMapper(this)
+      Tag.class, new TagDbMapper(session),
+      Blob.class, new BlobDbMapper(session)
     );
     INSTANCE.set(this);
   }

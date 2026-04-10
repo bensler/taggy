@@ -17,8 +17,8 @@ import com.bensler.decaf.util.entity.EntityReference;
 
 public class BlobDbMapper extends DbMapper<Blob> {
 
-  BlobDbMapper(DbAccess db) {
-    super(db);
+  BlobDbMapper(Connection con) {
+    super(con);
   }
 
   @Override
@@ -66,7 +66,7 @@ public class BlobDbMapper extends DbMapper<Blob> {
 
   @Override
   public void remove(Integer id) throws SQLException {
-    try (PreparedStatement stmt = db_.session_.prepareStatement("DELETE FROM blob WHERE id=?")) {
+    try (PreparedStatement stmt = con_.prepareStatement("DELETE FROM blob WHERE id=?")) {
       stmt.setInt(1, id);
       stmt.execute();
     }
@@ -74,17 +74,16 @@ public class BlobDbMapper extends DbMapper<Blob> {
 
   @Override
   public void update(Blob blob) throws SQLException {
-    final Connection con = db_.session_;
     final Integer blobId = blob.getId();
 
-    try (PreparedStatement stmt = con.prepareStatement("UPDATE blob SET (sha256sum,thumbnail_sha,type)=(?,?,?) WHERE id=?")) {
+    try (PreparedStatement stmt = con_.prepareStatement("UPDATE blob SET (sha256sum,thumbnail_sha,type)=(?,?,?) WHERE id=?")) {
       stmt.setString(1, blob.getSha256sum());
       stmt.setString(2, blob.getThumbnailSha());
       stmt.setString(3, blob.getType());
       stmt.setInt(4, blobId);
       stmt.execute();
     }
-    try (PreparedStatement stmt = con.prepareStatement("DELETE FROM blob_property WHERE blob_id=?")) {
+    try (PreparedStatement stmt = con_.prepareStatement("DELETE FROM blob_property WHERE blob_id=?")) {
       stmt.setInt(1, blobId);
       stmt.execute();
     }
@@ -93,7 +92,7 @@ public class BlobDbMapper extends DbMapper<Blob> {
   }
 
   private void updateTags(Integer blobId, Collection<EntityReference<Tag>> tags) throws SQLException {
-    try (PreparedStatement stmt = db_.session_.prepareStatement("DELETE FROM blob_tag_xref WHERE blob_id=?")) {
+    try (PreparedStatement stmt = con_.prepareStatement("DELETE FROM blob_tag_xref WHERE blob_id=?")) {
       stmt.setInt(1, blobId);
       stmt.execute();
     }
@@ -104,7 +103,7 @@ public class BlobDbMapper extends DbMapper<Blob> {
     final Set<String> propertyNames = blob.getPropertyNames();
 
     if (!propertyNames.isEmpty()) {
-      try (PreparedStatement stmt = db_.session_.prepareStatement("INSERT INTO blob_property (blob_id,name,value) VALUES (?,?,?)")) {
+      try (PreparedStatement stmt = con_.prepareStatement("INSERT INTO blob_property (blob_id,name,value) VALUES (?,?,?)")) {
         for (String propName : propertyNames) {
           stmt.setInt(1, blobId);
           stmt.setString(2, propName);
@@ -118,7 +117,7 @@ public class BlobDbMapper extends DbMapper<Blob> {
 
   private <E extends Entity<E>> void insertTags(Integer blobId, Collection<EntityReference<E>> tags) throws SQLException {
     if (!tags.isEmpty()) {
-      try (PreparedStatement stmt = db_.session_.prepareStatement("INSERT INTO blob_tag_xref (blob_id,tag_id) VALUES (?,?)")) {
+      try (PreparedStatement stmt = con_.prepareStatement("INSERT INTO blob_tag_xref (blob_id,tag_id) VALUES (?,?)")) {
         for (EntityReference<?> tag : tags) {
           stmt.setInt(1, blobId);
           stmt.setInt(2, tag.getId());
@@ -133,7 +132,7 @@ public class BlobDbMapper extends DbMapper<Blob> {
   public Integer insert(Blob blob) throws SQLException {
     final Integer newId;
 
-    try (PreparedStatement stmt = db_.session_.prepareStatement("INSERT INTO blob (sha256sum,thumbnail_sha,type) VALUES (?,?,?)")) {
+    try (PreparedStatement stmt = con_.prepareStatement("INSERT INTO blob (sha256sum,thumbnail_sha,type) VALUES (?,?,?)")) {
       stmt.setString(1, blob.getSha256sum());
       stmt.setString(2, blob.getThumbnailSha());
       stmt.setString(3, blob.getType());

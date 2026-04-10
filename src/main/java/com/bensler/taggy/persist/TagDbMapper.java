@@ -30,8 +30,8 @@ public class TagDbMapper extends DbMapper<Tag> {
     }
   }
 
-  TagDbMapper(DbAccess db) {
-    super(db);
+  TagDbMapper(Connection con) {
+    super(con);
   }
 
   @Override
@@ -81,7 +81,7 @@ public class TagDbMapper extends DbMapper<Tag> {
 
   @Override
   public void remove(Integer id) throws SQLException {
-    try (PreparedStatement stmt = db_.session_.prepareStatement("DELETE FROM tag WHERE id=?")) {
+    try (PreparedStatement stmt = con_.prepareStatement("DELETE FROM tag WHERE id=?")) {
       stmt.setInt(1, id);
       stmt.execute();
     }
@@ -100,7 +100,7 @@ public class TagDbMapper extends DbMapper<Tag> {
   }
 
   private void updateHeadData(Integer tagId, Tag parent, String name) throws SQLException {
-    try (PreparedStatement stmt = db_.session_.prepareStatement("UPDATE tag SET (name,parent_id)=(?,?) WHERE id=?")) {
+    try (PreparedStatement stmt = con_.prepareStatement("UPDATE tag SET (name,parent_id)=(?,?) WHERE id=?")) {
       stmt.setString(1, name);
       setParentId(parent, stmt, 2);
       stmt.setInt(3, tagId);
@@ -110,16 +110,15 @@ public class TagDbMapper extends DbMapper<Tag> {
 
   @Override
   public void update(Tag tag) throws SQLException {
-    final Connection con = db_.session_;
     final Integer tagId = tag.getId();
 
     updateHeadData(tagId, tag.getParent(), tag.getName());
-    try (PreparedStatement stmt = con.prepareStatement("DELETE FROM tag_property WHERE tag_id=?")) {
+    try (PreparedStatement stmt = con_.prepareStatement("DELETE FROM tag_property WHERE tag_id=?")) {
       stmt.setInt(1, tagId);
       stmt.execute();
     }
     insertProperties(tag, tagId);
-    try (PreparedStatement stmt = con.prepareStatement("DELETE FROM blob_tag_xref WHERE tag_id=?")) {
+    try (PreparedStatement stmt = con_.prepareStatement("DELETE FROM blob_tag_xref WHERE tag_id=?")) {
       stmt.setInt(1, tagId);
       stmt.execute();
     }
@@ -130,7 +129,7 @@ public class TagDbMapper extends DbMapper<Tag> {
     final Set<TagProperty> propertyKeys = tag.getPropertyKeys();
 
     if (!propertyKeys.isEmpty()) {
-      try (PreparedStatement stmt = db_.session_.prepareStatement("INSERT INTO tag_property (tag_id,name,value) VALUES (?,?,?)")) {
+      try (PreparedStatement stmt = con_.prepareStatement("INSERT INTO tag_property (tag_id,name,value) VALUES (?,?,?)")) {
         for (TagProperty property : propertyKeys) {
           stmt.setInt(1, tagId);
           stmt.setString(2, property.name());
@@ -144,7 +143,7 @@ public class TagDbMapper extends DbMapper<Tag> {
 
   private <E extends Entity<E>> void insertBlobs(Integer tagId, Collection<EntityReference<E>> blobs) throws SQLException {
     if (!blobs.isEmpty()) {
-      try (PreparedStatement stmt = db_.session_.prepareStatement("INSERT INTO blob_tag_xref (blob_id,tag_id) VALUES (?,?)")) {
+      try (PreparedStatement stmt = con_.prepareStatement("INSERT INTO blob_tag_xref (blob_id,tag_id) VALUES (?,?)")) {
         for (EntityReference<?> blob : blobs) {
           stmt.setInt(1, blob.getId());
           stmt.setInt(2, tagId);
@@ -159,7 +158,7 @@ public class TagDbMapper extends DbMapper<Tag> {
   public Integer insert(Tag tag) throws SQLException {
     final Integer newId;
 
-    try (PreparedStatement stmt = db_.session_.prepareStatement("INSERT INTO tag (name,parent_id) VALUES (?,?)")) {
+    try (PreparedStatement stmt = con_.prepareStatement("INSERT INTO tag (name,parent_id) VALUES (?,?)")) {
       stmt.setString(1, tag.getName());
       setParentId(tag.getParent(), stmt, 2);
       stmt.execute();
