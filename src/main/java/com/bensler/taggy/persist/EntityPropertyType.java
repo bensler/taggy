@@ -1,45 +1,48 @@
 package com.bensler.taggy.persist;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
-public enum EntityPropertyType {
+import com.bensler.decaf.util.entity.EntityReference;
 
-  STRING,
-  INTEGER,
-  ENTITY,
-  BLOB;
+public class EntityPropertyType<JAVA_TYPE> {
 
-  public static void persist(Connection con) throws SQLException {
-    final Set<EntityPropertyType> dbValues = new HashSet<>();
-    final List<EntityPropertyType> values = List.of(EntityPropertyType.values());
+  public static EntityPropertyType<String> STRING = new EntityPropertyType<>(
+    "STRING", null, null
+  );
+  public static EntityPropertyType<List<String>> STRINGS = new EntityPropertyType<>(
+    "STRINGS", null, null
+  );
+  public static EntityPropertyType<Integer> INTEGER = new EntityPropertyType<>(
+    "INTEGER", null, null
+  );
+  public static EntityPropertyType<List<Integer>> INTEGERS = new EntityPropertyType<>(
+    "INTEGERS", null, null
+  );
+  public static EntityPropertyType<EntityReference<?>> ENTITY = new EntityPropertyType<>(
+    "ENTITY", null, null
+  );
+  public static EntityPropertyType<List<EntityReference<?>>> ENTITIES = new EntityPropertyType<>(
+    "ENTITIES", null, null
+  );
+  public static EntityPropertyType<String> BLOB = new EntityPropertyType<>(
+    "BLOB", null, null
+  );
 
-    try (
-      PreparedStatement stmt = con.prepareStatement("SELECT name FROM entity_property_type");
-      ResultSet result = stmt.executeQuery();
-    ) {
-      while (result.next()) {
-        dbValues.add(valueOf(result.getString(1)));
-      }
-    }
-    if (dbValues.size() < values.size()) {
-      try (
-        PreparedStatement stmt = con.prepareStatement("INSERT INTO entity_property_type (name) VALUES (?)");
-      ) {
-        for (EntityPropertyType type : values) {
-          if (!dbValues.contains(type)) {
-            stmt.setString(1, type.name());
-            stmt.addBatch();
-          }
-        }
-        stmt.executeBatch();
-      }
-    }
+  private final String name_;
+  private final BiConsumer<JAVA_TYPE, Map<String, String>> persister_;
+  private final Function<Map<String, String>, JAVA_TYPE> reader_;
+
+  private EntityPropertyType(String name, BiConsumer<JAVA_TYPE, Map<String, String>> persister, Function<Map<String, String>, JAVA_TYPE> reader) {
+    name_= name;
+    persister_ = persister;
+    reader_ = reader;
+  }
+
+  public String getName() {
+    return name_;
   }
 
 }
