@@ -12,12 +12,24 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class DbSetup {
+
+  public static final List<EntityPropertyType<?>> KNOWN_PROPERTY_TYPES = List.of(
+    EntityPropertyType.STRING,
+    EntityPropertyType.STRINGS,
+    EntityPropertyType.INTEGER,
+    EntityPropertyType.INTEGERS,
+    EntityPropertyType.ENTITY,
+    EntityPropertyType.ENTITIES,
+    EntityPropertyType.BLOB
+  );
 
   public static final EntityProperty P_TAG__NAME = new EntityProperty("name", STRING);
   public static final EntityProperty P_TAG__PARENT = new EntityProperty("parent", ENTITY);
@@ -39,9 +51,11 @@ public class DbSetup {
     P_IMAGE__FULL_SCALE_IMAGE
   );
 
+  private final Map<String, EntityPropertyType<?>> propertyTypes_;
   private final Map<EntityProperty, Integer> propertyIds_;
 
   public DbSetup(Connection con) throws SQLException {
+    propertyTypes_ = setupEntityPropertyTypes(con);
     propertyIds_ = setupPropertyIds(con, List.of(E_TAG, E_BLOB, E_IMAGE));
   }
 
@@ -60,7 +74,7 @@ public class DbSetup {
         final EntityType<?> type = typesByName.get(typeName);
 
         if (type != null) {
-          type.getProperty(result.getString(3), EntityPropertyType.valueOf(result.getString(4)))
+          type.getProperty(result.getString(3), propertyTypes_.get(result.getString(4)))
           .ifPresent(property -> {
             propsToInsert.get(typeName).remove(property);
             propIdCollector.put(property, typeId);
@@ -80,12 +94,12 @@ public class DbSetup {
 
             stmt.setString(1, typeName);
             stmt.setString(2, prop.getName());
-            stmt.setString(3, prop.getType().name());
+            stmt.setString(3, prop.getType().getName());
             // executeBatch() returning a collection of generated IDs does not work with Sqlite
             generatedKeys = stmt.executeQuery();
             generatedKeys.next();
             if (propIdCollector.containsKey(prop)) {
-              throw new IllegalStateException("Duplicate use of property \"%s:%s\" in EntityType \"%s\" ".formatted(prop.getName(), prop.getType().name(), typeName));
+              throw new IllegalStateException("Duplicate use of property \"%s:%s\" in EntityType \"%s\" ".formatted(prop.getName(), prop.getType().getName(), typeName));
             } else {
               propIdCollector.put(prop, generatedKeys.getInt(1));
             }
@@ -129,6 +143,34 @@ public class DbSetup {
       }
     }
     return typesByName;
+  }
+
+  private Map<String, EntityPropertyType<?>> setupEntityPropertyTypes(Connection con) throws SQLException {
+    final Map<String, EntityPropertyType<?>> types = KNOWN_PROPERTY_TYPES.stream().collect(Collectors.toMap(EntityPropertyType::getName, identity()));
+    final Set<String> dbValues = new HashSet<>();
+
+    try (
+      PreparedStatement stmt = con.prepareStatement("SELECT name FROM entity_property_type");
+      ResultSet result = stmt.executeQuery();
+    ) {
+      while (result.next()) {
+        dbValues.add(result.getString(1));
+      }
+    }
+    if (dbValues.size() < types.size()) {
+      try (
+        PreparedStatement stmt = con.prepareStatement("INSERT INTO entity_property_type (name) VALUES (?)");
+      ) {
+        for (String typeName : types.keySet()) {
+          if (!dbValues.contains(typeName)) {
+            stmt.setString(1, typeName);
+            stmt.addBatch();
+          }
+        }
+        stmt.executeBatch();
+      }
+    }
+    return types;
   }
 
 }
