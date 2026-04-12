@@ -50,19 +50,50 @@ public class DbSetup {
     Image.class, E_BLOB,
     P_IMAGE__FULL_SCALE_IMAGE
   );
+  public static final EntityRelationshipType RELATION_TAG_IMAGE = new EntityRelationshipType("tag-image");
 
   private final Map<String, EntityPropertyType<?>> propertyTypes_;
+  private final Map<String, EntityRelationshipType> relationshipTypes_;
   private final Map<EntityProperty, Integer> propertyIds_;
 
   public DbSetup(Connection con) throws SQLException {
     propertyTypes_ = setupEntityPropertyTypes(con);
+    relationshipTypes_ = setupEntityRelationshipTypes(con, List.of(RELATION_TAG_IMAGE));
     propertyIds_ = setupPropertyIds(con, List.of(E_TAG, E_BLOB, E_IMAGE));
   }
 
-  private Map<EntityProperty, Integer> setupPropertyIds(Connection con, List<EntityType<?>> types) throws SQLException {
+  private Map<String, EntityRelationshipType> setupEntityRelationshipTypes(Connection con, List<EntityRelationshipType> relationshipTypes) throws SQLException {
+    final Map<String, EntityRelationshipType> typesByName = relationshipTypes.stream().collect(Collectors.toMap(EntityRelationshipType::getName, identity()));
+    final Set<String> dbValues = new HashSet<>();
+
+    try (
+      PreparedStatement stmt = con.prepareStatement("SELECT name FROM entity_relationship_type");
+      ResultSet result = stmt.executeQuery();
+    ) {
+      while (result.next()) {
+        dbValues.add(result.getString(1));
+      }
+    }
+    if (dbValues.size() < relationshipTypes.size()) {
+      try (
+        PreparedStatement stmt = con.prepareStatement("INSERT INTO entity_relationship_type (name) VALUES (?)");
+      ) {
+        for (String typeName : typesByName.keySet()) {
+          if (!dbValues.contains(typeName)) {
+            stmt.setString(1, typeName);
+            stmt.addBatch();
+          }
+        }
+        stmt.executeBatch();
+      }
+    }
+    return typesByName;
+  }
+
+  private Map<EntityProperty, Integer> setupPropertyIds(Connection con, List<EntityType<?>> entityTypes) throws SQLException {
     final Map<EntityProperty, Integer> propIdCollector = new HashMap<>();
-    final Map<String, EntityType<?>> typesByName = setupEntityIds(con, types);
-    final Map<String, Set<EntityProperty>> propsToInsert = types.stream().collect(toMap(EntityType::getClassName, EntityType::getProperties));
+    final Map<String, EntityType<?>> typesByName = setupEntityIds(con, entityTypes);
+    final Map<String, Set<EntityProperty>> propsToInsert = entityTypes.stream().collect(toMap(EntityType::getClassName, EntityType::getProperties));
 
     try (
       PreparedStatement stmt = con.prepareStatement("SELECT id, entity_type_name, name, entity_property_type_name FROM entity_property");
