@@ -42,7 +42,7 @@ public class EntityType<E extends Entity<E>> {
     return new HashSet<>(properties_.values());
   }
 
-  public Optional<EntityProperty> getProperty(String propertyName, EntityPropertyType propertyType) {
+  public Optional<EntityProperty> getProperty(String propertyName, EntityPropertyType<?> propertyType) {
     final Optional<EntityProperty> property = Optional.ofNullable(properties_.get(propertyName));
 
     property.map(EntityProperty::getType).ifPresent(type-> {
