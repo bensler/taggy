@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.WeakHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import javax.swing.JFrame;
@@ -65,6 +66,7 @@ public class App {
   private final BlobController blobCtrl_;
   private final TagsUiController tagCtrl_;
   private final DbAccess dbAccess_;
+  private final DbSetup dbSetup_;
   private final ImportController importCtrl_;
   private final Thumbnailer thumbnailer_;
   private final ResizeThread resizeThread_;
@@ -86,7 +88,9 @@ public class App {
     final TagDbMapper tagDbMapper = dbAccess_.registerMapper(new TagDbMapper(dbAccess_));
     final BlobDbMapper blobDbMapper = dbAccess_.registerMapper(new BlobDbMapper(dbAccess_));
 
-    dbAccess_.runInTxn(() -> new DbSetup(con));
+    final AtomicReference<DbSetup> dbSetupRef = new AtomicReference<>();
+    dbAccess_.runInTxn(() -> dbSetupRef.set(new DbSetup(con)));
+    dbSetup_ = dbSetupRef.get();
 
     prefs_ = new PrefsStorage(new File(getBaseDir(), "prefs.xml"));
     blobCtrl_ = new BlobController(blobDbMapper, dataDir, FOLDER_PATTERN);
@@ -107,6 +111,10 @@ public class App {
 
   public DbAccess getDbAccess() {
     return dbAccess_;
+  }
+
+  public DbSetup getDbSetup() {
+    return dbSetup_;
   }
 
   public Thumbnailer getThumbnailer() {
