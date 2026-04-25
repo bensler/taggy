@@ -19,9 +19,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.bensler.decaf.util.entity.EntityReference;
+
 public class DbSetup {
 
-  public static final List<EntityPropertyType<?>> KNOWN_PROPERTY_TYPES = List.of(
+  public static final List<EntityPropertyType<?,?>> KNOWN_PROPERTY_TYPES = List.of(
     EntityPropertyType.STRING,
     EntityPropertyType.STRINGS,
     EntityPropertyType.INTEGER,
@@ -31,30 +33,30 @@ public class DbSetup {
     EntityPropertyType.BLOB
   );
 
-  public static final EntityProperty P_TAG__NAME = new EntityProperty("name", STRING);
-  public static final EntityProperty P_TAG__PARENT = new EntityProperty("parent", ENTITY);
+  public static final EntityProperty<String> P_TAG__NAME = new EntityProperty<>("name", STRING);
+  public static final EntityProperty<EntityReference<?>> P_TAG__PARENT = new EntityProperty<>("parent", ENTITY);
   public static final EntityType<Tag> E_TAG = new EntityType<>(
     Tag.class,
     P_TAG__NAME,
     P_TAG__PARENT
   );
-  public static final EntityProperty P_BLOB__FILE = new EntityProperty("file", STRING);
-  public static final EntityProperty P_BLOB__TYPE = new EntityProperty("type", STRING);
+  public static final EntityProperty<String> P_BLOB__FILE = new EntityProperty<>("file", STRING);
+  public static final EntityProperty<String> P_BLOB__TYPE = new EntityProperty<>("type", STRING);
   public static final EntityType<Blob> E_BLOB = new EntityType<>(
     Blob.class,
     P_BLOB__FILE,
     P_BLOB__TYPE
   );
-  public static final EntityProperty P_IMAGE__FULL_SCALE_IMAGE = new EntityProperty("fullScaleImage", ENTITY);
+  public static final EntityProperty<EntityReference<?>> P_IMAGE__FULL_SCALE_IMAGE = new EntityProperty<>("fullScaleImage", ENTITY);
   public static final EntityType<Image> E_IMAGE = new EntityType<>(
     Image.class, E_BLOB,
     P_IMAGE__FULL_SCALE_IMAGE
   );
   public static final EntityRelationshipType RELATION_TAG_IMAGE = new EntityRelationshipType("tag-image");
 
-  private final Map<String, EntityPropertyType<?>> propertyTypes_;
+  private final Map<String, EntityPropertyType<?, ?>> propertyTypes_;
   private final Map<String, EntityRelationshipType> relationshipTypes_;
-  private final Map<EntityProperty, Integer> propertyIds_;
+  private final Map<EntityProperty<?>, Integer> propertyIds_;
 
   public DbSetup(Connection con) throws SQLException {
     propertyTypes_ = setupEntityPropertyTypes(con);
@@ -90,10 +92,10 @@ public class DbSetup {
     return typesByName;
   }
 
-  private Map<EntityProperty, Integer> setupPropertyIds(Connection con, List<EntityType<?>> entityTypes) throws SQLException {
-    final Map<EntityProperty, Integer> propIdCollector = new HashMap<>();
+  private Map<EntityProperty<?>, Integer> setupPropertyIds(Connection con, List<EntityType<?>> entityTypes) throws SQLException {
+    final Map<EntityProperty<?>, Integer> propIdCollector = new HashMap<>();
     final Map<String, EntityType<?>> typesByName = setupEntityIds(con, entityTypes);
-    final Map<String, Set<EntityProperty>> propsToInsert = entityTypes.stream().collect(toMap(EntityType::getClassName, EntityType::getProperties));
+    final Map<String, Set<EntityProperty<?>>> propsToInsert = entityTypes.stream().collect(toMap(EntityType::getClassName, EntityType::getProperties));
 
     try (
       PreparedStatement stmt = con.prepareStatement("SELECT id, entity_type_name, name, entity_property_type_name FROM entity_property");
@@ -120,7 +122,7 @@ public class DbSetup {
         );
       ) {
         for (String typeName : propsToInsert.keySet()) {
-          for (EntityProperty prop : propsToInsert.get(typeName)) {
+          for (EntityProperty<?> prop : propsToInsert.get(typeName)) {
             final ResultSet generatedKeys;
 
             stmt.setString(1, typeName);
@@ -176,8 +178,8 @@ public class DbSetup {
     return typesByName;
   }
 
-  private Map<String, EntityPropertyType<?>> setupEntityPropertyTypes(Connection con) throws SQLException {
-    final Map<String, EntityPropertyType<?>> types = KNOWN_PROPERTY_TYPES.stream().collect(Collectors.toMap(EntityPropertyType::getName, identity()));
+  private Map<String, EntityPropertyType<?, ?>> setupEntityPropertyTypes(Connection con) throws SQLException {
+    final Map<String, EntityPropertyType<?, ?>> types = KNOWN_PROPERTY_TYPES.stream().collect(Collectors.toMap(EntityPropertyType::getName, identity()));
     final Set<String> dbValues = new HashSet<>();
 
     try (

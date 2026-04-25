@@ -1,11 +1,11 @@
 package com.bensler.taggy.persist;
 
-public class EntityProperty {
+public class EntityProperty<JAVA_TYPE> {
 
   private final String name_;
-  private final EntityPropertyType type_;
+  private final EntityPropertyType<JAVA_TYPE, ?> type_;
 
-  public EntityProperty(String name, EntityPropertyType type) {
+  public EntityProperty(String name, EntityPropertyType<JAVA_TYPE, ?> type) {
     name_ = name;
     type_ = type;
   }
@@ -14,7 +14,7 @@ public class EntityProperty {
     return name_;
   }
 
-  public EntityPropertyType getType() {
+  public EntityPropertyType<JAVA_TYPE, ?> getType() {
     return type_;
   }
 
