@@ -25,10 +25,12 @@ public class PersistencyBaseLayer {
   public static class PropertyTable<BASE_TYPE> {
 
     private final String tableName_;
+    private final String insertStmt_;
     private final ValuePersister<BASE_TYPE> valuePersister_;
 
     PropertyTable(String tableName, ValuePersister<BASE_TYPE> valuePersister) {
       tableName_ = tableName;
+      insertStmt_ = "INSERT INTO %s (entity_id,entity_property_id,value) VALUES (?,?,?)".formatted(tableName_);
       valuePersister_ = valuePersister;
     }
 
@@ -38,7 +40,7 @@ public class PersistencyBaseLayer {
 
     public PreparedStatement prepareInsertStmt(Connection con) {
       try {
-        return con.prepareStatement("INSERT INTO %s (entity_id,entity_property_id,value) VALUES (?,?,?)".formatted(tableName_));
+        return con.prepareStatement(insertStmt_);
       } catch (SQLException sqle) {
         throw new RuntimeException(sqle);
       }

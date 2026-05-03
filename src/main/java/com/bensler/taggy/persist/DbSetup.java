@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -23,7 +24,7 @@ import com.bensler.decaf.util.entity.EntityReference;
 
 public class DbSetup {
 
-  public static final List<EntityPropertyType<?,?>> KNOWN_PROPERTY_TYPES = List.of(
+  public static final List<EntityPropertyType<?, ?>> KNOWN_PROPERTY_TYPES = List.of(
     EntityPropertyType.STRING,
     EntityPropertyType.STRINGS,
     EntityPropertyType.INTEGER,
@@ -54,6 +55,7 @@ public class DbSetup {
   );
   public static final EntityRelationshipType RELATION_TAG_IMAGE = new EntityRelationshipType("tag-image");
 
+  private final Map<Class<?>, EntityType<?>> entityTypes_;
   private final Map<String, EntityPropertyType<?, ?>> propertyTypes_;
   private final Map<String, EntityRelationshipType> relationshipTypes_;
   private final Map<EntityProperty<?>, Integer> propertyIds_;
@@ -61,7 +63,16 @@ public class DbSetup {
   public DbSetup(Connection con) throws SQLException {
     propertyTypes_ = setupEntityPropertyTypes(con);
     relationshipTypes_ = setupEntityRelationshipTypes(con, List.of(RELATION_TAG_IMAGE));
-    propertyIds_ = setupPropertyIds(con, List.of(E_TAG, E_BLOB, E_IMAGE));
+    entityTypes_ = List.of(E_TAG, E_BLOB, E_IMAGE).stream().collect(Collectors.toMap(EntityType::getEntityClass, identity()));
+    propertyIds_ = setupPropertyIds(con, entityTypes_.values());
+  }
+
+  public PersistedEntity createPersistedEntity(EntityType<?> type) {
+    return new PersistedEntity(this, type, Optional.empty());
+  }
+
+  public PersistedEntity createPersistedEntity(EntityType<?> type, Integer id) {
+    return new PersistedEntity(this, type, Optional.of(id));
   }
 
   private Map<String, EntityRelationshipType> setupEntityRelationshipTypes(Connection con, List<EntityRelationshipType> relationshipTypes) throws SQLException {
@@ -92,10 +103,10 @@ public class DbSetup {
     return typesByName;
   }
 
-  private Map<EntityProperty<?>, Integer> setupPropertyIds(Connection con, List<EntityType<?>> entityTypes) throws SQLException {
+  private Map<EntityProperty<?>, Integer> setupPropertyIds(Connection con, Collection<EntityType<?>> collection) throws SQLException {
     final Map<EntityProperty<?>, Integer> propIdCollector = new HashMap<>();
-    final Map<String, EntityType<?>> typesByName = setupEntityIds(con, entityTypes);
-    final Map<String, Set<EntityProperty<?>>> propsToInsert = entityTypes.stream().collect(toMap(EntityType::getClassName, EntityType::getProperties));
+    final Map<String, EntityType<?>> typesByName = setupEntityIds(con, collection);
+    final Map<String, Set<EntityProperty<?>>> propsToInsert = collection.stream().collect(toMap(EntityType::getClassName, EntityType::getProperties));
 
     try (
       PreparedStatement stmt = con.prepareStatement("SELECT id, entity_type_name, name, entity_property_type_name FROM entity_property");
@@ -143,10 +154,10 @@ public class DbSetup {
     return propIdCollector;
   }
 
-  private Map<String, EntityType<?>> setupEntityIds(Connection con, List<EntityType<?>> types) throws SQLException {
-    final Map<String, EntityType<?>> typesByName = types.stream().collect(toMap(EntityType::getClassName, identity()));
+  private Map<String, EntityType<?>> setupEntityIds(Connection con, Collection<EntityType<?>> collection) throws SQLException {
+    final Map<String, EntityType<?>> typesByName = collection.stream().collect(toMap(EntityType::getClassName, identity()));
 
-    types = new ArrayList<>(types);
+    collection = new ArrayList<>(collection);
     try (
       PreparedStatement stmt = con.prepareStatement("SELECT name, parent_name FROM entity_type");
       ResultSet result = stmt.executeQuery();
@@ -159,15 +170,15 @@ public class DbSetup {
           if (!type.getParentClassName().equals(Optional.ofNullable(result.getString(2)))) {
             throw new IllegalStateException("Parent type mismatch in type \"%s\"".formatted(dbTypeName));
           }
-          types.remove(type);
+          collection.remove(type);
         }
       }
     }
-    if (!types.isEmpty()) {
+    if (!collection.isEmpty()) {
       try (
         PreparedStatement stmt = con.prepareStatement("INSERT INTO entity_type (name, parent_name) VALUES (?, ?)");
       ) {
-        for (EntityType<?> type : types) {
+        for (EntityType<?> type : collection) {
           stmt.setString(1, type.getClassName());
           stmt.setString(2, type.getParentClassName().orElse(null));
           stmt.addBatch();

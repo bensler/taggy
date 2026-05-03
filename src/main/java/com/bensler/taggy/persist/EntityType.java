@@ -12,6 +12,7 @@ import com.bensler.decaf.util.entity.Entity;
 
 public class EntityType<E extends Entity<E>> {
 
+  private final Class<E> entityClass_;
   private final String name_;
   private final Optional<EntityType<?>> parentType_;
   private final Map<String, EntityProperty<?>> properties_;
@@ -25,9 +26,13 @@ public class EntityType<E extends Entity<E>> {
   }
 
   public EntityType(Class<E> entityClass, Optional<EntityType<?>> parentType, EntityProperty<?>... properties) {
-    name_ = entityClass.getName();
+    name_ = (entityClass_ = entityClass).getName();
     parentType_ = parentType;
     properties_ = Arrays.stream(properties).collect(toMap(EntityProperty::getName, property -> property));
+  }
+
+  public Class<E> getEntityClass() {
+    return entityClass_;
   }
 
   public String getClassName() {
@@ -42,7 +47,7 @@ public class EntityType<E extends Entity<E>> {
     return new HashSet<>(properties_.values());
   }
 
-  public Optional<EntityProperty<?>> getProperty(String propertyName, EntityPropertyType<?,?> propertyType) {
+  public Optional<EntityProperty<?>> getProperty(String propertyName, EntityPropertyType<?, ?> propertyType) {
     final Optional<EntityProperty<?>> property = Optional.ofNullable(properties_.get(propertyName));
 
     property.map(EntityProperty::getType).ifPresent(type-> {
@@ -53,6 +58,10 @@ public class EntityType<E extends Entity<E>> {
       }
     });
     return property;
+  }
+
+  public boolean containsProperty(EntityProperty<?> propertyType) {
+    return properties_.values().contains(propertyType);
   }
 
 }

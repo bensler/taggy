@@ -11,22 +11,26 @@ import com.bensler.taggy.persist.PersistencyBaseLayer.PropertyTableEntry;
 
 public class PersistedEntity {
 
+  private final DbSetup dbSetup_;
   private final Optional<Integer> entityId_;
-  private final Optional<EntityType<?>> type_;
+  private final EntityType<?> type_;
 
   private final List<PropertyTableEntry<?>> properties_;
   private final Map<String, String> optionalProperties_;
 
-  public PersistedEntity(EntityType<?> type) {
-    entityId_ = Optional.empty();
-    type_ = Optional.of(type);
+  PersistedEntity(DbSetup dbSetup, EntityType<?> type, Optional<Integer> entityId) {
+    dbSetup_ = dbSetup;
+    entityId_ = entityId;
+    type_ = type;
     optionalProperties_ = new HashMap<>();
     properties_ = new ArrayList<>();
   }
 
   public <JAVA_TYPE> void addProperty(int propertyId, EntityProperty<JAVA_TYPE> propertyType, JAVA_TYPE value) {
-//    propertyType.
-    properties_.add(new PropertyTableEntry<>(propertyId, null, null));
+    if (!type_.containsProperty(propertyType)) {
+      throw new IllegalArgumentException("Given property does not belong to this EntityType");
+    }
+    propertyType.store(properties_::add, propertyId, value);
   }
 
   public void putOptionalProperties(Map<String, String> optionalProperties) {
@@ -40,7 +44,7 @@ public class PersistedEntity {
       id = entityId_.get();
       db.dropProperties(id);
     } else {
-      id =  db.createEntity(type_.get());
+      id =  db.createEntity(type_);
     }
     db.storeOptionalProperties(id, optionalProperties_);
     db.storeProperties(id, List.copyOf(properties_));
