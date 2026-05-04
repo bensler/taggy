@@ -13,22 +13,22 @@ import java.util.stream.Stream;
 
 public class PersistencyBaseLayer {
 
-  public interface ValuePersister<BASE_TYPE> {
+  interface SetPrepStmtValueWrapper<BASE_TYPE> {
 
     void setValue(PreparedStatement stmt, int index, BASE_TYPE value) throws SQLException;
 
   }
 
-  public static final ValuePersister<Integer> INTEGER_PROPERTY_PERSISTER = (stmt, index, value) -> stmt.setInt(index, value);
-  public static final ValuePersister<String>  STRING_PROPERTY_PERSISTER  = (stmt, index, value) -> stmt.setString(index, value);
+  public static final SetPrepStmtValueWrapper<Integer> INTEGER_PROPERTY_PERSISTER = (stmt, index, value) -> stmt.setInt(index, value);
+  public static final SetPrepStmtValueWrapper<String>  STRING_PROPERTY_PERSISTER  = (stmt, index, value) -> stmt.setString(index, value);
 
   public static class PropertyTable<BASE_TYPE> {
 
     private final String tableName_;
     private final String insertStmt_;
-    private final ValuePersister<BASE_TYPE> valuePersister_;
+    private final SetPrepStmtValueWrapper<BASE_TYPE> valuePersister_;
 
-    PropertyTable(String tableName, ValuePersister<BASE_TYPE> valuePersister) {
+    PropertyTable(String tableName, SetPrepStmtValueWrapper<BASE_TYPE> valuePersister) {
       tableName_ = tableName;
       insertStmt_ = "INSERT INTO %s (entity_id,entity_property_id,value) VALUES (?,?,?)".formatted(tableName_);
       valuePersister_ = valuePersister;
@@ -48,7 +48,7 @@ public class PersistencyBaseLayer {
 
     public void populateInsertStmt(PreparedStatement stmt, Integer entityId, Integer propertyId, BASE_TYPE value) throws SQLException {
       stmt.setInt(1, entityId);
-      stmt.setInt(1, propertyId);
+      stmt.setInt(2, propertyId);
       valuePersister_.setValue(stmt, 3, value);
       stmt.addBatch();
     }
@@ -81,8 +81,8 @@ public class PersistencyBaseLayer {
       value_ = value;
     }
 
-    public void setValues(PreparedStatement stmt, Integer entityId, Integer propertyId) throws SQLException {
-      table_.populateInsertStmt(stmt, entityId, propertyId, value_);
+    public void setValues(PreparedStatement stmt, Integer entityId) throws SQLException {
+      table_.populateInsertStmt(stmt, entityId, propertyId_, value_);
     }
   }
 
@@ -132,7 +132,7 @@ public class PersistencyBaseLayer {
     for (PropertyTableEntry<?> value : values) {
       final PreparedStatement stmt = prepStmts.computeIfAbsent(value.table_, table -> table.prepareInsertStmt(con_));
 
-      value.setValues(stmt, entityId, value.propertyId_);
+      value.setValues(stmt, entityId);
     }
     for (PreparedStatement stmt : prepStmts.values()) {
       stmt.executeBatch();
