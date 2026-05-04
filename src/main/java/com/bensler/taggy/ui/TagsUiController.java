@@ -40,8 +40,8 @@ import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.persist.Tag;
-import com.bensler.taggy.persist.TagDbMapper;
-import com.bensler.taggy.persist.TagDbMapper.TagHeadData;
+import com.bensler.taggy.persist.v1.TagDbMapper;
+import com.bensler.taggy.persist.v1.TagDbMapper.TagHeadData;
 
 public class TagsUiController {
 

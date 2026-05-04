@@ -1,12 +1,10 @@
 package com.bensler.taggy.persist;
 
 import static com.bensler.decaf.util.function.ForEachMapperAdapter.forEachMapper;
-import static java.util.function.Function.identity;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 import com.bensler.decaf.util.entity.Entity;
 import com.bensler.decaf.util.entity.EntityReference;
@@ -28,11 +25,22 @@ public class DbAccess {
   private final Map<Class<?>, DbMapper<?>> mapper_;
   private final Connection connection_;
 
-  public DbAccess(Connection connection, DbMapper<?>... mappers) throws SQLException {
+  public DbAccess(Connection connection) throws SQLException {
     (connection_ = connection).setAutoCommit(false);
     entityCache_ = new HashMap<>();
-    mapper_ = Arrays.stream(mappers).collect(Collectors.toMap(DbMapper::getEntityClass, identity()));
+    mapper_ = new HashMap<>();
     INSTANCE.set(this);
+  }
+
+  public <M extends DbMapper<?>> M registerMapper(M mapper) {
+    final Class<?> entityClass = mapper.getEntityClass();
+
+    if (mapper_.containsKey(entityClass)) {
+      throw new IllegalArgumentException();
+    } else {
+      mapper_.put(entityClass, mapper);
+      return mapper;
+    }
   }
 
   public <E extends Entity<E>> List<E> loadAll(Class<E> clazz) {

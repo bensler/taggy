@@ -1,6 +1,5 @@
 package com.bensler.taggy.persist;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
@@ -12,11 +11,11 @@ import com.bensler.decaf.util.entity.Entity;
 public abstract class DbMapper<E extends Entity<E>> {
 
   protected final Class<E> entityClass_;
-  protected final Connection con_;
+  protected final DbAccess db_;
 
-  protected DbMapper(Class<E> entityClass, Connection con) {
+  protected DbMapper(Class<E> entityClass, DbAccess db) {
     entityClass_= entityClass;
-    con_ = con;
+    db_ = db;
   }
 
   public Class<E> getEntityClass() {
@@ -32,7 +31,7 @@ public abstract class DbMapper<E extends Entity<E>> {
   public abstract List<E> loadAllEntities(List<Integer> ids);
 
   protected PreparedStatement prepareStmt(String sql, List<Integer> ids, String whereClause) throws SQLException {
-    final PreparedStatement stmt = con_.prepareStatement(sql + (ids.isEmpty() ? "" : " WHERE " + whereClause.formatted(
+    final PreparedStatement stmt = db_.prepareStatement(sql + (ids.isEmpty() ? "" : " WHERE " + whereClause.formatted(
       IntStream.range(0, ids.size()).mapToObj(id -> "?").collect(Collectors.joining(","))
     )));
 

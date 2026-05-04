@@ -20,8 +20,8 @@ import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.taggy.App;
 import com.bensler.taggy.imprt.Thumbnailer;
 import com.bensler.taggy.persist.Blob;
-import com.bensler.taggy.persist.BlobDbMapper;
 import com.bensler.taggy.persist.DbAccess;
+import com.bensler.taggy.persist.v1.BlobDbMapper;
 import com.bensler.taggy.ui.BlobController;
 
 public class V008__CreateThumbnails extends BaseJavaMigration {
@@ -38,8 +38,8 @@ public class V008__CreateThumbnails extends BaseJavaMigration {
   @Override
   public void migrate(Context context) throws SQLException, InterruptedException, NoSuchAlgorithmException {
     final Connection connection = context.getConnection();
-    final BlobDbMapper blobDbMapper = new BlobDbMapper(connection);
-    final DbAccess db = new DbAccess(connection, blobDbMapper);
+    final DbAccess db = new DbAccess(connection);
+    final BlobDbMapper blobDbMapper = db.registerMapper(new BlobDbMapper(db));
     final int workerCount = 4;
     final Semaphore semaphore = new Semaphore(workerCount);
     final long startMillis = System.currentTimeMillis();

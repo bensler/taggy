@@ -57,9 +57,9 @@ import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.taggy.App;
 import com.bensler.taggy.imprt.Thumbnailer;
 import com.bensler.taggy.persist.Blob;
-import com.bensler.taggy.persist.BlobDbMapper;
 import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.persist.Tag;
+import com.bensler.taggy.persist.v1.BlobDbMapper;
 
 
 public class BlobController {

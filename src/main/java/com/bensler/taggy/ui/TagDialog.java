@@ -23,7 +23,7 @@ import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.decaf.util.tree.Hierarchy;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Tag;
-import com.bensler.taggy.persist.TagDbMapper.TagHeadData;
+import com.bensler.taggy.persist.v1.TagDbMapper.TagHeadData;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
