@@ -1,8 +1,8 @@
-package com.bensler.taggy.persist;
+package com.bensler.taggy.persist.v2;
 
 import java.util.function.Consumer;
 
-import com.bensler.taggy.persist.PersistencyBaseLayer.PropertyTableEntry;
+import com.bensler.taggy.persist.v2.PersistencyBaseLayer.PropertyTableEntry;
 
 public class EntityProperty<JAVA_TYPE> {
 

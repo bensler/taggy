@@ -1,4 +1,4 @@
-package com.bensler.taggy.persist;
+package com.bensler.taggy.persist.v2;
 
 import static java.util.stream.Collectors.toMap;
 
