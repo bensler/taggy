@@ -1,4 +1,4 @@
-package com.bensler.taggy.persist;
+package com.bensler.taggy.persist.v2;
 
 public class EntityRelationshipType {
 

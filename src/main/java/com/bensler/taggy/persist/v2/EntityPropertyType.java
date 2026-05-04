@@ -1,4 +1,4 @@
-package com.bensler.taggy.persist;
+package com.bensler.taggy.persist.v2;
 import static java.util.function.Function.identity;
 
 import java.util.List;
@@ -7,7 +7,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import com.bensler.decaf.util.entity.EntityReference;
-import com.bensler.taggy.persist.PersistencyBaseLayer.PropertyTable;
+import com.bensler.taggy.persist.v2.PersistencyBaseLayer.PropertyTable;
 
 public class EntityPropertyType<JAVA_TYPE, DB_PROPERTY_TYPE> {
 

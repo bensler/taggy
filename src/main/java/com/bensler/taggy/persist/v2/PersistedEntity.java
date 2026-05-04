@@ -1,4 +1,4 @@
-package com.bensler.taggy.persist;
+package com.bensler.taggy.persist.v2;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.bensler.taggy.persist.PersistencyBaseLayer.PropertyTableEntry;
+import com.bensler.taggy.persist.v2.PersistencyBaseLayer.PropertyTableEntry;
 
 public class PersistedEntity {
 

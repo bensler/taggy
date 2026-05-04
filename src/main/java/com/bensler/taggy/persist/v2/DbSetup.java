@@ -1,7 +1,7 @@
-package com.bensler.taggy.persist;
+package com.bensler.taggy.persist.v2;
 
-import static com.bensler.taggy.persist.EntityPropertyType.ENTITY;
-import static com.bensler.taggy.persist.EntityPropertyType.STRING;
+import static com.bensler.taggy.persist.v2.EntityPropertyType.ENTITY;
+import static com.bensler.taggy.persist.v2.EntityPropertyType.STRING;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
@@ -21,6 +21,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.bensler.decaf.util.entity.EntityReference;
+import com.bensler.taggy.persist.Blob;
+import com.bensler.taggy.persist.Image;
+import com.bensler.taggy.persist.Tag;
 
 public class DbSetup {
 
