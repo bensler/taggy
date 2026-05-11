@@ -19,12 +19,14 @@ import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefsStorage;
 import com.bensler.taggy.imprt.ImportController;
 import com.bensler.taggy.imprt.Thumbnailer;
+import com.bensler.taggy.persist.BlobDbMapper;
 import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.persist.DbConnector;
 import com.bensler.taggy.persist.SqliteDbConnector;
-import com.bensler.taggy.persist.v1.BlobDbMapper;
-import com.bensler.taggy.persist.v1.TagDbMapper;
+import com.bensler.taggy.persist.TagDbMapper;
 import com.bensler.taggy.persist.v2.DbSetup;
+import com.bensler.taggy.persist.v2.V2BlobDbMapper;
+import com.bensler.taggy.persist.v2.V2TagDbMapper;
 import com.bensler.taggy.ui.BlobController;
 import com.bensler.taggy.ui.MainFrame;
 import com.bensler.taggy.ui.ResizeThread;
@@ -85,8 +87,11 @@ public class App {
     db_.performFlywayMigration();
     final Connection con = db_.getConnection();
     dbAccess_ = new DbAccess(con);
-    final TagDbMapper tagDbMapper = dbAccess_.registerMapper(new TagDbMapper(dbAccess_));
-    final BlobDbMapper blobDbMapper = dbAccess_.registerMapper(new BlobDbMapper(dbAccess_));
+//    final TagDbMapper tagDbMapper = dbAccess_.registerMapper(new V1TagDbMapper(dbAccess_));
+//    final BlobDbMapper blobDbMapper = dbAccess_.registerMapper(new V1BlobDbMapper(dbAccess_));
+
+    final TagDbMapper tagDbMapper = dbAccess_.registerMapper(new V2TagDbMapper(dbAccess_));
+    final BlobDbMapper blobDbMapper = dbAccess_.registerMapper(new V2BlobDbMapper(dbAccess_));
 
     final AtomicReference<DbSetup> dbSetupRef = new AtomicReference<>();
     dbAccess_.runInTxn(() -> dbSetupRef.set(new DbSetup(con)));

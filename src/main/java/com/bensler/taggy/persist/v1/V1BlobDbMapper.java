@@ -14,13 +14,13 @@ import java.util.Set;
 import com.bensler.decaf.util.entity.Entity;
 import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.taggy.persist.Blob;
+import com.bensler.taggy.persist.BlobDbMapper;
 import com.bensler.taggy.persist.DbAccess;
-import com.bensler.taggy.persist.DbMapper;
 import com.bensler.taggy.persist.Tag;
 
-public class BlobDbMapper extends DbMapper<Blob> {
+public class V1BlobDbMapper extends AbstractV1DbMapper<Blob> implements BlobDbMapper {
 
-  public BlobDbMapper(DbAccess db) {
+  public V1BlobDbMapper(DbAccess db) {
     super(Blob.class, db);
   }
 
@@ -150,6 +150,7 @@ public class BlobDbMapper extends DbMapper<Blob> {
     return newId;
   }
 
+  @Override
   public List<Integer> findOrphanBlobs() throws SQLException {
     final List<Integer> ids = new ArrayList<>();
 
@@ -167,6 +168,7 @@ public class BlobDbMapper extends DbMapper<Blob> {
     return ids;
   }
 
+  @Override
   public boolean doesBlobExist(String shaHash) throws SQLException {
     try (PreparedStatement stmt = DbAccess.INSTANCE.get().prepareStatement("SELECT * FROM blob AS b WHERE b.sha256sum=? LIMIT 1")) {
       stmt.setString(1, shaHash);
@@ -174,6 +176,7 @@ public class BlobDbMapper extends DbMapper<Blob> {
     }
   }
 
+  @Override
   public void setTags(EntityReference<Blob> blobRef, Set<Tag> tags) throws SQLException {
     updateTags(blobRef.getId(), EntityReference.createCollection(tags, new HashSet<>()));
   }

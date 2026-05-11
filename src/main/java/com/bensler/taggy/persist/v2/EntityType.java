@@ -1,5 +1,6 @@
 package com.bensler.taggy.persist.v2;
 
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
 import java.util.Arrays;
@@ -28,7 +29,7 @@ public class EntityType<E extends Entity<E>> {
   public EntityType(Class<E> entityClass, Optional<EntityType<?>> parentType, EntityProperty<?>... properties) {
     name_ = (entityClass_ = entityClass).getName();
     parentType_ = parentType;
-    properties_ = Arrays.stream(properties).collect(toMap(EntityProperty::getName, property -> property));
+    properties_ = Arrays.stream(properties).collect(toMap(EntityProperty::getName, identity()));
   }
 
   public Class<E> getEntityClass() {

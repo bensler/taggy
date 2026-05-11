@@ -15,26 +15,13 @@ import com.bensler.decaf.util.entity.Entity;
 import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.DbAccess;
-import com.bensler.taggy.persist.DbMapper;
 import com.bensler.taggy.persist.Tag;
+import com.bensler.taggy.persist.TagDbMapper;
 import com.bensler.taggy.persist.TagProperty;
 
-public class TagDbMapper extends DbMapper<Tag> {
+public class V1TagDbMapper extends AbstractV1DbMapper<Tag> implements TagDbMapper {
 
-  public static class TagHeadData {
-
-    public final EntityReference<Tag> subject_;
-    public final Tag parent_;
-    public final String name_;
-
-    public TagHeadData(Tag subject, Tag parent, String name) {
-      subject_ = new EntityReference<>(subject);
-      parent_ = parent;
-      name_ = name;
-    }
-  }
-
-  public TagDbMapper(DbAccess db) {
+  public V1TagDbMapper(DbAccess db) {
     super(Tag.class, db);
   }
 
@@ -99,6 +86,7 @@ public class TagDbMapper extends DbMapper<Tag> {
     }
   }
 
+  @Override
   public void updateHeadData(TagHeadData tagHeadData) throws SQLException {
     updateHeadData(tagHeadData.subject_.getId(), tagHeadData.parent_, tagHeadData.name_);
   }
