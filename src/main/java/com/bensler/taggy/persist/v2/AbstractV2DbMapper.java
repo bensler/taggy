@@ -11,10 +11,12 @@ public abstract class AbstractV2DbMapper<E extends Entity<E>> implements DbMappe
 
   protected final Class<E> entityClass_;
   protected final DbAccess db_;
+  protected final DbSetup dbSetup_;
 
-  protected AbstractV2DbMapper(Class<E> entityClass, DbAccess db) {
+  protected AbstractV2DbMapper(Class<E> entityClass, DbAccess db, DbSetup dbSetup) {
     entityClass_= entityClass;
     db_ = db;
+    dbSetup_ = dbSetup;
   }
 
   @Override
