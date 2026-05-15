@@ -74,7 +74,7 @@ public class DbAccess {
     final DbMapper<E> mapper = (DbMapper<E>)mapper_.get(entityClass);
     final AtomicReference<EntityReference<E>> ref = new AtomicReference<>();
 
-    runInTxn(() -> {
+    runInTxn(con -> {
       if (entity.hasId()) {
         mapper.update(entity);
         ref.set(new EntityReference<>(entity));
@@ -142,7 +142,7 @@ public class DbAccess {
 
   public void runInTxn(PersistentWrite write) {
     try {
-      write.runInTxn();
+      write.runInTxn(connection_);
       connection_.commit();
     } catch (SQLException sqle) {
       rollback();

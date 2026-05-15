@@ -1,7 +1,5 @@
 package com.bensler.taggy.persist.v2;
 
-import static com.bensler.taggy.persist.v2.EntityPropertyType.ENTITY;
-import static com.bensler.taggy.persist.v2.EntityPropertyType.STRING;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
@@ -20,11 +18,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.bensler.decaf.util.entity.EntityReference;
-import com.bensler.taggy.persist.Blob;
-import com.bensler.taggy.persist.Image;
-import com.bensler.taggy.persist.Tag;
-
 public class DbSetup {
 
   public static final List<EntityPropertyType<?, ?>> KNOWN_PROPERTY_TYPES = List.of(
@@ -37,25 +30,6 @@ public class DbSetup {
     EntityPropertyType.BLOB
   );
 
-  public static final EntityProperty<String> P_TAG__NAME = new EntityProperty<>("name", STRING);
-  public static final EntityProperty<EntityReference<?>> P_TAG__PARENT = new EntityProperty<>("parent", ENTITY);
-  public static final EntityType<Tag> E_TAG = new EntityType<>(
-    Tag.class,
-    P_TAG__NAME,
-    P_TAG__PARENT
-  );
-  public static final EntityProperty<String> P_BLOB__FILE = new EntityProperty<>("file", STRING);
-  public static final EntityProperty<String> P_BLOB__TYPE = new EntityProperty<>("type", STRING);
-  public static final EntityType<Blob> E_BLOB = new EntityType<>(
-    Blob.class,
-    P_BLOB__FILE,
-    P_BLOB__TYPE
-  );
-  public static final EntityProperty<EntityReference<?>> P_IMAGE__FULL_SCALE_IMAGE = new EntityProperty<>("fullScaleImage", ENTITY);
-  public static final EntityType<Image> E_IMAGE = new EntityType<>(
-    Image.class, E_BLOB,
-    P_IMAGE__FULL_SCALE_IMAGE
-  );
   public static final EntityRelationshipType RELATION_TAG_IMAGE = new EntityRelationshipType("tag-image");
 
   private final Map<Class<?>, EntityType<?>> entityTypes_;
@@ -66,8 +40,24 @@ public class DbSetup {
   public DbSetup(Connection con) throws SQLException {
     propertyTypes_ = setupEntityPropertyTypes(con);
     relationshipTypes_ = setupEntityRelationshipTypes(con, List.of(RELATION_TAG_IMAGE));
-    entityTypes_ = List.of(E_TAG, E_BLOB, E_IMAGE).stream().collect(Collectors.toMap(EntityType::getEntityClass, identity()));
-    propertyIds_ = setupPropertyIds(con, entityTypes_.values());
+    entityTypes_ = new HashMap<>();
+    propertyIds_ = new HashMap<>();
+  }
+
+  public void registerEntityTypes(Connection con, List<EntityType<?>> entityTypes) throws SQLException {
+    final Map<Class<?>, EntityType<?>> entityTypesByName = new HashMap<>();
+
+    for (EntityType<?> entityType : entityTypes) {
+      final Class<?> entityClass = entityType.getEntityClass();
+
+      if (entityTypes_.containsKey(entityClass)) {
+        throw new IllegalArgumentException();
+      } else {
+        entityTypesByName.put(entityClass, entityType);
+      }
+    }
+    entityTypes_.putAll(entityTypesByName);
+    propertyIds_.putAll(setupPropertyIds(con, entityTypesByName.values()));
   }
 
   public PersistedEntity createPersistedEntity(EntityType<?> type) {
@@ -106,10 +96,10 @@ public class DbSetup {
     return typesByName;
   }
 
-  private Map<EntityProperty<?>, Integer> setupPropertyIds(Connection con, Collection<EntityType<?>> collection) throws SQLException {
+  private Map<EntityProperty<?>, Integer> setupPropertyIds(Connection con, Collection<EntityType<?>> entityTypes) throws SQLException {
     final Map<EntityProperty<?>, Integer> propIdCollector = new HashMap<>();
-    final Map<String, EntityType<?>> typesByName = setupEntityIds(con, collection);
-    final Map<String, Set<EntityProperty<?>>> propsToInsert = collection.stream().collect(toMap(EntityType::getClassName, EntityType::getProperties));
+    final Map<String, EntityType<?>> typesByName = setupEntityIds(con, entityTypes);
+    final Map<String, Set<EntityProperty<?>>> propsToInsert = entityTypes.stream().collect(toMap(EntityType::getClassName, EntityType::getProperties));
 
     try (
       PreparedStatement stmt = con.prepareStatement("SELECT id, entity_type_name, name, entity_property_type_name FROM entity_property");

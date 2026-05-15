@@ -212,7 +212,7 @@ public class BlobController {
     final String thumbnailSha = blob.getThumbnailSha();
 
     try {
-      db.runInTxn(() -> db.deleteNoTxn(blob));
+      db.runInTxn(_ -> db.deleteNoTxn(blob));
       tags = db.refreshAllRefs(blob.getTagRefs());
       Optional.ofNullable(blobSha256sum).ifPresent(this::deleteFile);
       Optional.ofNullable(thumbnailSha).ifPresent(this::deleteFile);
@@ -428,7 +428,7 @@ public class BlobController {
     final Blob newBlob;
     final Set<Tag> updatedTags;
 
-    db.runInTxn(() -> dbMapper_.setTags(blobRef, newTags));
+    db.runInTxn(_ -> dbMapper_.setTags(blobRef, newTags));
     newBlob = db.refresh(blobRef);
     updatedTags = db.refreshAll(affectedTags);
     app.entityChanged(newBlob);

@@ -1,7 +1,6 @@
 package com.bensler.taggy;
 
 import java.io.File;
-import java.sql.Connection;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -85,17 +84,16 @@ public class App {
     zombieBox_ = new ZombieBox();
     db_ = new SqliteDbConnector(dataDir, "taggy.sqlite.db");
     db_.performFlywayMigration();
-    final Connection con = db_.getConnection();
-    dbAccess_ = new DbAccess(con);
+    dbAccess_ = new DbAccess(db_.getConnection());
 //    final TagDbMapper tagDbMapper = dbAccess_.registerMapper(new V1TagDbMapper(dbAccess_));
 //    final BlobDbMapper blobDbMapper = dbAccess_.registerMapper(new V1BlobDbMapper(dbAccess_));
-
-    final TagDbMapper tagDbMapper = dbAccess_.registerMapper(new V2TagDbMapper(dbAccess_));
-    final BlobDbMapper blobDbMapper = dbAccess_.registerMapper(new V2BlobDbMapper(dbAccess_));
-
     final AtomicReference<DbSetup> dbSetupRef = new AtomicReference<>();
-    dbAccess_.runInTxn(() -> dbSetupRef.set(new DbSetup(con)));
+    dbAccess_.runInTxn(pCon -> dbSetupRef.set(new DbSetup(pCon)));
     dbSetup_ = dbSetupRef.get();
+
+    final TagDbMapper tagDbMapper = dbAccess_.registerMapper(new V2TagDbMapper(dbAccess_, dbSetup_));
+    final BlobDbMapper blobDbMapper = dbAccess_.registerMapper(new V2BlobDbMapper(dbAccess_, dbSetup_));
+
 
     prefs_ = new PrefsStorage(new File(getBaseDir(), "prefs.xml"));
     blobCtrl_ = new BlobController(blobDbMapper, dataDir, FOLDER_PATTERN);

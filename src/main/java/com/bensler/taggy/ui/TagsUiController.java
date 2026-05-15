@@ -170,7 +170,7 @@ public class TagsUiController {
     final App app = getApp();
     final DbAccess db = app.getDbAccess();
 
-    db.runInTxn(() -> db.deleteNoTxn(tag));
+    db.runInTxn(_ -> db.deleteNoTxn(tag));
     blobs = db.refreshAllRefs(tag.getBlobRefs());
     app.entityRemoved(tag);
     app.entitiesChanged(blobs);
@@ -194,7 +194,7 @@ public class TagsUiController {
     final Tag editedTag;
     final Tag oldTag = db.resolve(tagHeadData.subject_);
 
-    db.runInTxn(() -> dbMapper_.updateHeadData(tagHeadData));
+    db.runInTxn(_ -> dbMapper_.updateHeadData(tagHeadData));
     editedTag =  db.refresh(tagHeadData.subject_);
     allTags_.add(editedTag);
     removeFromDateTags(oldTag);
