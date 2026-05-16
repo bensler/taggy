@@ -40,12 +40,11 @@ public class EntityType<E extends Entity<E>> {
     return name_;
   }
 
-  public Optional<String> getParentClassName() {
-    return parentType_.map(EntityType::getClassName);
-  }
-
   public Set<EntityProperty<?>> getProperties() {
-    return new HashSet<>(properties_.values());
+    final Set<EntityProperty<?>> properties = parentType_.map(EntityType::getProperties).orElseGet(HashSet::new);
+
+    properties.addAll(properties_.values());
+    return properties;
   }
 
   public Optional<EntityProperty<?>> getProperty(String propertyName, EntityPropertyType<?, ?> propertyType) {

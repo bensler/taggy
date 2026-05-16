@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -58,14 +57,6 @@ public class DbSetup {
     }
     entityTypes_.putAll(entityTypesByName);
     propertyIds_.putAll(setupPropertyIds(con, entityTypesByName.values()));
-  }
-
-  public PersistedEntity createPersistedEntity(EntityType<?> type) {
-    return new PersistedEntity(this, type, Optional.empty());
-  }
-
-  public PersistedEntity createPersistedEntity(EntityType<?> type, Integer id) {
-    return new PersistedEntity(this, type, Optional.of(id));
   }
 
   private Map<String, EntityRelationshipType> setupEntityRelationshipTypes(Connection con, List<EntityRelationshipType> relationshipTypes) throws SQLException {
@@ -152,7 +143,7 @@ public class DbSetup {
 
     collection = new ArrayList<>(collection);
     try (
-      PreparedStatement stmt = con.prepareStatement("SELECT name, parent_name FROM entity_type");
+      PreparedStatement stmt = con.prepareStatement("SELECT name FROM entity_type");
       ResultSet result = stmt.executeQuery();
     ) {
       while (result.next()) {
@@ -160,20 +151,16 @@ public class DbSetup {
         final EntityType<?> type = typesByName.get(dbTypeName);
 
         if (type != null) {
-          if (!type.getParentClassName().equals(Optional.ofNullable(result.getString(2)))) {
-            throw new IllegalStateException("Parent type mismatch in type \"%s\"".formatted(dbTypeName));
-          }
           collection.remove(type);
         }
       }
     }
     if (!collection.isEmpty()) {
       try (
-        PreparedStatement stmt = con.prepareStatement("INSERT INTO entity_type (name, parent_name) VALUES (?, ?)");
+        PreparedStatement stmt = con.prepareStatement("INSERT INTO entity_type (name) VALUES (?)");
       ) {
         for (EntityType<?> type : collection) {
           stmt.setString(1, type.getClassName());
-          stmt.setString(2, type.getParentClassName().orElse(null));
           stmt.addBatch();
         }
         stmt.executeBatch();
@@ -208,6 +195,14 @@ public class DbSetup {
       }
     }
     return types;
+  }
+
+  public Integer getPropertyKey(EntityProperty<?> property) {
+    if (propertyIds_.containsKey(property)) {
+      return propertyIds_.get(property);
+    } else {
+      throw new IllegalArgumentException();
+    }
   }
 
 }

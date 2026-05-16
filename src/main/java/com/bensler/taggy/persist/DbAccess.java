@@ -140,15 +140,34 @@ public class DbAccess {
     return (entity != null) ? entity : load(entityRef);
   }
 
+  public interface PersistentWrite {
+
+    void runInTxn(Connection con) throws SQLException;
+
+  }
+
   public void runInTxn(PersistentWrite write) {
+    runInTxn2(con -> {
+      write.runInTxn(con);
+      return null;
+    });
+  }
+
+  public interface PersistentWrite2<RESULT> {
+
+    RESULT runInTxn(Connection con) throws SQLException;
+
+  }
+
+  public <RESULT> RESULT runInTxn2(PersistentWrite2<RESULT> write) {
     try {
-      write.runInTxn(connection_);
+      RESULT result = write.runInTxn(connection_);
       connection_.commit();
+      return result;
     } catch (SQLException sqle) {
       rollback();
       throw new RuntimeException(sqle);
     }
-
   }
 
   public void rollback() {

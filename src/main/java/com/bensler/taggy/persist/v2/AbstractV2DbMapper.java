@@ -24,6 +24,14 @@ public abstract class AbstractV2DbMapper<E extends Entity<E>> implements DbMappe
     return entityClass_;
   }
 
+  protected Integer persist(PersistedEntity entity) {
+    return db_.runInTxn2(con -> entity.persist(new PersistencyBaseLayer(con)));
+  }
+
+  protected <JAVA_TYPE> void addProperty(PersistedEntity persistedEntity, EntityProperty<JAVA_TYPE> propertyType, JAVA_TYPE value) {
+    persistedEntity.addProperty(dbSetup_.getPropertyKey(propertyType), propertyType, value);
+  }
+
   protected void removeEntity(String tableName, String idColName, Integer id) throws SQLException {
     try (PreparedStatement stmt = db_.prepareStatement("DELETE FROM %s WHERE %s=?".formatted(tableName, idColName))) {
       stmt.setInt(1, id);

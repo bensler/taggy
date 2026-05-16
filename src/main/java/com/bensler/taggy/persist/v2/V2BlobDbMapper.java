@@ -5,6 +5,7 @@ import static com.bensler.taggy.persist.v2.EntityPropertyType.STRING;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import com.bensler.decaf.util.entity.EntityReference;
@@ -31,14 +32,12 @@ public class V2BlobDbMapper extends AbstractV2DbMapper<Blob> implements BlobDbMa
 
   public V2BlobDbMapper(DbAccess db, DbSetup dbSetup) {
     super(Blob.class, db, dbSetup);
-    db.runInTxn(con -> {
-      dbSetup_.registerEntityTypes(con, List.of(E_BLOB, E_IMAGE));
-    });
+    db.runInTxn(con -> dbSetup_.registerEntityTypes(con, List.of(E_BLOB, E_IMAGE)));
   }
 
   @Override
   public List<Blob> loadAllEntities(List<Integer> ids) {
-    return null; // TODO
+    return List.of(); // TODO
   }
 
   @Override
@@ -48,11 +47,25 @@ public class V2BlobDbMapper extends AbstractV2DbMapper<Blob> implements BlobDbMa
 
   @Override
   public void update(Blob blob) throws SQLException {
+    persistBlob(blob);
   }
 
   @Override
   public Integer insert(Blob blob) throws SQLException {
-    return null; // TODO
+    return persistBlob(blob);
+  }
+
+  private Integer persistBlob(Blob blob) {
+    final PersistedEntity persistedEntity = new PersistedEntity(E_IMAGE, Optional.ofNullable(blob.getId()));
+
+    addProperty(persistedEntity, P_BLOB__TYPE, blob.getType());
+    addProperty(persistedEntity, P_BLOB__FILE, blob.getSha256sum());
+    persistedEntity.putOptionalProperties(blob.getMetaData());
+    persist(persistedEntity);
+
+    // TODO thumbnail
+
+    return persist(persistedEntity);
   }
 
   @Override

@@ -16,11 +16,11 @@ import com.bensler.decaf.util.tree.Hierarchical;
  */
 public class Tag extends AbstractEntity<Tag> implements Hierarchical<Tag>, Named {
 
-  public static <R> R getProperty(Tag tag, Function<Tag, R> resultProvider) {
-    return Optional.ofNullable(tag).map(resultProvider).orElse(null);
+  public static <R> Optional<R> getProperty(Tag tag, Function<Tag, R> resultProvider) {
+    return Optional.ofNullable(tag).map(resultProvider);
   }
 
-  private final EntityReference<Tag> parent_;
+  private final Optional<EntityReference<Tag>> parent_;
   private final String name_;
   private final Set<EntityReference<Blob>> blobs_;
   private final Map<TagProperty, String> properties_;
@@ -30,7 +30,7 @@ public class Tag extends AbstractEntity<Tag> implements Hierarchical<Tag>, Named
   }
 
   public Tag(
-    Integer id, EntityReference<Tag> parent, String name,
+    Integer id, Optional<EntityReference<Tag>> parent, String name,
     Map<TagProperty, String> properties,
     Set<EntityReference<Blob>> blobs
   ) {
@@ -43,7 +43,11 @@ public class Tag extends AbstractEntity<Tag> implements Hierarchical<Tag>, Named
 
   @Override
   public Tag getParent() {
-    return ((parent_ != null) ? DbAccess.INSTANCE.get().resolve(parent_) : null);
+    return parent_.map(parent -> DbAccess.INSTANCE.get().resolve(parent)).orElse(null);
+  }
+
+  public Optional<EntityReference<Tag>> getParentRef() {
+    return parent_;
   }
 
   @Override

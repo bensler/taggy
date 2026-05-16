@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.WeakHashMap;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import javax.swing.JFrame;
@@ -87,9 +86,7 @@ public class App {
     dbAccess_ = new DbAccess(db_.getConnection());
 //    final TagDbMapper tagDbMapper = dbAccess_.registerMapper(new V1TagDbMapper(dbAccess_));
 //    final BlobDbMapper blobDbMapper = dbAccess_.registerMapper(new V1BlobDbMapper(dbAccess_));
-    final AtomicReference<DbSetup> dbSetupRef = new AtomicReference<>();
-    dbAccess_.runInTxn(pCon -> dbSetupRef.set(new DbSetup(pCon)));
-    dbSetup_ = dbSetupRef.get();
+    dbSetup_ = dbAccess_.runInTxn2(pCon -> new DbSetup(pCon));
 
     final TagDbMapper tagDbMapper = dbAccess_.registerMapper(new V2TagDbMapper(dbAccess_, dbSetup_));
     final BlobDbMapper blobDbMapper = dbAccess_.registerMapper(new V2BlobDbMapper(dbAccess_, dbSetup_));
