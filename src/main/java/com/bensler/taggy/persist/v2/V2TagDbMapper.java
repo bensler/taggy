@@ -5,6 +5,9 @@ import static com.bensler.taggy.persist.v2.EntityPropertyType.STRING;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.taggy.persist.DbAccess;
@@ -28,7 +31,7 @@ public class V2TagDbMapper extends AbstractV2DbMapper<Tag> implements TagDbMappe
 
   @Override
   public List<Tag> loadAllEntities(List<Integer> ids) {
-    return null; // TODO
+    return List.of(); // TODO
   }
 
   @Override
@@ -43,12 +46,23 @@ public class V2TagDbMapper extends AbstractV2DbMapper<Tag> implements TagDbMappe
 
   @Override
   public void update(Tag tag) throws SQLException {
-    // TODO
+    persistTag(tag);
   }
 
   @Override
   public Integer insert(Tag tag) throws SQLException {
-    return null; // TODO
+    return persistTag(tag);
+  }
+
+  private Integer persistTag(Tag tag) {
+    final PersistedEntity persistedEntity = new PersistedEntity(E_TAG, Optional.ofNullable(tag.getId()));
+
+                                              addProperty(persistedEntity, P_TAG__NAME, tag.getName());
+    tag.getParentRef().ifPresent(parentRef -> addProperty(persistedEntity, P_TAG__PARENT, parentRef));
+    persistedEntity.putOptionalProperties(tag.getProperties().entrySet().stream().collect(Collectors.toMap(
+      entry -> entry.getKey().name(), Entry::getValue
+    )));
+    return persist(persistedEntity);
   }
 
 }

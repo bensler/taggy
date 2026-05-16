@@ -15,9 +15,7 @@ CREATE TABLE "entity_property_type" (
 );
 
 CREATE TABLE "entity_type" (
-  "name"        VARCHAR(128) PRIMARY KEY,
-  "parent_name" INTEGER,
-  FOREIGN KEY("parent_name") REFERENCES "entity_type"("name") ON DELETE RESTRICT
+  "name"        VARCHAR(128) PRIMARY KEY
 );
 
 CREATE TABLE "entity_property" (

@@ -22,8 +22,8 @@ public class EntityProperty<JAVA_TYPE> {
     return type_;
   }
 
-  public void store(Consumer<PropertyTableEntry<?>> tableEntryConsumer, int propertyId, JAVA_TYPE value) {
-    type_.store((table, dbValue) -> tableEntryConsumer.accept(new PropertyTableEntry<>(propertyId, table, dbValue)), value);
+  public <BASE_TYPE> void store(Consumer<PropertyTableEntry<BASE_TYPE>> tableEntryConsumer, int propertyId, JAVA_TYPE value) {
+    ((EntityPropertyType<JAVA_TYPE, BASE_TYPE>)type_).store((table, dbValue) -> tableEntryConsumer.accept(new PropertyTableEntry<>(propertyId, table, dbValue)), value);
   }
 
 }

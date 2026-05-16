@@ -11,15 +11,13 @@ import com.bensler.taggy.persist.v2.PersistencyBaseLayer.PropertyTableEntry;
 
 public class PersistedEntity {
 
-  private final DbSetup dbSetup_;
   private final Optional<Integer> entityId_;
   private final EntityType<?> type_;
 
   private final List<PropertyTableEntry<?>> properties_;
   private final Map<String, String> optionalProperties_;
 
-  PersistedEntity(DbSetup dbSetup, EntityType<?> type, Optional<Integer> entityId) {
-    dbSetup_ = dbSetup;
+  PersistedEntity(EntityType<?> type, Optional<Integer> entityId) {
     entityId_ = entityId;
     type_ = type;
     optionalProperties_ = new HashMap<>();
@@ -37,7 +35,7 @@ public class PersistedEntity {
     optionalProperties_.putAll(optionalProperties);
   }
 
-  public void persist(PersistencyBaseLayer db) throws SQLException {
+  public Integer persist(PersistencyBaseLayer db) throws SQLException {
     final Integer id;
 
     if (entityId_.isPresent()) {
@@ -48,8 +46,7 @@ public class PersistedEntity {
     }
     db.storeOptionalProperties(id, optionalProperties_);
     db.storeProperties(id, List.copyOf(properties_));
+    return id;
   }
-
-
 
 }

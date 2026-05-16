@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import com.bensler.decaf.util.entity.Entity;
@@ -54,10 +55,11 @@ public class V1TagDbMapper extends AbstractV1DbMapper<Tag> implements TagDbMappe
       ) {
         while (result.next()) {
           final Integer tagId = result.getInt(1);
-          final Integer parentId = (Integer)result.getObject(3);
+          //                           ??? --------> (Integer)result.getObject(3);
+          final Optional<Integer> parentId = Optional.ofNullable(result.getInt(3));
 
           tags.add(new Tag(
-            tagId, ((parentId != null) ? new EntityReference<>(Tag.class, parentId) : null),
+            tagId, parentId.map(lParentId -> new EntityReference<>(Tag.class, lParentId)),
             result.getString(2),
             properties.computeIfAbsent(tagId, lTagId -> Map.of()),
             blobs.computeIfAbsent(tagId, lTagId -> Set.of())
@@ -79,10 +81,10 @@ public class V1TagDbMapper extends AbstractV1DbMapper<Tag> implements TagDbMappe
   }
 
   private void setParentId(Tag parentTag, PreparedStatement stmt, int index) throws SQLException {
-    final Integer parentId = Tag.getProperty(parentTag, Tag::getId);
+    final Optional<Integer> parentId = Tag.getProperty(parentTag, Tag::getId);
 
-    if (parentId != null) {
-      stmt.setInt(index, parentId);
+    if (parentId.isPresent()) {
+      stmt.setInt(index, parentId.get());
     }
   }
 
