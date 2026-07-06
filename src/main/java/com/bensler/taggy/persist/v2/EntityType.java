@@ -4,10 +4,10 @@ import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
+import java.util.stream.Stream;
 
 import com.bensler.decaf.util.entity.Entity;
 
@@ -16,7 +16,7 @@ public class EntityType<E extends Entity<E>> {
   private final Class<E> entityClass_;
   private final String name_;
   private final Optional<EntityType<?>> parentType_;
-  private final Map<String, EntityProperty<?>> properties_;
+  private final Map<String, BoundEntityProperty> properties_;
 
   public EntityType(Class<E> entityClass, EntityProperty<?>... properties) {
     this(entityClass, Optional.empty(), properties);
@@ -29,7 +29,10 @@ public class EntityType<E extends Entity<E>> {
   public EntityType(Class<E> entityClass, Optional<EntityType<?>> parentType, EntityProperty<?>... properties) {
     name_ = (entityClass_ = entityClass).getName();
     parentType_ = parentType;
-    properties_ = Arrays.stream(properties).collect(toMap(EntityProperty::getName, identity()));
+    properties_ = Stream.concat(
+      parentType_.map(parent -> parent.properties_.values()).stream().flatMap(Collection::stream).map(BoundEntityProperty::getProperty),
+      Arrays.stream(properties)
+    ).map(property -> new BoundEntityProperty(this, property)).collect(toMap(BoundEntityProperty::getName, identity()));
   }
 
   public Class<E> getEntityClass() {
@@ -40,17 +43,14 @@ public class EntityType<E extends Entity<E>> {
     return name_;
   }
 
-  public Set<EntityProperty<?>> getProperties() {
-    final Set<EntityProperty<?>> properties = parentType_.map(EntityType::getProperties).orElseGet(HashSet::new);
-
-    properties.addAll(properties_.values());
-    return properties;
+  public Collection<BoundEntityProperty> getProperties() {
+     return properties_.values();
   }
 
-  public Optional<EntityProperty<?>> getProperty(String propertyName, EntityPropertyType<?, ?> propertyType) {
-    final Optional<EntityProperty<?>> property = Optional.ofNullable(properties_.get(propertyName));
+  public Optional<BoundEntityProperty> getProperty(String propertyName, EntityPropertyType<?, ?> propertyType) {
+    final Optional<BoundEntityProperty> property = Optional.ofNullable(properties_.get(propertyName));
 
-    property.map(EntityProperty::getType).ifPresent(type-> {
+    property.map(BoundEntityProperty::getType).ifPresent(type-> {
       if (type != propertyType) {
         throw new IllegalStateException("Type mismatch (\"%s\" vs \"%s\") in property \"%s\"".formatted(
           type, propertyType, name_ + "." + propertyName
@@ -60,8 +60,8 @@ public class EntityType<E extends Entity<E>> {
     return property;
   }
 
-  public boolean containsProperty(EntityProperty<?> propertyType) {
-    return properties_.values().contains(propertyType);
+  public boolean containsProperty(EntityProperty<?> property) {
+    return properties_.values().stream().map(BoundEntityProperty::getProperty).filter(prop -> prop.equals(property)).findAny().isPresent();
   }
 
 }

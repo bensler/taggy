@@ -87,9 +87,15 @@ public class App {
 //    final TagDbMapper tagDbMapper = dbAccess_.registerMapper(new V1TagDbMapper(dbAccess_));
 //    final BlobDbMapper blobDbMapper = dbAccess_.registerMapper(new V1BlobDbMapper(dbAccess_));
     dbSetup_ = dbAccess_.runInTxn2(pCon -> new DbSetup(pCon));
-
     final TagDbMapper tagDbMapper = dbAccess_.registerMapper(new V2TagDbMapper(dbAccess_, dbSetup_));
     final BlobDbMapper blobDbMapper = dbAccess_.registerMapper(new V2BlobDbMapper(dbAccess_, dbSetup_));
+
+//    final TagDbMapper tagDbMapper = dbAccess_.registerMapper(
+//        new V2TagDbMapper(dbAccess_, dbSetup_);
+//        );
+//    final BlobDbMapper blobDbMapper = dbAccess_.registerMapper(
+//        new V2BlobDbMapper(dbAccess_, dbSetup_);
+//            );
 
 
     prefs_ = new PrefsStorage(new File(getBaseDir(), "prefs.xml"));

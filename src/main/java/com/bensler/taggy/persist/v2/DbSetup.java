@@ -34,7 +34,7 @@ public class DbSetup {
   private final Map<Class<?>, EntityType<?>> entityTypes_;
   private final Map<String, EntityPropertyType<?, ?>> propertyTypes_;
   private final Map<String, EntityRelationshipType> relationshipTypes_;
-  private final Map<EntityProperty<?>, Integer> propertyIds_;
+  private final Map<BoundEntityProperty, Integer> propertyIds_;
 
   public DbSetup(Connection con) throws SQLException {
     propertyTypes_ = setupEntityPropertyTypes(con);
@@ -87,10 +87,10 @@ public class DbSetup {
     return typesByName;
   }
 
-  private Map<EntityProperty<?>, Integer> setupPropertyIds(Connection con, Collection<EntityType<?>> entityTypes) throws SQLException {
-    final Map<EntityProperty<?>, Integer> propIdCollector = new HashMap<>();
+  private Map<BoundEntityProperty, Integer> setupPropertyIds(Connection con, Collection<EntityType<?>> entityTypes) throws SQLException {
+    final Map<BoundEntityProperty, Integer> propIdCollector = new HashMap<>();
     final Map<String, EntityType<?>> typesByName = setupEntityIds(con, entityTypes);
-    final Map<String, Set<EntityProperty<?>>> propsToInsert = entityTypes.stream().collect(toMap(EntityType::getClassName, EntityType::getProperties));
+    final Map<String, Collection<BoundEntityProperty>> propsToInsert = entityTypes.stream().collect(toMap(EntityType::getClassName, EntityType::getProperties));
 
     try (
       PreparedStatement stmt = con.prepareStatement("SELECT id, entity_type_name, name, entity_property_type_name FROM entity_property");
@@ -110,24 +110,24 @@ public class DbSetup {
         }
       }
     }
-    if (propsToInsert.values().stream().flatMap(Set::stream).findAny().isPresent()) {
+    if (propsToInsert.values().stream().flatMap(Collection::stream).findAny().isPresent()) {
       try (
         PreparedStatement stmt = con.prepareStatement(
           "INSERT INTO entity_property (entity_type_name, name, entity_property_type_name) VALUES (?, ?, ?) RETURNING id", Statement.RETURN_GENERATED_KEYS
         );
       ) {
         for (String typeName : propsToInsert.keySet()) {
-          for (EntityProperty<?> prop : propsToInsert.get(typeName)) {
+          for (BoundEntityProperty prop : propsToInsert.get(typeName)) {
             final ResultSet generatedKeys;
 
             stmt.setString(1, typeName);
             stmt.setString(2, prop.getName());
-            stmt.setString(3, prop.getType().getName());
+            stmt.setString(3, prop.getTypeName());
             // executeBatch() returning a collection of generated IDs does not work with Sqlite
             generatedKeys = stmt.executeQuery();
             generatedKeys.next();
             if (propIdCollector.containsKey(prop)) {
-              throw new IllegalStateException("Duplicate use of property \"%s:%s\" in EntityType \"%s\" ".formatted(prop.getName(), prop.getType().getName(), typeName));
+              throw new IllegalStateException("Duplicate use of property \"%s:%s\" in EntityType \"%s\" ".formatted(prop.getName(), prop.getTypeName(), typeName));
             } else {
               propIdCollector.put(prop, generatedKeys.getInt(1));
             }
@@ -138,10 +138,10 @@ public class DbSetup {
     return propIdCollector;
   }
 
-  private Map<String, EntityType<?>> setupEntityIds(Connection con, Collection<EntityType<?>> collection) throws SQLException {
-    final Map<String, EntityType<?>> typesByName = collection.stream().collect(toMap(EntityType::getClassName, identity()));
+  private Map<String, EntityType<?>> setupEntityIds(Connection con, Collection<EntityType<?>> entityTypes) throws SQLException {
+    final Map<String, EntityType<?>> typesByName = entityTypes.stream().collect(toMap(EntityType::getClassName, identity()));
 
-    collection = new ArrayList<>(collection);
+    entityTypes = new ArrayList<>(entityTypes);
     try (
       PreparedStatement stmt = con.prepareStatement("SELECT name FROM entity_type");
       ResultSet result = stmt.executeQuery();
@@ -151,15 +151,15 @@ public class DbSetup {
         final EntityType<?> type = typesByName.get(dbTypeName);
 
         if (type != null) {
-          collection.remove(type);
+          entityTypes.remove(type);
         }
       }
     }
-    if (!collection.isEmpty()) {
+    if (!entityTypes.isEmpty()) {
       try (
         PreparedStatement stmt = con.prepareStatement("INSERT INTO entity_type (name) VALUES (?)");
       ) {
-        for (EntityType<?> type : collection) {
+        for (EntityType<?> type : entityTypes) {
           stmt.setString(1, type.getClassName());
           stmt.addBatch();
         }
