@@ -14,23 +14,20 @@ import java.util.Set;
 
 import com.bensler.decaf.util.entity.Entity;
 import com.bensler.decaf.util.entity.EntityReference;
-import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.DbAccess;
-import com.bensler.taggy.persist.Tag;
-import com.bensler.taggy.persist.TagDbMapper;
 import com.bensler.taggy.persist.TagProperty;
 
-public class V1TagDbMapper extends AbstractV1DbMapper<Tag> implements TagDbMapper {
+public class V1TagDbMapper extends AbstractV1DbMapper<V1Tag> {
 
   public V1TagDbMapper(DbAccess db) {
-    super(Tag.class, db);
+    super(V1Tag.class, db);
   }
 
   @Override
-  public List<Tag> loadAllEntities(List<Integer> ids) {
+  public List<V1Tag> loadAllEntities(List<Integer> ids) {
     final Map<Integer, Map<TagProperty, String>> properties = new HashMap<>();
-    final Map<Integer, Set<EntityReference<Blob>>> blobs = new HashMap<>();
-    final List<Tag> tags = new ArrayList<>();
+    final Map<Integer, Set<EntityReference<V1Blob>>> blobs = new HashMap<>();
+    final List<V1Tag> tags = new ArrayList<>();
 
     try {
       try (
@@ -46,7 +43,7 @@ public class V1TagDbMapper extends AbstractV1DbMapper<Tag> implements TagDbMappe
         ResultSet result = stmt.executeQuery()
       ) {
         while (result.next()) {
-          blobs.computeIfAbsent(result.getInt(1), tagId -> new HashSet<>()).add(new EntityReference<>(Blob.class, result.getInt(2)));
+          blobs.computeIfAbsent(result.getInt(1), tagId -> new HashSet<>()).add(new EntityReference<>(V1Blob.class, result.getInt(2)));
         }
       }
       try (
@@ -55,11 +52,11 @@ public class V1TagDbMapper extends AbstractV1DbMapper<Tag> implements TagDbMappe
       ) {
         while (result.next()) {
           final Integer tagId = result.getInt(1);
-          //                           ??? --------> (Integer)result.getObject(3);
-          final Optional<Integer> parentId = Optional.ofNullable(result.getInt(3));
+          final Optional<Integer> parentId = Optional.ofNullable((Integer)result.getObject(3));
+//          final Optional<Integer> parentId = Optional.ofNullable(result.getInt(3));
 
-          tags.add(new Tag(
-            tagId, parentId.map(lParentId -> new EntityReference<>(Tag.class, lParentId)),
+          tags.add(new V1Tag(
+            tagId, parentId.map(lParentId -> new EntityReference<>(V1Tag.class, lParentId)),
             result.getString(2),
             properties.computeIfAbsent(tagId, lTagId -> Map.of()),
             blobs.computeIfAbsent(tagId, lTagId -> Set.of())
@@ -80,20 +77,15 @@ public class V1TagDbMapper extends AbstractV1DbMapper<Tag> implements TagDbMappe
     }
   }
 
-  private void setParentId(Tag parentTag, PreparedStatement stmt, int index) throws SQLException {
-    final Optional<Integer> parentId = Tag.getProperty(parentTag, Tag::getId);
+  private void setParentId(V1Tag parentTag, PreparedStatement stmt, int index) throws SQLException {
+    final Optional<Integer> parentId = V1Tag.getProperty(parentTag, V1Tag::getId);
 
     if (parentId.isPresent()) {
       stmt.setInt(index, parentId.get());
     }
   }
 
-  @Override
-  public void updateHeadData(TagHeadData tagHeadData) throws SQLException {
-    updateHeadData(tagHeadData.subject_.getId(), tagHeadData.parent_, tagHeadData.name_);
-  }
-
-  private void updateHeadData(Integer tagId, Tag parent, String name) throws SQLException {
+  private void updateHeadData(Integer tagId, V1Tag parent, String name) throws SQLException {
     try (PreparedStatement stmt = db_.prepareStatement("UPDATE tag SET (name,parent_id)=(?,?) WHERE id=?")) {
       stmt.setString(1, name);
       setParentId(parent, stmt, 2);
@@ -103,7 +95,7 @@ public class V1TagDbMapper extends AbstractV1DbMapper<Tag> implements TagDbMappe
   }
 
   @Override
-  public void update(Tag tag) throws SQLException {
+  public void update(V1Tag tag, Scope scope) throws SQLException {
     final Integer tagId = tag.getId();
 
     updateHeadData(tagId, tag.getParent(), tag.getName());
@@ -112,14 +104,16 @@ public class V1TagDbMapper extends AbstractV1DbMapper<Tag> implements TagDbMappe
       stmt.execute();
     }
     insertProperties(tag, tagId);
-    try (PreparedStatement stmt = db_.prepareStatement("DELETE FROM blob_tag_xref WHERE tag_id=?")) {
-      stmt.setInt(1, tagId);
-      stmt.execute();
+    if (scope.relationships_) {
+      try (PreparedStatement stmt = db_.prepareStatement("DELETE FROM blob_tag_xref WHERE tag_id=?")) {
+        stmt.setInt(1, tagId);
+        stmt.execute();
+      }
+      insertBlobs(tagId, tag.getBlobRefs());
     }
-    insertBlobs(tagId, tag.getBlobRefs());
   }
 
-  private void insertProperties(Tag tag, Integer tagId) throws SQLException {
+  private void insertProperties(V1Tag tag, Integer tagId) throws SQLException {
     final Set<TagProperty> propertyKeys = tag.getPropertyKeys();
 
     if (!propertyKeys.isEmpty()) {
@@ -149,7 +143,7 @@ public class V1TagDbMapper extends AbstractV1DbMapper<Tag> implements TagDbMappe
   }
 
   @Override
-  public Integer insert(Tag tag) throws SQLException {
+  public Integer insert(V1Tag tag) throws SQLException {
     final Integer newId;
 
     try (PreparedStatement stmt = db_.prepareStatement("INSERT INTO tag (name,parent_id) VALUES (?,?)")) {

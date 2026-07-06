@@ -3,8 +3,10 @@ package com.bensler.taggy.persist.v2;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -29,6 +31,7 @@ public class EntityType<E extends Entity<E>> {
   public EntityType(Class<E> entityClass, Optional<EntityType<?>> parentType, EntityProperty<?>... properties) {
     name_ = (entityClass_ = entityClass).getName();
     parentType_ = parentType;
+
     properties_ = Stream.concat(
       parentType_.map(parent -> parent.properties_.values()).stream().flatMap(Collection::stream).map(BoundEntityProperty::getProperty),
       Arrays.stream(properties)
@@ -43,8 +46,8 @@ public class EntityType<E extends Entity<E>> {
     return name_;
   }
 
-  public Collection<BoundEntityProperty> getProperties() {
-     return properties_.values();
+  public List<BoundEntityProperty> getProperties() {
+     return new ArrayList<>(properties_.values());
   }
 
   public Optional<BoundEntityProperty> getProperty(String propertyName, EntityPropertyType<?, ?> propertyType) {

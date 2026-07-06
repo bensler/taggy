@@ -34,14 +34,15 @@ import com.bensler.decaf.swing.dialog.ConfirmationDialog;
 import com.bensler.decaf.swing.dialog.DialogAppearance;
 import com.bensler.decaf.swing.dialog.OkCancelDialog;
 import com.bensler.decaf.util.Pair;
+import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.decaf.util.tree.Hierarchical;
 import com.bensler.decaf.util.tree.Hierarchy;
 import com.bensler.taggy.App;
-import com.bensler.taggy.persist.Blob;
 import com.bensler.taggy.persist.DbAccess;
+import com.bensler.taggy.persist.DbMapper;
+import com.bensler.taggy.persist.DbMapper.Scope;
+import com.bensler.taggy.persist.Photo;
 import com.bensler.taggy.persist.Tag;
-import com.bensler.taggy.persist.TagDbMapper;
-import com.bensler.taggy.persist.TagDbMapper.TagHeadData;
 
 public class TagsUiController {
 
@@ -53,7 +54,7 @@ public class TagsUiController {
   public static final DateTimeFormatter UI_WEEK_DAY_FORMATTER = DateTimeFormatter.ofPattern("d (E)");
   public static final String VALUE_DATE_ROOT = "dateRoot";
 
-  private final TagDbMapper dbMapper_;
+  private final DbMapper<Tag> dbMapper_;
   private final Hierarchy<Tag> allTags_;
   private final Map<String, Tag> dateTags_;
 
@@ -62,7 +63,7 @@ public class TagsUiController {
   private final UiAction newTimelineTagAction_;
   private final UiAction deleteTagAction_;
 
-  public TagsUiController(TagDbMapper tagDbMapper, App app) {
+  public TagsUiController(DbMapper<Tag> tagDbMapper, App app) {
     dbMapper_ = tagDbMapper;
     allTags_ = new Hierarchy<>();
     dateTags_ = app.getDbAccess().loadAll(Tag.class).stream()
@@ -145,20 +146,23 @@ public class TagsUiController {
   private Tag createDateTag(String dateStr) {
     final TemporalAccessor date = YYYY_MM_DD.parse(dateStr);
     final Tag parentMonthTag = computeIfAbsent(PROPERTY_DATE_MONTH_FORMATTER.format(date), tagDateKey -> createMonthTag(date, tagDateKey));
+    final Optional<EntityReference<Tag>> parentRef = Tag.createParentRef(parentMonthTag);
 
-    return persistNewTag(new Tag(parentMonthTag, UI_WEEK_DAY_FORMATTER.format(date), Map.of(REPRESENTED_DATE, dateStr)));
+    return persistNewTag(new Tag(parentRef, UI_WEEK_DAY_FORMATTER.format(date), Map.of(REPRESENTED_DATE, dateStr)));
   }
 
   private Tag createMonthTag(TemporalAccessor date, String propertyDateMonth) {
     final Tag parentYearTag = computeIfAbsent(PROPERTY_DATE_YEAR_FORMATTER.format(date), this::createYearTag);
+    final Optional<EntityReference<Tag>> parentRef = Tag.createParentRef(parentYearTag);
 
-    return persistNewTag(new Tag(parentYearTag, UI_MONTH_FORMATTER.format(date), Map.of(REPRESENTED_DATE, propertyDateMonth)));
+    return persistNewTag(new Tag(parentRef, UI_MONTH_FORMATTER.format(date), Map.of(REPRESENTED_DATE, propertyDateMonth)));
   }
 
   private Tag createYearTag(String propertyDateYear) {
     final Tag datesRootTag = computeIfAbsent(VALUE_DATE_ROOT, tagDateKey -> persistNewTag(new Tag(null, "Timeline", Map.of(REPRESENTED_DATE, VALUE_DATE_ROOT))));
+    final Optional<EntityReference<Tag>> parentRef = Tag.createParentRef(datesRootTag);
 
-    return persistNewTag(new Tag(datesRootTag, propertyDateYear, Map.of(REPRESENTED_DATE, propertyDateYear)));
+    return persistNewTag(new Tag(parentRef, propertyDateYear, Map.of(REPRESENTED_DATE, propertyDateYear)));
   }
 
   public Set<Tag> getAllTags() {
@@ -166,7 +170,7 @@ public class TagsUiController {
   }
 
   private void deleteTag(Tag tag) {
-    final Set<Blob> blobs;
+    final Set<Photo> blobs;
     final App app = getApp();
     final DbAccess db = app.getDbAccess();
 
@@ -180,7 +184,7 @@ public class TagsUiController {
 
   private Tag persistNewTag(Tag newTag) {
     final App app = getApp();
-    final Tag createdTag = app.getDbAccess().storeObject(newTag);
+    final Tag createdTag = app.getDbAccess().storeObject(newTag, Scope.PROPERTIES);
 
     allTags_.add(createdTag);
     app.entityCreated(createdTag);
@@ -188,14 +192,15 @@ public class TagsUiController {
     return createdTag;
   }
 
-  private Tag updateTag(TagHeadData tagHeadData) {
+  private Tag updateTag(Tag newTag) {
     final App app = getApp();
     final DbAccess db = app.getDbAccess();
     final Tag editedTag;
-    final Tag oldTag = db.resolve(tagHeadData.subject_);
+    final EntityReference<Tag> tagRef = new EntityReference<>(newTag);
+    final Tag oldTag = db.resolve(tagRef);
 
-    db.runInTxn(_ -> dbMapper_.updateHeadData(tagHeadData));
-    editedTag =  db.refresh(tagHeadData.subject_);
+    db.runInTxn(_ -> dbMapper_.update(newTag, Scope.PROPERTIES));
+    editedTag =  db.refresh(tagRef);
     allTags_.add(editedTag);
     removeFromDateTags(oldTag);
     addToDateTags(editedTag);
@@ -241,7 +246,7 @@ public class TagsUiController {
     if (imgCount > 0) {
       final ThumbnailOverviewPanel thumbs = new ThumbnailOverviewPanel(SCROLL_HORIZONTALLY);
 
-      thumbs.setData(tag.getBlobs());
+      thumbs.setData(tag.getImages());
       confDlg = new ConfirmationDialog(new DialogAppearance(
         icon, "Confirmation: Delete Tag",
         "Do you really want to delete Tag \"%s\"? It has %s image%s assigned.".formatted(

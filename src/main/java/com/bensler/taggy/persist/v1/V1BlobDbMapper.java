@@ -13,22 +13,19 @@ import java.util.Set;
 
 import com.bensler.decaf.util.entity.Entity;
 import com.bensler.decaf.util.entity.EntityReference;
-import com.bensler.taggy.persist.Blob;
-import com.bensler.taggy.persist.BlobDbMapper;
 import com.bensler.taggy.persist.DbAccess;
-import com.bensler.taggy.persist.Tag;
 
-public class V1BlobDbMapper extends AbstractV1DbMapper<Blob> implements BlobDbMapper {
+public class V1BlobDbMapper extends AbstractV1DbMapper<V1Blob> {
 
   public V1BlobDbMapper(DbAccess db) {
-    super(Blob.class, db);
+    super(V1Blob.class, db);
   }
 
   @Override
-  public List<Blob> loadAllEntities(List<Integer> ids) {
+  public List<V1Blob> loadAllEntities(List<Integer> ids) {
     final Map<Integer, Map<String, String>> properties = new HashMap<>();
-    final Map<Integer, Set<EntityReference<Tag>>> tags = new HashMap<>();
-    final List<Blob> blobs = new ArrayList<>();
+    final Map<Integer, Set<EntityReference<V1Tag>>> tags = new HashMap<>();
+    final List<V1Blob> blobs = new ArrayList<>();
 
     try {
       try (
@@ -44,7 +41,7 @@ public class V1BlobDbMapper extends AbstractV1DbMapper<Blob> implements BlobDbMa
         ResultSet result = stmt.executeQuery()
       ) {
         while (result.next()) {
-          tags.computeIfAbsent(result.getInt(1), tagId -> new HashSet<>()).add(new EntityReference<>(Tag.class, result.getInt(2)));
+          tags.computeIfAbsent(result.getInt(1), tagId -> new HashSet<>()).add(new EntityReference<>(V1Tag.class, result.getInt(2)));
         }
       }
       try (
@@ -54,7 +51,7 @@ public class V1BlobDbMapper extends AbstractV1DbMapper<Blob> implements BlobDbMa
         while (result.next()) {
           final Integer blobId = result.getInt(1);
 
-          blobs.add(new Blob(
+          blobs.add(new V1Blob(
             blobId, result.getString(2), result.getString(3), result.getString(4),
             properties.computeIfAbsent(blobId, lBlobId -> Map.of()),
             tags.computeIfAbsent(blobId, lBlobId -> Set.of())
@@ -76,7 +73,7 @@ public class V1BlobDbMapper extends AbstractV1DbMapper<Blob> implements BlobDbMa
   }
 
   @Override
-  public void update(Blob blob) throws SQLException {
+  public void update(V1Blob blob, Scope scope) throws SQLException {
     final Integer blobId = blob.getId();
 
     try (PreparedStatement stmt = db_.prepareStatement("UPDATE blob SET (sha256sum,thumbnail_sha,type)=(?,?,?) WHERE id=?")) {
@@ -91,10 +88,12 @@ public class V1BlobDbMapper extends AbstractV1DbMapper<Blob> implements BlobDbMa
       stmt.execute();
     }
     insertProperties(blob, blob.getId());
-    updateTags(blobId, blob.getTagRefs());
+    if (scope.relationships_) {
+      updateTags(blobId, blob.getTagRefs());
+    }
   }
 
-  private void updateTags(Integer blobId, Collection<EntityReference<Tag>> tags) throws SQLException {
+  private void updateTags(Integer blobId, Collection<EntityReference<V1Tag>> tags) throws SQLException {
     try (PreparedStatement stmt = db_.prepareStatement("DELETE FROM blob_tag_xref WHERE blob_id=?")) {
       stmt.setInt(1, blobId);
       stmt.execute();
@@ -102,7 +101,7 @@ public class V1BlobDbMapper extends AbstractV1DbMapper<Blob> implements BlobDbMa
     insertTags(blobId, tags);
   }
 
-  private void insertProperties(Blob blob, Integer blobId) throws SQLException {
+  private void insertProperties(V1Blob blob, Integer blobId) throws SQLException {
     final Set<String> propertyNames = blob.getPropertyNames();
 
     if (!propertyNames.isEmpty()) {
@@ -132,7 +131,7 @@ public class V1BlobDbMapper extends AbstractV1DbMapper<Blob> implements BlobDbMa
   }
 
   @Override
-  public Integer insert(Blob blob) throws SQLException {
+  public Integer insert(V1Blob blob) throws SQLException {
     final Integer newId;
 
     try (PreparedStatement stmt = db_.prepareStatement("INSERT INTO blob (sha256sum,thumbnail_sha,type) VALUES (?,?,?)")) {
@@ -150,7 +149,6 @@ public class V1BlobDbMapper extends AbstractV1DbMapper<Blob> implements BlobDbMa
     return newId;
   }
 
-  @Override
   public List<Integer> findOrphanBlobs() throws SQLException {
     final List<Integer> ids = new ArrayList<>();
 
@@ -168,7 +166,6 @@ public class V1BlobDbMapper extends AbstractV1DbMapper<Blob> implements BlobDbMa
     return ids;
   }
 
-  @Override
   public boolean doesBlobExist(String shaHash) throws SQLException {
     try (PreparedStatement stmt = DbAccess.INSTANCE.get().prepareStatement("SELECT * FROM blob AS b WHERE b.sha256sum=? LIMIT 1")) {
       stmt.setString(1, shaHash);
@@ -176,8 +173,7 @@ public class V1BlobDbMapper extends AbstractV1DbMapper<Blob> implements BlobDbMa
     }
   }
 
-  @Override
-  public void setTags(EntityReference<Blob> blobRef, Set<Tag> tags) throws SQLException {
+  public void setTags(EntityReference<V1Blob> blobRef, Set<V1Tag> tags) throws SQLException {
     updateTags(blobRef.getId(), EntityReference.createCollection(tags, new HashSet<>()));
   }
 

@@ -26,16 +26,16 @@ import com.bensler.decaf.util.prefs.DelegatingPrefPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefPersister;
 import com.bensler.taggy.imprt.FileToImport.ImportObstacle;
-import com.bensler.taggy.persist.Blob;
+import com.bensler.taggy.persist.Photo;
 import com.bensler.taggy.persist.Tag;
 
 public class ImportController {
 
   public  static final String TYPE_BIN_PREFIX = "bin.";
   public  static final String TYPE_IMG_PREFIX = TYPE_BIN_PREFIX + "img.";
-  private static final String TYPE_JPG = TYPE_IMG_PREFIX + "JPG";
-  private static final String TYPE_PNG = TYPE_IMG_PREFIX + "PNG";
-  private static final String TYPE_TIF = TYPE_IMG_PREFIX + "TIF";
+  public  static final String TYPE_JPG = TYPE_IMG_PREFIX + "JPG";
+  public  static final String TYPE_PNG = TYPE_IMG_PREFIX + "PNG";
+  public  static final String TYPE_TIF = TYPE_IMG_PREFIX + "TIF";
 
   private static final Map<String, String> EXTENSIONS_TO_TYPE_MAP = Map.of(
     "JPG",  TYPE_JPG,
@@ -134,7 +134,7 @@ public class ImportController {
     final String type = file.getType();
 
     try {
-      final Blob blob = getApp().getBlobCtrl().importFile(file.getFile(), type, initialTag);
+      final Photo blob = getApp().getBlobCtrl().importFile(file.getFile(), type, initialTag);
 
       return new FileToImport(file, blob.getSha256sum(), ImportObstacle.DUPLICATE, "just imported", type, blob);
     } catch (Exception e) {

@@ -19,7 +19,7 @@ import com.bensler.decaf.swing.action.FocusedComponentActionController;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefPersister;
 import com.bensler.taggy.App;
-import com.bensler.taggy.persist.Blob;
+import com.bensler.taggy.persist.Photo;
 import com.bensler.taggy.persist.Tag;
 import com.bensler.taggy.ui.ThumbnailOverviewPanel.ScrollingPolicy;
 import com.jgoodies.forms.layout.CellConstraints;
@@ -57,7 +57,7 @@ class MainThumbnailPanel extends JPanel {
     updateStatusLabel();
   }
 
-  private void setData(Collection<Blob> blobs) {
+  private void setData(Collection<Photo> blobs) {
     thumbs_.setData(blobs);
     blobsCount_ = blobs.size();
     selectedBlobsCount_ = thumbs_.getSelection().size();
@@ -68,7 +68,7 @@ class MainThumbnailPanel extends JPanel {
     statusLabel_.setText("Images: %s %s".formatted(blobsCount_, (selectedBlobsCount_> 0) ? " (%s)".formatted(selectedBlobsCount_): ""));
   }
 
-  public void addSelectionListener(Consumer<List<Blob>> listener) {
+  public void addSelectionListener(Consumer<List<Photo>> listener) {
     thumbs_.addSelectionListener((source, selection) -> listener.accept(selection));
   }
 
@@ -77,7 +77,7 @@ class MainThumbnailPanel extends JPanel {
   }
 
   public void setData(Optional<Tag> tag) {
-    setData((currentTag_ = tag).map(Tag::getBlobs).orElseGet(Set::of));
+    setData((currentTag_ = tag).map(Tag::getImages).orElseGet(Set::of));
   }
 
   public ThumbnailOverview getEntityComponent() {

@@ -17,13 +17,15 @@ import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefsStorage;
 import com.bensler.taggy.imprt.ImportController;
 import com.bensler.taggy.imprt.Thumbnailer;
-import com.bensler.taggy.persist.BlobDbMapper;
 import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.persist.DbConnector;
+import com.bensler.taggy.persist.DbMapper;
+import com.bensler.taggy.persist.DbMapper.Scope;
 import com.bensler.taggy.persist.SqliteDbConnector;
-import com.bensler.taggy.persist.TagDbMapper;
+import com.bensler.taggy.persist.Tag;
 import com.bensler.taggy.persist.v2.DbSetup;
-import com.bensler.taggy.persist.v2.V2BlobDbMapper;
+import com.bensler.taggy.persist.v2.ThumbnailDbMapper;
+import com.bensler.taggy.persist.v2.V2PhotoDbMapper;
 import com.bensler.taggy.persist.v2.V2TagDbMapper;
 import com.bensler.taggy.ui.BlobController;
 import com.bensler.taggy.ui.MainFrame;
@@ -87,8 +89,10 @@ public class App {
 //    final TagDbMapper tagDbMapper = dbAccess_.registerMapper(new V1TagDbMapper(dbAccess_));
 //    final BlobDbMapper blobDbMapper = dbAccess_.registerMapper(new V1BlobDbMapper(dbAccess_));
     dbSetup_ = dbAccess_.runInTxn2(pCon -> new DbSetup(pCon));
-    final TagDbMapper tagDbMapper = dbAccess_.registerMapper(new V2TagDbMapper(dbAccess_, dbSetup_));
-    final BlobDbMapper blobDbMapper = dbAccess_.registerMapper(new V2BlobDbMapper(dbAccess_, dbSetup_));
+    final DbMapper<Tag> tagDbMapper = dbAccess_.registerMapper(new V2TagDbMapper(dbAccess_, dbSetup_));
+    final V2PhotoDbMapper photoDbMapper = dbAccess_.registerMapper(new V2PhotoDbMapper(
+      dbAccess_.registerMapper(new ThumbnailDbMapper(dbAccess_, dbSetup_)), dbAccess_, dbSetup_
+    ));
 
 //    final TagDbMapper tagDbMapper = dbAccess_.registerMapper(
 //        new V2TagDbMapper(dbAccess_, dbSetup_);
@@ -99,7 +103,7 @@ public class App {
 
 
     prefs_ = new PrefsStorage(new File(getBaseDir(), "prefs.xml"));
-    blobCtrl_ = new BlobController(blobDbMapper, dataDir, FOLDER_PATTERN);
+    blobCtrl_ = new BlobController(photoDbMapper, dataDir, FOLDER_PATTERN);
     tagCtrl_ = new TagsUiController(tagDbMapper, this);
     importCtrl_ = new ImportController(getBaseDir());
     thumbnailer_ = new Thumbnailer(dataDir);
@@ -200,10 +204,10 @@ public class App {
     fireEvent(entity, listener -> listener.entityRemoved(entity));
   }
 
-  public <E extends Entity<E>> E storeEntity(E entity) {
+  public <E extends Entity<E>> E storeEntity(E entity, Scope scope) {
     final boolean isNew = !entity.hasId();
 
-    entity = dbAccess_.storeObject(entity);
+    entity = dbAccess_.storeObject(entity, scope);
     if (isNew) {
       entityCreated(entity);
     } else {

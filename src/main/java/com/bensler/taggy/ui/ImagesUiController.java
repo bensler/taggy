@@ -17,6 +17,7 @@ import static com.bensler.taggy.ui.Icons.X_10;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.List;
 
 import javax.swing.ImageIcon;
@@ -37,7 +38,7 @@ import com.bensler.decaf.util.prefs.DelegatingPrefPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefsStorage;
 import com.bensler.taggy.App;
-import com.bensler.taggy.persist.Blob;
+import com.bensler.taggy.persist.Photo;
 
 public class ImagesUiController {
 
@@ -61,24 +62,24 @@ public class ImagesUiController {
     lastExportFolder_ = new DelegatingPrefPersister(new PrefKey(MainFrame.PREF_BASE_KEY, "lastExportFolder"));
     slideshowAction_ = new UiAction(
       new ActionAppearance(SLIDESHOW_13, SLIDESHOW_48, "Slide Show", "View Images in full detail"),
-      FilteredAction.many(Blob.class, atLeastOneFilter(), blobs -> app.getMainFrame().getSlideshowFrame().show(blobs))
+      FilteredAction.many(Photo.class, atLeastOneFilter(), blobs -> app.getMainFrame().getSlideshowFrame().show(blobs))
     );
     editImageTagsAction_ = new UiAction(
       new ActionAppearance(TAG_SIMPLE_13, EditImageTagsDialog.ICON, "Edit Image Tags", "Edit Tags of this Image"),
-      FilteredAction.one(Blob.class, this::editTags)
+      FilteredAction.one(Photo.class, this::editTags)
     );
     addImagesTagsAction_ = new UiAction(
       new ActionAppearance(new OverlayIcon(TAG_SIMPLE_13, new Overlay(PLUS_10, SE)), AddImagesTagsDialog.ICON, "Add Image Tags", "Add Tags to several Images at once"),
-      FilteredAction.many(Blob.class, atLeastOneFilter(), this::addTags)
+      FilteredAction.many(Photo.class, atLeastOneFilter(), this::addTags)
     );
     exportImageAction_ = new UiAction(
       new ActionAppearance(EXPORT_FOLDER_13, EXPORT_ICON_48, "Export Image", "Export Image to local filesystem"),
 
-      FilteredAction.one(Blob.class, this::exportBlobUi)
+      FilteredAction.one(Photo.class, this::exportBlobUi)
     );
     deleteImageAction_ = new UiAction(
       new ActionAppearance(new OverlayIcon(IMAGE_13, new Overlay(X_10, SE)), null, "Delete Image(s)", "Remove currently selected Image(s)"),
-      FilteredAction.many(Blob.class, atLeastOneFilter(), this::deleteImagesConfirm)
+      FilteredAction.many(Photo.class, atLeastOneFilter(), this::deleteImagesConfirm)
     );
     tagsActions_ = new ActionGroup(
       editImageTagsAction_,
@@ -98,14 +99,14 @@ public class ImagesUiController {
   private UiAction createAction(ImageIcon icon, String menuText, int direction) {
     return new UiAction(
       new ActionAppearance(icon, null, menuText, null),
-      FilteredAction.one(Blob.class, blob -> rotateBlob(blob, direction))
+      FilteredAction.one(Photo.class, blob -> rotateBlob(blob, direction))
     );
   }
 
-  private void rotateBlob(Blob blob, int direction) {
+  private void rotateBlob(Photo blob, int direction) {
     try {
       blobCtrl_.rotateBlob(blob, direction);
-    } catch (IOException e) {
+    } catch (IOException | SQLException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
@@ -141,20 +142,20 @@ public class ImagesUiController {
     return lastExportFolder_;
   }
 
-  private void deleteImagesConfirm(List<Blob> blobs) {
+  private void deleteImagesConfirm(List<Photo> blobs) {
     new OkCancelDialog<>(dialogParentComp_, new DeleteImagesConfirmDialog(blobs.size())).show(blobs)
     .ifPresent(blobsToDelete -> blobsToDelete.stream().flatMap(List::stream).forEach(blobCtrl_::deleteBlob));
   }
 
-  private void addTags(List<Blob> blobs) {
+  private void addTags(List<Photo> blobs) {
     new OkCancelDialog<>(dialogParentComp_, new AddImagesTagsDialog()).show(blobs, tags -> blobCtrl_.addTags(blobs, tags));
   }
 
-  private void editTags(Blob blob) {
+  private void editTags(Photo blob) {
     new OkCancelDialog<>(dialogParentComp_, new EditImageTagsDialog()).show(blob, tags -> blobCtrl_.setTags(blob, tags));
   }
 
-  private void exportBlobUi(Blob blob) {
+  private void exportBlobUi(Photo blob) {
     final App app = getApp();
     final PrefsStorage prefs = app.getMainFrame().getPrefStorage();
     final JFrame frame = app.getMainFrameFrame();

@@ -20,7 +20,7 @@ import com.bensler.decaf.util.prefs.DelegatingPrefPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.taggy.App;
-import com.bensler.taggy.persist.Blob;
+import com.bensler.taggy.persist.Photo;
 import com.bensler.taggy.persist.Tag;
 import com.bensler.taggy.ui.ThumbnailOverviewPanel;
 import com.jgoodies.forms.layout.CellConstraints;
@@ -139,7 +139,7 @@ class ImportProgressDialog extends JDialog {
   Optional<FileToImport> getNextToImport(Optional<FileToImport> lastProcessedItem) {
     synchronized (filesToImport_) {
       lastProcessedItem.ifPresent(lastProcessedFile -> {
-        final Blob blob = lastProcessedFile.getBlob();
+        final Photo blob = lastProcessedFile.getBlob();
         final int filesToImportSize;
 
         filesToImport_.remove(lastProcessedFile);

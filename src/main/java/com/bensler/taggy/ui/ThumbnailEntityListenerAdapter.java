@@ -6,45 +6,45 @@ import java.util.function.Function;
 
 import com.bensler.taggy.App;
 import com.bensler.taggy.EntityChangeListener;
-import com.bensler.taggy.persist.Blob;
+import com.bensler.taggy.persist.Photo;
 
-public class ThumbnailEntityListenerAdapter implements EntityChangeListener<Blob> {
+public class ThumbnailEntityListenerAdapter implements EntityChangeListener<Photo> {
 
   public static enum Operation {
     ADD_OR_UPDATE,
     REMOVE
   }
 
-  private final Map<Operation, Consumer<Blob>> operationActions_;
+  private final Map<Operation, Consumer<Photo>> operationActions_;
   private final ThumbnailOverviewPanel thumbs_;
-  private final Function<Blob, Operation> updateDecider_;
+  private final Function<Photo, Operation> updateDecider_;
 
-  public ThumbnailEntityListenerAdapter(App app, ThumbnailOverviewPanel thumbs, Function<Blob, Operation> updateDecider) {
+  public ThumbnailEntityListenerAdapter(App app, ThumbnailOverviewPanel thumbs, Function<Photo, Operation> updateDecider) {
     thumbs_ = thumbs;
     updateDecider_ = updateDecider;
     operationActions_ = Map.of(
       Operation.ADD_OR_UPDATE, thumbs_::addImage,
       Operation.REMOVE, thumbs_::removeImage
     );
-    app.addEntityChangeListener(this, Blob.class);
+    app.addEntityChangeListener(this, Photo.class);
   }
 
-  protected void blobChanged(Blob blob) {
+  protected void blobChanged(Photo blob) {
    operationActions_.get(updateDecider_.apply(blob)).accept(blob);
   }
 
   @Override
-  public void entityCreated(Blob blob) {
+  public void entityCreated(Photo blob) {
     blobChanged(blob);
   }
 
   @Override
-  public void entityChanged(Blob blob) {
+  public void entityChanged(Photo blob) {
     blobChanged(blob);
   }
 
   @Override
-  public void entityRemoved(Blob entity) {
+  public void entityRemoved(Photo entity) {
     thumbs_.contains(entity).ifPresent(thumbs_::removeImage);
   }
 

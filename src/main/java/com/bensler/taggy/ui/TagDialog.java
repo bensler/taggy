@@ -23,7 +23,6 @@ import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.decaf.util.tree.Hierarchy;
 import com.bensler.taggy.App;
 import com.bensler.taggy.persist.Tag;
-import com.bensler.taggy.persist.TagDbMapper.TagHeadData;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
@@ -104,12 +103,12 @@ public abstract class TagDialog<IN, OUT> extends BasicContentPanel<IN, OUT> {
 
     @Override
     public Tag getData() {
-      return new Tag(parentTag_.getSingleSelection(), getNewName(), Map.of());
+      return new Tag(Tag.createParentRef(parentTag_.getSingleSelection()), getNewName(), Map.of());
     }
 
   }
 
-  public static class Edit extends TagDialog<Tag, TagHeadData> {
+  public static class Edit extends TagDialog<Tag, Tag> {
 
     public static final OverlayIcon ICON = new OverlayIcon(TAG_48, new Overlay(EDIT_30, SE));
 
@@ -126,8 +125,14 @@ public abstract class TagDialog<IN, OUT> extends BasicContentPanel<IN, OUT> {
     }
 
     @Override
-    public TagHeadData getData() {
-      return new TagHeadData(inData_, parentTag_.getSingleSelection(), getNewName());
+    public Tag getData() {
+      return new Tag(
+        inData_.getId(),
+        Tag.createParentRef(parentTag_.getSingleSelection()),
+        getNewName(),
+        inData_.getProperties(),
+        inData_.getBlobRefs()
+      );
     }
 
   }

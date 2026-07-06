@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.bensler.decaf.util.Pair;
-import com.bensler.taggy.persist.Blob;
+import com.bensler.taggy.persist.Photo;
 
 class FileToImport {
 
@@ -35,7 +35,7 @@ class FileToImport {
   private String shaSum_;
   private Optional<Pair<ImportObstacle, Optional<String>>> importObstacle_;
   private String type_;
-  private Blob blob_;
+  private Photo blob_;
 
   FileToImport(Path basePath, File file) {
     fileSize_ = (file_ = file).length();
@@ -44,7 +44,7 @@ class FileToImport {
     setImportObstacle(ImportObstacle.SHA_MISSING, null);
   }
 
-  FileToImport(FileToImport template, String shaSum, ImportObstacle obstacle, String obstacleMsg, String type, Blob blob) {
+  FileToImport(FileToImport template, String shaSum, ImportObstacle obstacle, String obstacleMsg, String type, Photo blob) {
     fileSize_ = (file_ = template.file_).length();
     relativePath_ = template.relativePath_;
     shaSum_ = shaSum;
@@ -91,11 +91,11 @@ class FileToImport {
     return type_;
   }
 
-  void setBlob(Blob blob) {
+  void setBlob(Photo blob) {
     blob_ = blob;
   }
 
-  Blob getBlob() {
+  Photo getBlob() {
     return blob_;
   }
 

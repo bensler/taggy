@@ -16,12 +16,12 @@ import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.taggy.App;
-import com.bensler.taggy.persist.Blob;
+import com.bensler.taggy.persist.Photo;
 import com.bensler.taggy.ui.ThumbnailOverviewPanel.ScrollingPolicy;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class DeleteImagesConfirmDialog extends BasicContentPanel<List<Blob>, List<Blob>> {
+public class DeleteImagesConfirmDialog extends BasicContentPanel<List<Photo>, List<Photo>> {
 
   public static final DialogAppearance APPEARANCE_SINGLE = new DialogAppearance(
     new OverlayIcon(IMAGE_48, new Overlay(X_30, SE)), "Confirmation: Delete Image", "Do you really want to delete this image?"
@@ -49,12 +49,12 @@ public class DeleteImagesConfirmDialog extends BasicContentPanel<List<Blob>, Lis
   }
 
   @Override
-  public List<Blob> getData() {
+  public List<Photo> getData() {
     return inData_;
   }
 
   @Override
-  protected void setData(List<Blob> blobs) {
+  protected void setData(List<Photo> blobs) {
     thumbs_.setData(blobs);
   }
 

@@ -24,12 +24,12 @@ import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.decaf.util.tree.Hierarchical;
 import com.bensler.taggy.App;
-import com.bensler.taggy.persist.Blob;
+import com.bensler.taggy.persist.Photo;
 import com.bensler.taggy.persist.Tag;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class EditImageTagsDialog extends BasicContentPanel<Blob, Set<Tag>> {
+public class EditImageTagsDialog extends BasicContentPanel<Photo, Set<Tag>> {
 
   public static final OverlayIcon ICON = new OverlayIcon(IMAGE_48, new Overlay(TAGS_36, SE));
 
@@ -73,7 +73,7 @@ public class EditImageTagsDialog extends BasicContentPanel<Blob, Set<Tag>> {
   }
 
   @Override
-  protected void setData(Blob blob) {
+  protected void setData(Photo blob) {
     try {
       final Set<Tag> tags = blob.getTags();
 

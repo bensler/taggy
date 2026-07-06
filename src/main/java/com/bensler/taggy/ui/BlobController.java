@@ -56,10 +56,14 @@ import org.apache.commons.imaging.formats.tiff.taginfos.TagInfoAscii;
 import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.taggy.App;
 import com.bensler.taggy.imprt.Thumbnailer;
-import com.bensler.taggy.persist.Blob;
-import com.bensler.taggy.persist.BlobDbMapper;
 import com.bensler.taggy.persist.DbAccess;
+import com.bensler.taggy.persist.DbMapper.Scope;
+import com.bensler.taggy.persist.Image;
+import com.bensler.taggy.persist.Photo;
 import com.bensler.taggy.persist.Tag;
+import com.bensler.taggy.persist.Thumbnail;
+import com.bensler.taggy.persist.v2.ThumbnailDbMapper;
+import com.bensler.taggy.persist.v2.V2PhotoDbMapper;
 
 
 public class BlobController {
@@ -137,13 +141,13 @@ public class BlobController {
   public static final String BLOB_FOLDER_BASE_NAME = "blobs";
   public static final String DIGEST_TYPE_SHA_256 = "SHA-256";
 
-  private final BlobDbMapper dbMapper_;
+  private final V2PhotoDbMapper dbMapper_;
   private final List<Fragment> pathFragments_;
   private final File blobBasePath_;
   private final MessageDigest digest_;
   private final byte[] buffer_;
 
-  public BlobController(BlobDbMapper dbMapper, File blobBasePath, int[] folderPattern) throws NoSuchAlgorithmException {
+  public BlobController(V2PhotoDbMapper dbMapper, File blobBasePath, int[] folderPattern) throws NoSuchAlgorithmException {
     dbMapper_ = dbMapper;
     buffer_ = new byte[1_000_000];
     digest_ = MessageDigest.getInstance(DIGEST_TYPE_SHA_256);
@@ -181,35 +185,45 @@ public class BlobController {
 
   /** @param direction change orientation property relativly in respect to {@link Orientation#ORIENTATIONS}.
    */
-  public void rotateBlob(Blob blob, int direction) throws IOException {
+  public void rotateBlob(Photo blob, int direction) throws IOException, SQLException {
     Optional.ofNullable(blob.getProperty(PROPERTY_ORIENTATION))
     .flatMap(propertyValue -> Optional.ofNullable(ORIENTATIONS_BY_STR.get(propertyValue)))
     .orElse(Orientation.ROTATE_000_CW)
     .getNext(direction).putMetaData(blob::addProperty);
 
-    final String oldThumbSha = blob.getThumbnailSha();
+    final Thumbnail oldThumb = blob.getThumbnail();
+    final Thumbnail newThumb;
     final String newThumbSha = storeBlob(getApp().getThumbnailer().createThumbnail(this, loadRotated(blob), Orientation.ROTATE_000_CW), false);
+    final ThumbnailDbMapper thumbnailDbMapper = dbMapper_.getThumbnailDbMapper();
 
-    getFile(oldThumbSha).delete();
-    getApp().storeEntity(new Blob(
-      blob.getId(), blob.getSha256sum(), newThumbSha, blob.getType(), blob.getMetaData(), blob.getTagRefs()
-    ));
+    thumbnailDbMapper.remove(oldThumb.getId());
+    getFile(oldThumb.getSha256sum()).delete();
+    newThumb = thumbnailDbMapper.loadOne(thumbnailDbMapper.insert(new Thumbnail(null, newThumbSha)));
+    getApp().storeEntity(new Photo(
+      blob.getId(), blob.getSha256sum(), newThumb, blob.getType(), blob.getMetaData(), blob.getTagRefs()
+    ), Scope.PROPERTIES);
   }
 
   /** @return the sourceFiles sha256sum */
   public String storeBlob(File sourceFile, boolean keepSource) throws IOException {
-    final String sourceHash  = hashFile(sourceFile);
+    final String sourceFileHash  = hashFile(sourceFile);
+    final File targetFile = getFile(sourceFileHash);
 
-    storeBlob(sourceFile, sourceHash, keepSource);
-    return sourceHash;
+    if (keepSource) {
+      Files.copy(sourceFile.toPath(), targetFile.toPath());
+    } else {
+      Files.move(sourceFile.toPath(), targetFile.toPath());
+    }
+    return sourceFileHash;
   }
 
-  public void deleteBlob(Blob blob) {
+  public void deleteBlob(Photo blob) {
     final App app = getApp();
     final DbAccess db = app.getDbAccess();
     final Set<Tag> tags;
     final String blobSha256sum = blob.getSha256sum();
-    final String thumbnailSha = blob.getThumbnailSha();
+    final Image<?> thumbnail = blob.getThumbnail();
+    final String thumbnailSha = thumbnail.getSha256sum();
 
     try {
       db.runInTxn(_ -> db.deleteNoTxn(blob));
@@ -229,16 +243,6 @@ public class BlobController {
     } catch (IOException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
-    }
-  }
-
-  private void storeBlob(File sourceFile, String sourceFileHash, boolean keepSource) throws IOException {
-    final File targetFile = getFile(sourceFileHash);
-
-    if (keepSource) {
-      Files.copy(sourceFile.toPath(), targetFile.toPath());
-    } else {
-      Files.move(sourceFile.toPath(), targetFile.toPath());
     }
   }
 
@@ -291,7 +295,7 @@ public class BlobController {
 
   }
 
-  public BufferedImage loadRotated(Blob blob) throws IOException {
+  public BufferedImage loadRotated(Photo blob) throws IOException {
     return rotate(
       ImageIO.read(getFile(blob.getSha256sum())),
       findOrientation(blob.getProperty(PROPERTY_ORIENTATION)),
@@ -312,14 +316,15 @@ public class BlobController {
     );
   }
 
-  public Blob importFile(File file, String type, Tag initialTag) throws IOException, ImageReadException, InvocationTargetException, InterruptedException {
+  public Photo importFile(File file, String type, Tag initialTag) throws IOException, ImageReadException, InvocationTargetException, InterruptedException {
     final App app = getApp();
+    final ThumbnailDbMapper thumbnailDbMapper = dbMapper_.getThumbnailDbMapper();
     final Map<String, String> metaData = new HashMap<>();
-    final File thumbnail = createThumbnail(app.getThumbnailer(), file, metaData);
-    final String fileSha = storeBlob(file, true);
-    final String thumbSha = storeBlob(thumbnail, false);
+    final File thumbnailFile = createThumbnail(app.getThumbnailer(), file, metaData);
+    final String fileSha = storeBlob(file, true); // TODO rm file again if exc later in this method
+    final String thumbSha = storeBlob(thumbnailFile, false);// TODO rm file again if exc later in this method
     final Set<Tag> tags = new HashSet<>();
-    final AtomicReference<Blob> newBlob = new AtomicReference<>();
+    final AtomicReference<Photo> newPhoto = new AtomicReference<>();
 
     Optional.ofNullable(metaData.get(PROPERTY_DATE_YMD))
       .map(app.getTagCtrl()::getDateTag)
@@ -327,11 +332,13 @@ public class BlobController {
     Optional.ofNullable(initialTag).ifPresent(tags::add);
     metaData.put(PROPERTY_FILENAME, file.getName());
     SwingUtilities.invokeAndWait(() -> {
-      newBlob.set(app.storeEntity(new Blob(null, fileSha, thumbSha, type, metaData, EntityReference.createCollection(tags, new HashSet<>()))));
-      // reload all referenced tags as they changed implicitly as well and notify listeners
+      final Integer thumbId = thumbnailDbMapper.insert(new Thumbnail(null, thumbSha));
+      final Thumbnail thumbnail = thumbnailDbMapper.loadAllEntities(List.of(thumbId)).get(0);
+
+      newPhoto.set(app.storeEntity(new Photo(null, fileSha, thumbnail, type, metaData, EntityReference.createCollection(tags, new HashSet<>())), Scope.FULL));
       app.entitiesChanged(app.getDbAccess().refreshAll(tags));
     });
-    return newBlob.get();
+    return newPhoto.get();
   }
 
   private Optional<JpegImageMetadata> getMetaData(File srcFile) throws ImageReadException, IOException {
@@ -418,14 +425,14 @@ public class BlobController {
     }
   }
 
-  public void setTags(Blob blob, Set<Tag> newTags) {
+  public void setTags(Photo blob, Set<Tag> newTags) {
     final App app = getApp();
     final DbAccess db = app.getDbAccess();
     final Set<Tag> oldTags = blob.getTags();
     final List<Tag> affectedTags = Stream.of(oldTags, newTags).flatMap(Set::stream)
       .filter(tag -> oldTags.contains(tag) ^ newTags.contains(tag)).toList();
-    final EntityReference<Blob> blobRef = new EntityReference<>(blob);
-    final Blob newBlob;
+    final EntityReference<Photo> blobRef = new EntityReference<>(blob);
+    final Photo newBlob;
     final Set<Tag> updatedTags;
 
     db.runInTxn(_ -> dbMapper_.setTags(blobRef, newTags));
@@ -435,17 +442,16 @@ public class BlobController {
     app.entitiesChanged(updatedTags);
   }
 
-  public void addTags(List<Blob> blobs, Set<Tag> tags) {
+  public void addTags(List<Photo> blobs, Set<Tag> tags) {
     blobs.forEach(blob -> setTags(blob, Stream.concat(tags.stream(), blob.getTags().stream()).collect(Collectors.toSet())));
   }
 
-  public List<Blob> findOrphanBlobs() {
+  public List<Photo> findOrphanBlobs() {
     final DbAccess dbAccess = getApp().getDbAccess();
 
     try {
-      return dbAccess.resolveAll(dbMapper_.findOrphanBlobs().stream().map(id -> new EntityReference<>(Blob.class, id)).toList(), new ArrayList<Blob>());
+      return dbAccess.resolveAll(dbMapper_.findOrphanBlobs().stream().map(id -> new EntityReference<>(Photo.class, id)).toList(), new ArrayList<Photo>());
     } catch (SQLException sqle) {
-      // TODO Auto-generated catch block
       throw new RuntimeException(sqle);
     }
   }
@@ -454,7 +460,7 @@ public class BlobController {
     return dbMapper_.doesBlobExist(shaHash);
   }
 
-  public String getTagString(Blob blob) {
+  public String getTagString(Photo blob) {
     final Set<Tag> tags = blob.getTags();
     final String dateStr = tags.stream()
       .flatMap(tag -> tag.containsProperty(REPRESENTED_DATE).stream())
@@ -470,7 +476,7 @@ public class BlobController {
     return (fileName.isEmpty() ? "image" : fileName) + "." + typeStr.toLowerCase();
   }
 
-  public void export(Blob blob, File file) {
+  public void export(Photo blob, File file) {
     try {
       Files.copy(getFile(blob.getSha256sum()).toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
     } catch (IOException ioe) {

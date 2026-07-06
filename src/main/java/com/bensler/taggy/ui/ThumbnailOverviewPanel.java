@@ -47,7 +47,7 @@ import com.bensler.decaf.swing.awt.ColorHelper;
 import com.bensler.decaf.swing.awt.SimpleMouseAdapter;
 import com.bensler.decaf.swing.view.SimplePropertyGetter;
 import com.bensler.decaf.util.entity.EntityReference;
-import com.bensler.taggy.persist.Blob;
+import com.bensler.taggy.persist.Photo;
 
 public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
 
@@ -114,19 +114,19 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
   private final static BasicStroke STROKE_DASH = new BasicStroke(
     1.0f, CAP_BUTT, JOIN_BEVEL, 0.0f, new float[] {4.0f, 4.0f}, 0
   );
-  private static final Comparator<Blob> BLOB_COMPARATOR = SimplePropertyGetter.createComparableGetter(Blob::getCreationTime);
+  private static final Comparator<Photo> PHOTO_COMPARATOR = SimplePropertyGetter.createComparableGetter(Photo::getCreationTime);
 
   private final Color backgroundSelectionColor_;
   private final Color backgroundSelectionColorUnfocused_;
 
-  private final List<Blob> blobs_;
-  private final Map<Blob, ImageIcon> images_;
+  private final List<Photo> blobs_;
+  private final Map<Photo, ImageIcon> images_;
   private Dimension gridOffsetPx;
   private final JScrollPane scrollPane_;
   private final ScrollingPolicy scrollingPolicy_;
 
-  private final List<Blob> selection_;
-  private final Set<Consumer<List<Blob>>> selectionListeners_;
+  private final List<Photo> selection_;
+  private final Set<Consumer<List<Photo>>> selectionListeners_;
   private Dimension prefViewPortSize_;
 
   public ThumbnailOverviewPanel(ScrollingPolicy scrollingPolicy) {
@@ -211,7 +211,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     }
   }
 
-  Optional<Blob> blobAt(Point position) {
+  Optional<Photo> blobAt(Point position) {
     final int gapPlusTileSize = GAP + TILE_SIZE;
 
     position.x -= gridOffsetPx.width;
@@ -232,7 +232,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     return Optional.empty();
   }
 
-  public void setData(Collection<Blob> data) {
+  public void setData(Collection<Photo> data) {
     blobs_.clear();
     images_.clear();
 
@@ -244,14 +244,14 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
       });
       selection_.retainAll(blobs_);
     }
-    Collections.sort(blobs_, BLOB_COMPARATOR);
+    Collections.sort(blobs_, PHOTO_COMPARATOR);
     revalidate();
     repaint();
   }
 
   /** @return if it was already contained before */
-  private boolean addImageInternally(Blob blob) {
-    final File file = getApp().getBlobCtrl().getFile(blob.getThumbnailSha());
+  private boolean addImageInternally(Photo blob) {
+    final File file = getApp().getBlobCtrl().getFile(blob.getThumbnail().getSha256sum());
 
     try {
       images_.put(blob, new ImageIcon(ImageIO.read(file)));
@@ -268,10 +268,10 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     return containedBefore;
   }
 
-  public void addImage(Blob blob) {
+  public void addImage(Photo blob) {
     final boolean containedBefore = addImageInternally(blob);
 
-    Collections.sort(blobs_, BLOB_COMPARATOR);
+    Collections.sort(blobs_, PHOTO_COMPARATOR);
     if (selection_.contains(blob)) {
       try (var _ = new SelectionEvent(containedBefore)) {
         selection_.set(selection_.indexOf(blob), blob);
@@ -281,7 +281,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     repaint();
   }
 
-  public void removeImage(Blob blob) {
+  public void removeImage(Photo blob) {
     if (blobs_.remove(blob)) {
       images_.remove(blob);
       try (var _ = new SelectionEvent()) {
@@ -316,7 +316,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     );
     int tileCounter = 0;
 
-    for (Blob blob : blobs_) {
+    for (Photo blob : blobs_) {
       drawTile(
         (tileCounter / gridSize.width),
         (tileCounter % gridSize.width),
@@ -326,7 +326,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     }
   }
 
-  private void drawTile(int row, int col, Blob blob, Graphics2D g) {
+  private void drawTile(int row, int col, Photo blob, Graphics2D g) {
     final ImageIcon icon = images_.get(blob);
     final int tileOriginX = gridOffsetPx.width + GAP + (col * (TILE_SIZE + GAP));
     final int tileOriginY = gridOffsetPx.height + GAP + (row * (TILE_SIZE + GAP));
@@ -405,7 +405,7 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
   private class SelectionEvent implements AutoCloseable {
 
     final boolean  fireSelectionEventUnconditionally_;
-    final List<Blob> oldSelection_;
+    final List<Photo> oldSelection_;
 
     SelectionEvent() {
       this(false);
@@ -425,15 +425,15 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     }
   }
 
-  void addSelectionListener(Consumer<List<Blob>> listener) {
+  void addSelectionListener(Consumer<List<Photo>> listener) {
     selectionListeners_.add(requireNonNull(listener));
   }
 
-  public List<Blob> getSelection() {
+  public List<Photo> getSelection() {
     return List.copyOf(selection_);
   }
 
-  public Blob getSingleSelection() {
+  public Photo getSingleSelection() {
     return ((selection_.isEmpty()) ? null : selection_.get(0));
   }
 
@@ -456,8 +456,8 @@ public class ThumbnailOverviewPanel extends JComponent implements Scrollable {
     select(List.of(blob));
   }
 
-  public Optional<Blob> contains(Object blob) {
-    return (images_.containsKey(blob) ? Optional.of((Blob)blob) : Optional.empty());
+  public Optional<Photo> contains(Object blob) {
+    return (images_.containsKey(blob) ? Optional.of((Photo)blob) : Optional.empty());
   }
 
 }
