@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.stream.Stream;
 
 public class PersistencyBaseLayer {
@@ -92,9 +93,9 @@ public class PersistencyBaseLayer {
     con_ = con;
   }
 
-  public  Integer createEntity(EntityType<?> type) throws SQLException {
-    try (PreparedStatement stmt = con_.prepareStatement("INSERT INTO entity (name) VALUES (?)")) {
-      stmt.setString(1, type.getClassName());
+  public  Integer createEntity(Integer typeId) throws SQLException {
+    try (PreparedStatement stmt = con_.prepareStatement("INSERT INTO entity (entity_type_id) VALUES (?)")) {
+      stmt.setInt(1, typeId);
       stmt.execute();
       try (ResultSet ids = stmt.getGeneratedKeys()) {
         ids.next();
@@ -126,6 +127,29 @@ public class PersistencyBaseLayer {
     }
   }
 
+  public void dropRelationships(Integer entityId, Set<Integer> fromRelTypes, Set<Integer> toRelTypes) throws SQLException {
+    if (!fromRelTypes.isEmpty()) {
+      try (PreparedStatement stmt = con_.prepareStatement("DELETE FROM entity_relationship WHERE type_id=? AND target_entity_id=?")) {
+        for (Integer relId : fromRelTypes) {
+          stmt.setInt(1, relId);
+          stmt.setInt(2, entityId);
+          stmt.addBatch();
+        }
+        stmt.executeBatch();
+      }
+    }
+    if (!toRelTypes.isEmpty()) {
+      try (PreparedStatement stmt = con_.prepareStatement("DELETE FROM entity_relationship WHERE type_id=? AND source_entity_id=?")) {
+        for (Integer relId : toRelTypes) {
+          stmt.setInt(1, relId);
+          stmt.setInt(2, entityId);
+          stmt.addBatch();
+        }
+        stmt.executeBatch();
+      }
+    }
+  }
+
   public void storeProperties(Integer entityId, Collection<PropertyTableEntry<?>> values) throws SQLException {
     final Map<PropertyTable<?>,PreparedStatement> prepStmts = new HashMap<>();
 
@@ -137,6 +161,28 @@ public class PersistencyBaseLayer {
     for (PreparedStatement stmt : prepStmts.values()) {
       stmt.executeBatch();
       stmt.close();
+    }
+  }
+
+  public void storeRelationships(Integer entityId, Map<Integer, Set<Integer>> relationshipsFrom, Map<Integer, Set<Integer>> relationshipsTo) throws SQLException {
+    try (PreparedStatement stmt = con_.prepareStatement("INSERT INTO entity_relationship (type_id,source_entity_id,target_entity_id) VALUES (?,?,?)")) {
+      for (Integer relId : relationshipsFrom.keySet()) {
+        for (Integer sourceId : relationshipsFrom.get(relId)) {
+          stmt.setInt(1, relId);
+          stmt.setInt(2, sourceId);
+          stmt.setInt(3, entityId);
+          stmt.addBatch();
+        }
+      }
+      for (Integer relId : relationshipsTo.keySet()) {
+        for (Integer targetId : relationshipsTo.get(relId)) {
+          stmt.setInt(1, relId);
+          stmt.setInt(2, entityId);
+          stmt.setInt(3, targetId);
+          stmt.addBatch();
+        }
+      }
+      stmt.executeBatch();
     }
   }
 

@@ -1,40 +1,27 @@
 package com.bensler.taggy.persist;
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 import com.bensler.decaf.util.entity.AbstractEntity;
 import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.decaf.util.tree.Hierarchy;
-import com.bensler.taggy.ui.BlobController;
 
-public class Blob extends AbstractEntity<Blob> {
+public class Blob<E extends Blob<E>> extends AbstractEntity<E> {
 
   private final String sha256sum_;
-  private final String thumbnailSha_;
   private final String type_;
-
-  private final Map<String, String> properties_;
   private final Set<EntityReference<Tag>> tags_;
 
-  public Blob(Integer id, String shaSum, String thumbnailSha, String type, Map<String, String> metaData, Set<EntityReference<Tag>> tags) {
-    super(Blob.class, id);
+  public Blob(Integer id, Class<E> clazz, String shaSum, String type, Set<EntityReference<Tag>> tags) {
+    super(clazz, id);
     sha256sum_ = shaSum;
-    thumbnailSha_ = thumbnailSha;
     type_ = type;
-    tags_ = new HashSet<>(tags);
-    properties_ = new HashMap<>(metaData);
+    tags_ = Set.copyOf(tags);
   }
 
   public String getSha256sum() {
     return sha256sum_;
-  }
-
-  public String getThumbnailSha() {
-    return thumbnailSha_;
   }
 
   public String getType() {
@@ -67,35 +54,6 @@ public class Blob extends AbstractEntity<Blob> {
       } while ((aTag = aTag.getParent()) != null);
     });
     return tagHierarchy;
-  }
-
-  public Long getCreationTime() {
-    try {
-      return Optional.ofNullable(getProperty(BlobController.PROPERTY_DATE_EPOCH_SECONDS))
-      .map(Long::valueOf).orElse(null);
-    } catch (NumberFormatException nfe) {
-      return null;
-    }
-  }
-
-  public Set<String> getPropertyNames() {
-    return properties_.keySet();
-  }
-
-  public String getProperty(String name) {
-    return properties_.get(name);
-  }
-
-  public void addProperty(String name, String value) {
-    if (value != null) {
-      properties_.put(name, value);
-    } else {
-      properties_.remove(name);
-    }
-  }
-
-  public Map<String, String> getMetaData() {
-    return Map.copyOf(properties_);
   }
 
 }

@@ -4,10 +4,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 
 import com.bensler.decaf.util.Named;
 import com.bensler.decaf.util.entity.AbstractEntity;
+import com.bensler.decaf.util.entity.Entity;
 import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.decaf.util.tree.Hierarchical;
 
@@ -16,29 +16,29 @@ import com.bensler.decaf.util.tree.Hierarchical;
  */
 public class Tag extends AbstractEntity<Tag> implements Hierarchical<Tag>, Named {
 
-  public static <R> Optional<R> getProperty(Tag tag, Function<Tag, R> resultProvider) {
-    return Optional.ofNullable(tag).map(resultProvider);
+  public static <E extends Entity<E>> Optional<EntityReference<E>> createParentRef(E entity) {
+    return Optional.ofNullable(entity).map(EntityReference::new);
   }
 
   private final Optional<EntityReference<Tag>> parent_;
   private final String name_;
-  private final Set<EntityReference<Blob>> blobs_;
+  private final Set<EntityReference<Photo>> images_;
   private final Map<TagProperty, String> properties_;
 
-  public Tag(Tag parent, String name, Map<TagProperty, String> properties) {
-    this(null, getProperty(parent, EntityReference::new), name, properties, Set.of());
+  public Tag(Optional<EntityReference<Tag>> parent, String name, Map<TagProperty, String> properties) {
+    this(null, parent, name, properties, Set.of());
   }
 
   public Tag(
     Integer id, Optional<EntityReference<Tag>> parent, String name,
     Map<TagProperty, String> properties,
-    Set<EntityReference<Blob>> blobs
+    Set<EntityReference<Photo>> images
   ) {
     super(Tag.class, id);
     parent_ = parent;
     name_ = name;
     properties_ = Map.copyOf(properties);
-    blobs_ = Set.copyOf(blobs);
+    images_ = Set.copyOf(images);
   }
 
   @Override
@@ -55,12 +55,12 @@ public class Tag extends AbstractEntity<Tag> implements Hierarchical<Tag>, Named
     return name_;
   }
 
-  public Set<EntityReference<Blob>> getBlobRefs() {
-    return blobs_;
+  public Set<EntityReference<Photo>> getBlobRefs() {
+    return images_;
   }
 
-  public Set<Blob> getBlobs() {
-    return DbAccess.INSTANCE.get().resolveAll(blobs_, new HashSet<>());
+  public Set<Photo> getImages() {
+    return DbAccess.INSTANCE.get().resolveAll(images_, new HashSet<>());
   }
 
   public Set<TagProperty> getPropertyKeys() {

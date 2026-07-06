@@ -19,10 +19,8 @@ import org.flywaydb.core.api.migration.Context;
 import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.taggy.App;
 import com.bensler.taggy.imprt.Thumbnailer;
-import com.bensler.taggy.persist.Blob;
-import com.bensler.taggy.persist.BlobDbMapper;
 import com.bensler.taggy.persist.DbAccess;
-import com.bensler.taggy.persist.v1.V1BlobDbMapper;
+import com.bensler.taggy.persist.Photo;
 import com.bensler.taggy.ui.BlobController;
 
 public class V008__CreateThumbnails extends BaseJavaMigration {
@@ -40,12 +38,12 @@ public class V008__CreateThumbnails extends BaseJavaMigration {
   public void migrate(Context context) throws SQLException, InterruptedException, NoSuchAlgorithmException {
     final Connection connection = context.getConnection();
     final DbAccess db = new DbAccess(connection);
-    final BlobDbMapper blobDbMapper = db.registerMapper(new V1BlobDbMapper(db));
+//    final BlobDbMapper blobDbMapper = db.registerMapper(new V1BlobDbMapper(db));
     final int workerCount = 4;
     final Semaphore semaphore = new Semaphore(workerCount);
     final long startMillis = System.currentTimeMillis();
 
-    blobCtrl_ = new BlobController(blobDbMapper, dataDir_, new int[] {1, 1});
+    blobCtrl_ = null; // TODO new BlobController(blobDbMapper, dataDir_, new int[] {1, 1});
     try (
       PreparedStatement updateStatement = connection.prepareStatement("UPDATE blob SET thumbnail_sha = ? WHERE id = ?");
       Statement statement = connection.createStatement();
@@ -126,8 +124,8 @@ public class V008__CreateThumbnails extends BaseJavaMigration {
     }
 
     private void doWork(int blobId) throws SQLException, IOException, ImageReadException {
-      final Blob blob = db_.resolve(new EntityReference<>(Blob.class, blobId));
-      final File file = blobCtrl_.getFile(blob.getSha256sum());
+      final Photo photo = db_.resolve(new EntityReference<>(Photo.class, blobId));
+      final File file = blobCtrl_.getFile(photo.getSha256sum());
       final File thumbnail = blobCtrl_.createThumbnail(thumbnailer_, file, new HashMap<>());
 
       source.workDone(blobId, blobCtrl_.storeBlob(thumbnail, false));

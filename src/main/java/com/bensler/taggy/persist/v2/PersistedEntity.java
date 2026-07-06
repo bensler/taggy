@@ -2,26 +2,42 @@ package com.bensler.taggy.persist.v2;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
+import com.bensler.decaf.util.entity.Entity;
+import com.bensler.decaf.util.entity.EntityReference;
+import com.bensler.taggy.persist.DbMapper.Scope;
 import com.bensler.taggy.persist.v2.PersistencyBaseLayer.PropertyTableEntry;
 
 public class PersistedEntity {
 
   private final Optional<Integer> entityId_;
   private final EntityType<?> type_;
+  private final Integer typeId_;
 
   private final List<PropertyTableEntry<?>> properties_;
+  private final Map<Integer, Set<Integer>> relationshipsFrom_;
+  private final Map<Integer, Set<Integer>> relationshipsTo_;
   private final Map<String, String> optionalProperties_;
 
-  PersistedEntity(EntityType<?> type, Optional<Integer> entityId) {
+  public PersistedEntity(EntityType<?> type, Integer typeId, Optional<Integer> entityId) {
     entityId_ = entityId;
     type_ = type;
-    optionalProperties_ = new HashMap<>();
+    typeId_ = typeId;
     properties_ = new ArrayList<>();
+    relationshipsFrom_ = new HashMap<>();
+    relationshipsTo_ = new HashMap<>();
+    optionalProperties_ = new HashMap<>();
+  }
+
+  public BoundEntityProperty getBoundProperty(EntityProperty<?> propertyType) {
+    return new BoundEntityProperty(type_, propertyType);
   }
 
   public <JAVA_TYPE> void addProperty(int propertyId, EntityProperty<JAVA_TYPE> propertyType, JAVA_TYPE value) {
@@ -35,18 +51,45 @@ public class PersistedEntity {
     optionalProperties_.putAll(optionalProperties);
   }
 
-  public Integer persist(PersistencyBaseLayer db) throws SQLException {
+  public Integer persist(PersistencyBaseLayer db, Scope scope) throws SQLException {
     final Integer id;
+    final boolean newEntity = !entityId_.isPresent();
 
-    if (entityId_.isPresent()) {
-      id = entityId_.get();
-      db.dropProperties(id);
+    scope = (newEntity ? Scope.FULL : scope);
+    if (newEntity) {
+      id =  db.createEntity(typeId_);
     } else {
-      id =  db.createEntity(type_);
+      id = entityId_.get();
+      if (scope.properties_) {
+        db.dropProperties(id);
+      }
+      if (scope.relationships_) {
+        db.dropRelationships(id, relationshipsFrom_.keySet(), relationshipsTo_.keySet());
+      }
     }
-    db.storeOptionalProperties(id, optionalProperties_);
-    db.storeProperties(id, List.copyOf(properties_));
+    if (scope.properties_) {
+      db.storeProperties(id, List.copyOf(properties_));
+      db.storeOptionalProperties(id, Map.copyOf(optionalProperties_));
+    }
+    if (scope.relationships_) {
+      db.storeRelationships(id, relationshipsFrom_, relationshipsTo_);
+    }
     return id;
   }
+
+  public <E extends Entity<E>> void addRelationshipsTo(Integer relationshipKey, Collection<EntityReference<E>> targetRefs) {
+    addRelationships(relationshipKey, targetRefs, relationshipsTo_);
+  }
+
+  public <E extends Entity<E>> void addRelationshipsFrom(Integer relationshipKey, Collection<EntityReference<E>> sourceRefs) {
+    addRelationships(relationshipKey, sourceRefs, relationshipsFrom_);
+  }
+
+  private <E extends Entity<E>> void addRelationships(Integer relationshipKey, Collection<EntityReference<E>> refs, Map<Integer, Set<Integer>> target) {
+    final Set<Integer> targetSet = target.computeIfAbsent(relationshipKey, _ -> new HashSet<>());
+
+    refs.stream().map(EntityReference::getId).forEach(targetSet::add);
+  }
+
 
 }

@@ -31,7 +31,7 @@ import com.bensler.decaf.util.prefs.PrefPersister;
 import com.bensler.decaf.util.prefs.PrefsStorage;
 import com.bensler.decaf.util.tree.Hierarchical;
 import com.bensler.taggy.imprt.ImportController;
-import com.bensler.taggy.persist.Blob;
+import com.bensler.taggy.persist.Photo;
 import com.bensler.taggy.persist.Tag;
 
 public class SelectedBlobsDetailPanel {
@@ -75,9 +75,9 @@ public class SelectedBlobsDetailPanel {
     lastSplitpaneDividerLocation = -1;
   }
 
-  public void setData(List<Blob> blobs) {
+  public void setData(List<Photo> blobs) {
     final Set<Tag> allTags = blobs.stream()
-      .map(Blob::getTags)
+      .map(Photo::getTags)
       .flatMap(Set::stream)
       .distinct()
       .flatMap(tag -> Hierarchical.toPath(tag).stream())
@@ -88,7 +88,7 @@ public class SelectedBlobsDetailPanel {
     tagTree_.expandCollapseAll(true);
 
     if (blobs.size() == 1) {
-      final Blob blob = blobs.get(0);
+      final Photo blob = blobs.get(0);
 
       propertiesTable_.clear();
       propertiesTable_.addOrUpdateData(getBlobProperties(blob));
@@ -103,12 +103,12 @@ public class SelectedBlobsDetailPanel {
     }
   }
 
-  private List<NameValuePair> getBlobProperties(Blob blob) {
+  private List<NameValuePair> getBlobProperties(Photo blob) {
     final List<NameValuePair> properties = new ArrayList<>();
 
     properties.add(new NameValuePair(PROPERTY_ID, blob.getId()));
     properties.add(new NameValuePair(PROPERTY_SHA_SUM, blob.getSha256sum()));
-    properties.add(new NameValuePair(PROPERTY_THUMB_SHA_SUM, blob.getThumbnailSha()));
+    properties.add(new NameValuePair(PROPERTY_THUMB_SHA_SUM, blob.getThumbnail().getSha256sum()));
     blob.getPropertyNames().stream()
     .forEach(name -> properties.add(new NameValuePair(name, blob.getProperty(name))));
     return properties;

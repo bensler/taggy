@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.bensler.decaf.util.entity.Entity;
 import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.taggy.App;
+import com.bensler.taggy.persist.DbMapper.Scope;
 
 public class DbAccess {
 
@@ -69,14 +70,14 @@ public class DbAccess {
     return result;
   }
 
-  public <E extends Entity<E>> E storeObject(E entity) {
+  public <E extends Entity<E>> E storeObject(E entity, Scope scope) {
     final Class<E> entityClass = entity.getEntityClass();
     final DbMapper<E> mapper = (DbMapper<E>)mapper_.get(entityClass);
     final AtomicReference<EntityReference<E>> ref = new AtomicReference<>();
 
     runInTxn(con -> {
       if (entity.hasId()) {
-        mapper.update(entity);
+        mapper.update(entity, scope);
         ref.set(new EntityReference<>(entity));
         entityCache_.remove(ref.get());
       } else {

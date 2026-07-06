@@ -20,7 +20,7 @@ import com.bensler.decaf.swing.dialog.WindowPrefsPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefPersisterImpl;
 import com.bensler.taggy.App;
-import com.bensler.taggy.persist.Blob;
+import com.bensler.taggy.persist.Photo;
 import com.bensler.taggy.ui.ThumbnailOverviewPanel.ScrollingPolicy;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -63,7 +63,7 @@ public class SlideshowFrame extends JFrame {
     );
   }
 
-  public void setBlob(Blob blob) {
+  public void setBlob(Photo blob) {
     if (blob != null) {
       new Thread(() -> {
         try {
@@ -88,7 +88,7 @@ public class SlideshowFrame extends JFrame {
     dispose();
   }
 
-  public void show(List<Blob> blobs) {
+  public void show(List<Photo> blobs) {
     setVisible(true);
     thumbs_.setData(blobs);
     if (!blobs.isEmpty()) {

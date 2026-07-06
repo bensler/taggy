@@ -1,11 +1,13 @@
 package com.bensler.taggy.persist;
 
-import com.bensler.decaf.util.entity.AbstractEntity;
+import java.util.Set;
 
-public class Image extends AbstractEntity<Image> {
+import com.bensler.decaf.util.entity.EntityReference;
 
-  public Image(Integer id) {
-    super(Image.class, id);
+public class Image<E extends Image<E>> extends Blob<E> {
+
+  public Image(Integer id, Class<E> clazz, String shaSum, String type, Set<EntityReference<Tag>> tags) {
+    super(id, clazz, shaSum, type, tags);
   }
 
 }

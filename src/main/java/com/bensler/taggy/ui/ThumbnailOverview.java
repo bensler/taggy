@@ -20,10 +20,10 @@ import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.decaf.util.prefs.DelegatingPrefPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefsStorage;
-import com.bensler.taggy.persist.Blob;
+import com.bensler.taggy.persist.Photo;
 import com.bensler.taggy.ui.ThumbnailOverviewPanel.ScrollingPolicy;
 
-public class ThumbnailOverview implements EntityComponent<Blob>, FocusListener {
+public class ThumbnailOverview implements EntityComponent<Photo>, FocusListener {
 
   protected final BlobController blobCtrl_;
   protected final ThumbnailOverviewPanel comp_;
@@ -55,17 +55,17 @@ public class ThumbnailOverview implements EntityComponent<Blob>, FocusListener {
   }
 
   @Override
-  public Class<Blob> getEntityClass() {
-    return Blob.class;
+  public Class<Photo> getEntityClass() {
+    return Photo.class;
   }
 
   @Override
-  public List<Blob> getSelection() {
+  public List<Photo> getSelection() {
     return comp_.getSelection();
   }
 
   @Override
-  public void addSelectionListener(EntitySelectionListener<Blob> listener) {
+  public void addSelectionListener(EntitySelectionListener<Photo> listener) {
     comp_.addSelectionListener(selection -> listener.selectionChanged(this, selection));
   }
 
@@ -95,11 +95,11 @@ public class ThumbnailOverview implements EntityComponent<Blob>, FocusListener {
   }
 
   @Override
-  public Optional<Blob> contains(Object entity) {
+  public Optional<Photo> contains(Object entity) {
     return comp_.contains(entity);
   }
 
-  public void setData(Collection<Blob> blobs) {
+  public void setData(Collection<Photo> blobs) {
     comp_.setData(blobs);
   }
 
@@ -112,7 +112,7 @@ public class ThumbnailOverview implements EntityComponent<Blob>, FocusListener {
     focusListeners_.add(Objects.requireNonNull(listener));
   }
 
-  private void trySelect(List<EntityReference<Blob>> blobRefs) {
+  private void trySelect(List<EntityReference<Photo>> blobRefs) {
     comp_.select(blobRefs);
     if (!getSelection().isEmpty()) {
       comp_.requestFocus();
@@ -125,7 +125,7 @@ public class ThumbnailOverview implements EntityComponent<Blob>, FocusListener {
       prefStr -> trySelect(
         Arrays.stream(prefStr.split(","))
         .map(PrefsStorage::tryParseInt).flatMap(Optional::stream)
-        .map(id -> new EntityReference<>(Blob.class, id))
+        .map(id -> new EntityReference<>(Photo.class, id))
         .toList()
       )
     );

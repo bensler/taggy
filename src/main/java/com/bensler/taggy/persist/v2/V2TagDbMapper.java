@@ -2,6 +2,7 @@ package com.bensler.taggy.persist.v2;
 
 import static com.bensler.taggy.persist.v2.EntityPropertyType.ENTITY;
 import static com.bensler.taggy.persist.v2.EntityPropertyType.STRING;
+import static com.bensler.taggy.persist.v2.V2PhotoDbMapper.R_TAG_IMAGE;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -11,13 +12,16 @@ import java.util.stream.Collectors;
 
 import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.taggy.persist.DbAccess;
+import com.bensler.taggy.persist.Photo;
 import com.bensler.taggy.persist.Tag;
-import com.bensler.taggy.persist.TagDbMapper;
+import com.bensler.taggy.persist.TagProperty;
+import com.bensler.taggy.persist.v2.DbSetup.Direction;
+import com.bensler.taggy.persist.v2.DbSetup.LoadEntityCollector;
 
-public class V2TagDbMapper extends AbstractV2DbMapper<Tag> implements TagDbMapper {
+public class V2TagDbMapper extends AbstractV2DbMapper<Tag> {
 
   public static final EntityProperty<String> P_TAG__NAME = new EntityProperty<>("name", STRING);
-  public static final EntityProperty<EntityReference<?>> P_TAG__PARENT = new EntityProperty<>("parent", ENTITY);
+  public static final EntityProperty<Integer> P_TAG__PARENT = new EntityProperty<>("parent", ENTITY);
   public static final EntityType<Tag> E_TAG = new EntityType<>(
     Tag.class,
     P_TAG__NAME,
@@ -31,7 +35,22 @@ public class V2TagDbMapper extends AbstractV2DbMapper<Tag> implements TagDbMappe
 
   @Override
   public List<Tag> loadAllEntities(List<Integer> ids) {
-    return List.of(); // TODO
+    try {
+      return dbSetup_.loadAllEntities(db_, E_TAG, ids).stream().map(this::loadTag).toList();
+    } catch (SQLException sqle) {
+      throw new RuntimeException(sqle);
+    }
+  }
+
+  private Tag loadTag(LoadEntityCollector properties) {
+    final Optional<Integer> parentId = properties.getValue(P_TAG__PARENT);
+
+    return new Tag(
+      properties.getEntityId(), parentId.map(lParentId -> new EntityReference<Tag>(Tag.class, lParentId)),
+      properties.getValue(P_TAG__NAME).get(),
+      properties.getOptionalProperties().entrySet().stream().collect(Collectors.toMap(entry -> TagProperty.valueOf(entry.getKey()), Entry::getValue)),
+      properties.getRelationships(Direction.TO, R_TAG_IMAGE, Photo.class)
+    );
   }
 
   @Override
@@ -40,29 +59,27 @@ public class V2TagDbMapper extends AbstractV2DbMapper<Tag> implements TagDbMappe
   }
 
   @Override
-  public void updateHeadData(TagHeadData tagHeadData) {
-    // TODO
+  public void update(Tag tag, Scope scope) {
+    persistTag(tag, scope);
   }
 
   @Override
-  public void update(Tag tag) throws SQLException {
-    persistTag(tag);
+  public Integer insert(Tag tag) {
+    return persistTag(tag, Scope.FULL);
   }
 
-  @Override
-  public Integer insert(Tag tag) throws SQLException {
-    return persistTag(tag);
-  }
-
-  private Integer persistTag(Tag tag) {
-    final PersistedEntity persistedEntity = new PersistedEntity(E_TAG, Optional.ofNullable(tag.getId()));
+  private Integer persistTag(Tag tag, Scope scope) {
+    final PersistedEntity persistedEntity = dbSetup_.createPersistedEntity(E_TAG, tag.getId());
 
                                               addProperty(persistedEntity, P_TAG__NAME, tag.getName());
-    tag.getParentRef().ifPresent(parentRef -> addProperty(persistedEntity, P_TAG__PARENT, parentRef));
+    tag.getParentRef().ifPresent(parentRef -> addProperty(persistedEntity, P_TAG__PARENT, parentRef.getId()));
     persistedEntity.putOptionalProperties(tag.getProperties().entrySet().stream().collect(Collectors.toMap(
       entry -> entry.getKey().name(), Entry::getValue
     )));
-    return persist(persistedEntity);
+    if (scope.relationships_) {
+      addRelationshipsTo(persistedEntity, R_TAG_IMAGE, tag.getBlobRefs());
+    }
+    return persist(persistedEntity, scope);
   }
 
 }
