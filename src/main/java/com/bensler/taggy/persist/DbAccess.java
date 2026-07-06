@@ -101,7 +101,7 @@ public class DbAccess {
     final List<E> entities = loadEntities(reference.getEntityClass(), List.of(reference.getId()));
 
     if (entities.isEmpty()) {
-      throw new IllegalStateException("Could not resolve \"%s\"".formatted(reference));
+      throw new IllegalArgumentException("Could not resolve \"%s\"".formatted(reference));
     } else {
       return entities.get(0);
     }

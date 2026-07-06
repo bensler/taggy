@@ -18,8 +18,16 @@ public class TagPrefPersister {
   ) {
     return new DelegatingPrefPersister(prefKey,
       () -> Optional.ofNullable(persist.get()).map(Tag::getId).map(String::valueOf),
-      value -> PrefsStorage.tryParseInt(value).map(id -> DbAccess.INSTANCE.get().resolve(new EntityReference<>(Tag.class, id))).ifPresent(apply)
+      value -> PrefsStorage.tryParseInt(value).flatMap(TagPrefPersister::resolveTagId).ifPresent(apply)
     );
+  }
+
+  private static Optional<Tag> resolveTagId(Integer id) {
+    try {
+      return Optional.of(DbAccess.INSTANCE.get().resolve(new EntityReference<>(Tag.class, id)));
+    } catch (IllegalArgumentException iae) {
+      return Optional.empty();
+    }
   }
 
   private TagPrefPersister() {}
