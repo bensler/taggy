@@ -7,9 +7,9 @@ import com.bensler.taggy.persist.Thumbnail;
 import com.bensler.taggy.persist.base.AbstractDbMapper;
 import com.bensler.taggy.persist.base.DbAccess;
 import com.bensler.taggy.persist.base.DbSetup;
-import com.bensler.taggy.persist.base.DbSetup.LoadEntityCollector;
 import com.bensler.taggy.persist.base.EntityType;
-import com.bensler.taggy.persist.base.PersistedEntity;
+import com.bensler.taggy.persist.base.EntityToLoad;
+import com.bensler.taggy.persist.base.EntityToStore;
 
 public class ThumbnailDbMapper extends AbstractDbMapper<Thumbnail> {
 
@@ -31,16 +31,11 @@ public class ThumbnailDbMapper extends AbstractDbMapper<Thumbnail> {
     }
   }
 
-  private Thumbnail loadThumbnail(LoadEntityCollector properties) {
+  private Thumbnail loadThumbnail(EntityToLoad properties) {
     return new Thumbnail(
       properties.getEntityId(),
       properties.getValue(PhotoDbMapper.P_BLOB__FILE).get()
     );
-  }
-
-  @Override
-  public void remove(Integer id) throws SQLException {
-    removeEntity("entity", "id", id);
   }
 
   @Override
@@ -54,7 +49,7 @@ public class ThumbnailDbMapper extends AbstractDbMapper<Thumbnail> {
   }
 
   private Integer persistThumbnail(Thumbnail blob) {
-    final PersistedEntity persistedEntity = dbSetup_.createPersistedEntity(E_THUMBNAIL, blob.getId());
+    final EntityToStore persistedEntity = dbSetup_.createPersistedEntity(E_THUMBNAIL, blob.getId());
 
     addProperty(persistedEntity, PhotoDbMapper.P_BLOB__FILE, blob.getSha256sum());
     addProperty(persistedEntity, PhotoDbMapper.P_BLOB__TYPE, blob.getType());

@@ -15,7 +15,7 @@ import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.taggy.persist.base.DbMapper.Scope;
 import com.bensler.taggy.persist.base.PersistencyBaseLayer.PropertyTableEntry;
 
-public class PersistedEntity {
+public class EntityToStore {
 
   private final Optional<Integer> entityId_;
   private final EntityType<?> type_;
@@ -26,7 +26,7 @@ public class PersistedEntity {
   private final Map<Integer, Set<Integer>> relationshipsTo_;
   private final Map<String, String> optionalProperties_;
 
-  public PersistedEntity(EntityType<?> type, Integer typeId, Optional<Integer> entityId) {
+  public EntityToStore(EntityType<?> type, Integer typeId, Optional<Integer> entityId) {
     entityId_ = entityId;
     type_ = type;
     typeId_ = typeId;

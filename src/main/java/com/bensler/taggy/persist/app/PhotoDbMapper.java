@@ -24,15 +24,13 @@ import com.bensler.taggy.persist.Tag;
 import com.bensler.taggy.persist.Thumbnail;
 import com.bensler.taggy.persist.base.AbstractDbMapper;
 import com.bensler.taggy.persist.base.DbAccess;
-import com.bensler.taggy.persist.base.DbMapper;
 import com.bensler.taggy.persist.base.DbSetup;
+import com.bensler.taggy.persist.base.DbSetup.Direction;
 import com.bensler.taggy.persist.base.EntityProperty;
 import com.bensler.taggy.persist.base.EntityRelationshipType;
 import com.bensler.taggy.persist.base.EntityType;
-import com.bensler.taggy.persist.base.PersistedEntity;
-import com.bensler.taggy.persist.base.DbMapper.Scope;
-import com.bensler.taggy.persist.base.DbSetup.Direction;
-import com.bensler.taggy.persist.base.DbSetup.LoadEntityCollector;
+import com.bensler.taggy.persist.base.EntityToLoad;
+import com.bensler.taggy.persist.base.EntityToStore;
 
 public class PhotoDbMapper extends AbstractDbMapper<Photo> {
 
@@ -74,7 +72,7 @@ public class PhotoDbMapper extends AbstractDbMapper<Photo> {
   @Override
   public List<Photo> loadAllEntities(List<Integer> ids) {
     try {
-      final Collection<LoadEntityCollector> loadedEntities = dbSetup_.loadAllEntities(db_, E_PHOTO, ids);
+      final Collection<EntityToLoad> loadedEntities = dbSetup_.loadAllEntities(db_, E_PHOTO, ids);
       final Map<Integer, Thumbnail> thumbsById  = thumbnailDbMapper_.loadAllEntities(loadedEntities.stream()
         .map(properties -> properties.getValue(P_PHOTO__THUMBNAIL).get()).toList()
       ).stream().collect(Collectors.toMap(Thumbnail::getId, identity()));
@@ -85,7 +83,7 @@ public class PhotoDbMapper extends AbstractDbMapper<Photo> {
     }
   }
 
-  private Photo loadPhoto(LoadEntityCollector properties, Map<Integer, Thumbnail> thumbsById) {
+  private Photo loadPhoto(EntityToLoad properties, Map<Integer, Thumbnail> thumbsById) {
     return new Photo(
       properties.getEntityId(),
       properties.getValue(P_BLOB__FILE).get(),
@@ -94,11 +92,6 @@ public class PhotoDbMapper extends AbstractDbMapper<Photo> {
       properties.getOptionalProperties(),
       properties.getRelationships(Direction.FROM, R_TAG_IMAGE, Tag.class)
     );
-  }
-
-  @Override
-  public void remove(Integer id) throws SQLException {
-    removeEntity("entity", "id", id);
   }
 
   @Override
@@ -112,7 +105,7 @@ public class PhotoDbMapper extends AbstractDbMapper<Photo> {
   }
 
   private Integer persistBlob(Photo photo, Scope scope) {
-    final PersistedEntity persistedEntity = dbSetup_.createPersistedEntity(E_PHOTO, photo.getId());
+    final EntityToStore persistedEntity = dbSetup_.createPersistedEntity(E_PHOTO, photo.getId());
 
     addProperty(persistedEntity, P_BLOB__FILE, photo.getSha256sum());
     addProperty(persistedEntity, P_PHOTO__THUMBNAIL, photo.getThumbnail().getId());
@@ -128,7 +121,7 @@ public class PhotoDbMapper extends AbstractDbMapper<Photo> {
   public List<Integer> findOrphanBlobs() throws SQLException {
     final List<Integer> ids = new ArrayList<>();
 
-    try (PreparedStatement stmt = DbAccess.INSTANCE.get().prepareStatement("""
+    try (PreparedStatement stmt = db_.prepareStatement("""
       SELECT e.id
       FROM entity e
       WHERE e.entity_type_id=?
@@ -151,14 +144,14 @@ public class PhotoDbMapper extends AbstractDbMapper<Photo> {
   }
 
   public boolean doesBlobExist(String shaHash) throws SQLException {
-    try (PreparedStatement stmt = DbAccess.INSTANCE.get().prepareStatement("SELECT * FROM property_blob pb WHERE pb.value=? LIMIT 1")) {
+    try (PreparedStatement stmt = db_.prepareStatement("SELECT * FROM property_blob pb WHERE pb.value=? LIMIT 1")) {
       stmt.setString(1, shaHash);
       return stmt.executeQuery().next();
     }
   }
 
   public void setTags(EntityReference<Photo> photoRef, Set<Tag> tags) {
-    final PersistedEntity persistedEntity = dbSetup_.createPersistedEntity(E_PHOTO, photoRef.getId());
+    final EntityToStore persistedEntity = dbSetup_.createPersistedEntity(E_PHOTO, photoRef.getId());
 
     addRelationshipsFrom(persistedEntity, R_TAG_IMAGE, EntityReference.createCollection(tags, new HashSet<>()));
     persist(persistedEntity, Scope.RELATIONSHIPS);

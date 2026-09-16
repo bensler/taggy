@@ -19,9 +19,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import com.bensler.decaf.util.entity.Entity;
-import com.bensler.decaf.util.entity.EntityReference;
-
 public class DbSetup {
 
   public static final List<EntityPropertyType<?, ?>> KNOWN_PROPERTY_TYPES = List.of(
@@ -120,60 +117,6 @@ public class DbSetup {
     FROM, TO
   }
 
-  /** TODO class equal to PersistedEntity? */
-  public static class LoadEntityCollector {
-
-    private final Integer entityId_;
-    private final Map<BoundEntityProperty, List<Object>> properties_;
-    private final Map<String, String> optionalProperties_;
-    private final Map<Direction, Map<EntityRelationshipType<?, ?>, List<Integer>>> relationsships;
-
-    LoadEntityCollector(Integer entityId) {
-      entityId_ = entityId;
-      properties_ = new HashMap<>();
-      optionalProperties_ = new HashMap<>();
-      relationsships = new HashMap<>();
-    }
-
-    public Integer getEntityId() {
-      return entityId_;
-    }
-
-    public void addValue(BoundEntityProperty property, Object value) {
-      properties_.computeIfAbsent(property, lProperty -> new ArrayList<Object>()).add(value);
-    }
-
-    public void addOptionalValue(String valueName, String strValue) {
-      optionalProperties_.put(valueName, strValue);
-    }
-
-    public void addRelationship(Direction direction, EntityRelationshipType<?, ?> relationType, Integer otherEntityId) {
-      relationsships.computeIfAbsent(direction, _ -> new HashMap<>())
-        .computeIfAbsent(relationType, _ -> new ArrayList<>())
-        .add(otherEntityId);
-    }
-
-    public <T> Optional<T> getValue(EntityProperty<T> type) {
-      return properties_.entrySet().stream()
-        .filter(entry -> entry.getKey().is(type))
-        .map(entry -> type.loadValue(entry.getValue()))
-        .findFirst(); // TODO make properties optional <-> not optional
-    }
-
-    public Map<String, String> getOptionalProperties() {
-      return Map.copyOf(optionalProperties_);
-    }
-
-    public <E extends Entity<E>> Set<EntityReference<E>> getRelationships(Direction direction, EntityRelationshipType<?, ?> relationshipType, Class<E> entityClass) {
-      return relationsships.computeIfAbsent(direction, _ -> Map.of())
-        .getOrDefault(relationshipType, List.of())
-        .stream()
-        .map(id -> new EntityReference<>(entityClass, id))
-        .collect(Collectors.toSet());
-    }
-
-  }
-
   private final Map<String, EntityPropertyType<?, ?>> propertyTypes_;
   private final Map<BoundEntityProperty, Integer> propertyIds_;
   private final Map<Integer, EntityType<?>> idToEntityType_;
@@ -226,9 +169,9 @@ public class DbSetup {
     return stmt;
   }
 
-  public Collection<LoadEntityCollector> loadAllEntities(DbAccess db, EntityType<?> entityType, List<Integer> ids) throws SQLException {
+  public Collection<EntityToLoad> loadAllEntities(DbAccess db, EntityType<?> entityType, List<Integer> ids) throws SQLException {
     final Map<Integer, BoundEntityProperty> propertiesById = entityType.getProperties().stream().collect(Collectors.toMap(propertyIds_::get, identity()));
-    final Map<Integer, LoadEntityCollector> collectors = new HashMap<>();
+    final Map<Integer, EntityToLoad> collectors = new HashMap<>();
 
     try (PreparedStatement stmt = ids.isEmpty()
       ? prepareStatement(db, LOAD_ENTITY_PROPERTY_SQL, PROPERTY_SUBSELECTS, entityType)
@@ -237,7 +180,7 @@ public class DbSetup {
       final ResultSet result = stmt.executeQuery();
 
       while (result.next()) {
-        final LoadEntityCollector collector = collectors.computeIfAbsent(result.getInt("entity_id"), LoadEntityCollector::new);
+        final EntityToLoad collector = collectors.computeIfAbsent(result.getInt("entity_id"), EntityToLoad::new);
         final Optional<String> optStrValue = Optional.ofNullable(result.getString("value_string"));
         final Optional<Object> optIntValue = Optional.ofNullable(result.getObject("value_integer"));
         final Optional<Object> optValue = optIntValue.or(() -> optStrValue);
@@ -255,7 +198,7 @@ public class DbSetup {
       final ResultSet result = stmt.executeQuery();
 
       while (result.next()) {
-        final LoadEntityCollector collector = collectors.computeIfAbsent(result.getInt("entity_id"), LoadEntityCollector::new);
+        final EntityToLoad collector = collectors.computeIfAbsent(result.getInt("entity_id"), EntityToLoad::new);
         final Direction direction = Direction.valueOf(result.getString("direction"));
         final Integer relationshipTypeId = (Integer)result.getObject("relationship_type_id");
         final Integer otherEntityId = (Integer)result.getObject("other_entity_id");
@@ -442,8 +385,8 @@ public class DbSetup {
       .orElseThrow(() -> new IllegalArgumentException());
   }
 
-  public PersistedEntity createPersistedEntity(EntityType<?> entityType, Integer id) {
-    return new PersistedEntity(entityType, entityTypeToId_.get(entityType), Optional.ofNullable(id));
+  public EntityToStore createPersistedEntity(EntityType<?> entityType, Integer id) {
+    return new EntityToStore(entityType, entityTypeToId_.get(entityType), Optional.ofNullable(id));
   }
 
   public Integer getEntityTypeId(EntityType<?> entityType) {
