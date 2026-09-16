@@ -1,16 +1,20 @@
-package com.bensler.taggy.persist.v2;
+package com.bensler.taggy.persist.app;
 
 import java.sql.SQLException;
 import java.util.List;
 
-import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.persist.Thumbnail;
-import com.bensler.taggy.persist.v2.DbSetup.LoadEntityCollector;
+import com.bensler.taggy.persist.base.AbstractDbMapper;
+import com.bensler.taggy.persist.base.DbAccess;
+import com.bensler.taggy.persist.base.DbSetup;
+import com.bensler.taggy.persist.base.DbSetup.LoadEntityCollector;
+import com.bensler.taggy.persist.base.EntityType;
+import com.bensler.taggy.persist.base.PersistedEntity;
 
-public class ThumbnailDbMapper extends AbstractV2DbMapper<Thumbnail> {
+public class ThumbnailDbMapper extends AbstractDbMapper<Thumbnail> {
 
   public static final EntityType<Thumbnail> E_THUMBNAIL = new EntityType<>(
-    Thumbnail.class, V2PhotoDbMapper.E_IMAGE
+    Thumbnail.class, PhotoDbMapper.E_IMAGE
   );
 
   public ThumbnailDbMapper(DbAccess db, DbSetup dbSetup) {
@@ -30,7 +34,7 @@ public class ThumbnailDbMapper extends AbstractV2DbMapper<Thumbnail> {
   private Thumbnail loadThumbnail(LoadEntityCollector properties) {
     return new Thumbnail(
       properties.getEntityId(),
-      properties.getValue(V2PhotoDbMapper.P_BLOB__FILE).get()
+      properties.getValue(PhotoDbMapper.P_BLOB__FILE).get()
     );
   }
 
@@ -52,8 +56,8 @@ public class ThumbnailDbMapper extends AbstractV2DbMapper<Thumbnail> {
   private Integer persistThumbnail(Thumbnail blob) {
     final PersistedEntity persistedEntity = dbSetup_.createPersistedEntity(E_THUMBNAIL, blob.getId());
 
-    addProperty(persistedEntity, V2PhotoDbMapper.P_BLOB__FILE, blob.getSha256sum());
-    addProperty(persistedEntity, V2PhotoDbMapper.P_BLOB__TYPE, blob.getType());
+    addProperty(persistedEntity, PhotoDbMapper.P_BLOB__FILE, blob.getSha256sum());
+    addProperty(persistedEntity, PhotoDbMapper.P_BLOB__TYPE, blob.getType());
 
     return persist(persistedEntity, Scope.PROPERTIES);
   }

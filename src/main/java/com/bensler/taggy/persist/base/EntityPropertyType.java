@@ -1,4 +1,4 @@
-package com.bensler.taggy.persist.v2;
+package com.bensler.taggy.persist.base;
 import static java.util.function.Function.identity;
 
 import java.util.Collection;
@@ -7,7 +7,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import com.bensler.taggy.persist.v2.PersistencyBaseLayer.PropertyTable;
+import com.bensler.taggy.persist.base.PersistencyBaseLayer.PropertyTable;
 
 public class EntityPropertyType<JAVA_TYPE, DB_PROPERTY_TYPE> {
 

@@ -19,8 +19,8 @@ import org.flywaydb.core.api.migration.Context;
 import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.taggy.App;
 import com.bensler.taggy.imprt.Thumbnailer;
-import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.persist.Photo;
+import com.bensler.taggy.persist.base.DbAccess;
 import com.bensler.taggy.ui.BlobController;
 
 public class V008__CreateThumbnails extends BaseJavaMigration {

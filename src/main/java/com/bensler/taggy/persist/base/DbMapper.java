@@ -1,4 +1,4 @@
-package com.bensler.taggy.persist;
+package com.bensler.taggy.persist.base;
 
 import java.sql.SQLException;
 import java.util.List;

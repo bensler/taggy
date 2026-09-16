@@ -1,8 +1,8 @@
-package com.bensler.taggy.persist.v2;
+package com.bensler.taggy.persist.app;
 
-import static com.bensler.taggy.persist.v2.EntityPropertyType.ENTITY;
-import static com.bensler.taggy.persist.v2.EntityPropertyType.STRING;
-import static com.bensler.taggy.persist.v2.V2PhotoDbMapper.R_TAG_IMAGE;
+import static com.bensler.taggy.persist.app.PhotoDbMapper.R_TAG_IMAGE;
+import static com.bensler.taggy.persist.base.EntityPropertyType.ENTITY;
+import static com.bensler.taggy.persist.base.EntityPropertyType.STRING;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -11,14 +11,19 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.bensler.decaf.util.entity.EntityReference;
-import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.persist.Photo;
 import com.bensler.taggy.persist.Tag;
 import com.bensler.taggy.persist.TagProperty;
-import com.bensler.taggy.persist.v2.DbSetup.Direction;
-import com.bensler.taggy.persist.v2.DbSetup.LoadEntityCollector;
+import com.bensler.taggy.persist.base.AbstractDbMapper;
+import com.bensler.taggy.persist.base.DbAccess;
+import com.bensler.taggy.persist.base.DbSetup;
+import com.bensler.taggy.persist.base.DbSetup.Direction;
+import com.bensler.taggy.persist.base.DbSetup.LoadEntityCollector;
+import com.bensler.taggy.persist.base.EntityProperty;
+import com.bensler.taggy.persist.base.EntityType;
+import com.bensler.taggy.persist.base.PersistedEntity;
 
-public class V2TagDbMapper extends AbstractV2DbMapper<Tag> {
+public class TagDbMapper extends AbstractDbMapper<Tag> {
 
   public static final EntityProperty<String> P_TAG__NAME = new EntityProperty<>("name", STRING);
   public static final EntityProperty<Integer> P_TAG__PARENT = new EntityProperty<>("parent", ENTITY);
@@ -28,7 +33,7 @@ public class V2TagDbMapper extends AbstractV2DbMapper<Tag> {
     P_TAG__PARENT
   );
 
-  public V2TagDbMapper(DbAccess db, DbSetup dbSetup) {
+  public TagDbMapper(DbAccess db, DbSetup dbSetup) {
     super(Tag.class, db, dbSetup);
     db.runInTxn(con -> dbSetup_.registerEntityTypes(con, List.of(E_TAG)));
   }

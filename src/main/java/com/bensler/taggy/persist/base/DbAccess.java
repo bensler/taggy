@@ -1,4 +1,4 @@
-package com.bensler.taggy.persist;
+package com.bensler.taggy.persist.base;
 
 import static com.bensler.decaf.util.function.ForEachMapperAdapter.forEachMapper;
 
@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.bensler.decaf.util.entity.Entity;
 import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.taggy.App;
-import com.bensler.taggy.persist.DbMapper.Scope;
+import com.bensler.taggy.persist.base.DbMapper.Scope;
 
 public class DbAccess {
 

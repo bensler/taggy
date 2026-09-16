@@ -1,8 +1,8 @@
-package com.bensler.taggy.persist.v2;
+package com.bensler.taggy.persist.app;
 
-import static com.bensler.taggy.persist.v2.EntityPropertyType.BLOB;
-import static com.bensler.taggy.persist.v2.EntityPropertyType.ENTITY;
-import static com.bensler.taggy.persist.v2.EntityPropertyType.STRING;
+import static com.bensler.taggy.persist.base.EntityPropertyType.BLOB;
+import static com.bensler.taggy.persist.base.EntityPropertyType.ENTITY;
+import static com.bensler.taggy.persist.base.EntityPropertyType.STRING;
 import static java.util.function.Function.identity;
 
 import java.sql.PreparedStatement;
@@ -18,16 +18,23 @@ import java.util.stream.Collectors;
 
 import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.taggy.persist.Blob;
-import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.persist.Image;
 import com.bensler.taggy.persist.Photo;
-import com.bensler.taggy.persist.PhotoDbMapper;
 import com.bensler.taggy.persist.Tag;
 import com.bensler.taggy.persist.Thumbnail;
-import com.bensler.taggy.persist.v2.DbSetup.Direction;
-import com.bensler.taggy.persist.v2.DbSetup.LoadEntityCollector;
+import com.bensler.taggy.persist.base.AbstractDbMapper;
+import com.bensler.taggy.persist.base.DbAccess;
+import com.bensler.taggy.persist.base.DbMapper;
+import com.bensler.taggy.persist.base.DbSetup;
+import com.bensler.taggy.persist.base.EntityProperty;
+import com.bensler.taggy.persist.base.EntityRelationshipType;
+import com.bensler.taggy.persist.base.EntityType;
+import com.bensler.taggy.persist.base.PersistedEntity;
+import com.bensler.taggy.persist.base.DbMapper.Scope;
+import com.bensler.taggy.persist.base.DbSetup.Direction;
+import com.bensler.taggy.persist.base.DbSetup.LoadEntityCollector;
 
-public class V2PhotoDbMapper extends AbstractV2DbMapper<Photo> implements PhotoDbMapper {
+public class PhotoDbMapper extends AbstractDbMapper<Photo> {
 
   public static final EntityProperty<String> P_BLOB__FILE = new EntityProperty<>("file", BLOB);
   public static final EntityProperty<String> P_BLOB__TYPE = new EntityProperty<>("type", STRING);
@@ -47,11 +54,11 @@ public class V2PhotoDbMapper extends AbstractV2DbMapper<Photo> implements PhotoD
     P_PHOTO__THUMBNAIL
   );
 
-  public static final EntityRelationshipType<Tag, Photo> R_TAG_IMAGE = new EntityRelationshipType<>("tag-blob", V2TagDbMapper.E_TAG, E_PHOTO);
+  public static final EntityRelationshipType<Tag, Photo> R_TAG_IMAGE = new EntityRelationshipType<>("tag-blob", TagDbMapper.E_TAG, E_PHOTO);
 
   private final ThumbnailDbMapper thumbnailDbMapper_;
 
-  public V2PhotoDbMapper(ThumbnailDbMapper thumbnailDbMapper, DbAccess db, DbSetup dbSetup) {
+  public PhotoDbMapper(ThumbnailDbMapper thumbnailDbMapper, DbAccess db, DbSetup dbSetup) {
     super(Photo.class, db, dbSetup);
     thumbnailDbMapper_ = thumbnailDbMapper;
     db.runInTxn(con -> {
@@ -118,7 +125,6 @@ public class V2PhotoDbMapper extends AbstractV2DbMapper<Photo> implements PhotoD
     return persist(persistedEntity, scope);
   }
 
-  @Override
   public List<Integer> findOrphanBlobs() throws SQLException {
     final List<Integer> ids = new ArrayList<>();
 
@@ -144,7 +150,6 @@ public class V2PhotoDbMapper extends AbstractV2DbMapper<Photo> implements PhotoD
     return ids;
   }
 
-  @Override
   public boolean doesBlobExist(String shaHash) throws SQLException {
     try (PreparedStatement stmt = DbAccess.INSTANCE.get().prepareStatement("SELECT * FROM property_blob pb WHERE pb.value=? LIMIT 1")) {
       stmt.setString(1, shaHash);
@@ -152,7 +157,6 @@ public class V2PhotoDbMapper extends AbstractV2DbMapper<Photo> implements PhotoD
     }
   }
 
-  @Override
   public void setTags(EntityReference<Photo> photoRef, Set<Tag> tags) {
     final PersistedEntity persistedEntity = dbSetup_.createPersistedEntity(E_PHOTO, photoRef.getId());
 

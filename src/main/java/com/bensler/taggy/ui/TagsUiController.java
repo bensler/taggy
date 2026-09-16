@@ -38,11 +38,11 @@ import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.decaf.util.tree.Hierarchical;
 import com.bensler.decaf.util.tree.Hierarchy;
 import com.bensler.taggy.App;
-import com.bensler.taggy.persist.DbAccess;
-import com.bensler.taggy.persist.DbMapper;
-import com.bensler.taggy.persist.DbMapper.Scope;
 import com.bensler.taggy.persist.Photo;
 import com.bensler.taggy.persist.Tag;
+import com.bensler.taggy.persist.base.DbAccess;
+import com.bensler.taggy.persist.base.DbMapper;
+import com.bensler.taggy.persist.base.DbMapper.Scope;
 
 public class TagsUiController {
 

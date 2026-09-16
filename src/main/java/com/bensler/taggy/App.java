@@ -17,16 +17,16 @@ import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefsStorage;
 import com.bensler.taggy.imprt.ImportController;
 import com.bensler.taggy.imprt.Thumbnailer;
-import com.bensler.taggy.persist.DbAccess;
-import com.bensler.taggy.persist.DbConnector;
-import com.bensler.taggy.persist.DbMapper;
-import com.bensler.taggy.persist.DbMapper.Scope;
-import com.bensler.taggy.persist.SqliteDbConnector;
 import com.bensler.taggy.persist.Tag;
-import com.bensler.taggy.persist.v2.DbSetup;
-import com.bensler.taggy.persist.v2.ThumbnailDbMapper;
-import com.bensler.taggy.persist.v2.V2PhotoDbMapper;
-import com.bensler.taggy.persist.v2.V2TagDbMapper;
+import com.bensler.taggy.persist.app.PhotoDbMapper;
+import com.bensler.taggy.persist.app.TagDbMapper;
+import com.bensler.taggy.persist.app.ThumbnailDbMapper;
+import com.bensler.taggy.persist.base.DbAccess;
+import com.bensler.taggy.persist.base.DbConnector;
+import com.bensler.taggy.persist.base.DbMapper;
+import com.bensler.taggy.persist.base.DbMapper.Scope;
+import com.bensler.taggy.persist.base.DbSetup;
+import com.bensler.taggy.persist.base.SqliteDbConnector;
 import com.bensler.taggy.ui.BlobController;
 import com.bensler.taggy.ui.MainFrame;
 import com.bensler.taggy.ui.ResizeThread;
@@ -86,21 +86,11 @@ public class App {
     db_ = new SqliteDbConnector(dataDir, "taggy.sqlite.db");
     db_.performFlywayMigration();
     dbAccess_ = new DbAccess(db_.getConnection());
-//    final TagDbMapper tagDbMapper = dbAccess_.registerMapper(new V1TagDbMapper(dbAccess_));
-//    final BlobDbMapper blobDbMapper = dbAccess_.registerMapper(new V1BlobDbMapper(dbAccess_));
     dbSetup_ = dbAccess_.runInTxn2(pCon -> new DbSetup(pCon));
-    final DbMapper<Tag> tagDbMapper = dbAccess_.registerMapper(new V2TagDbMapper(dbAccess_, dbSetup_));
-    final V2PhotoDbMapper photoDbMapper = dbAccess_.registerMapper(new V2PhotoDbMapper(
+    final DbMapper<Tag> tagDbMapper = dbAccess_.registerMapper(new TagDbMapper(dbAccess_, dbSetup_));
+    final PhotoDbMapper photoDbMapper = dbAccess_.registerMapper(new PhotoDbMapper(
       dbAccess_.registerMapper(new ThumbnailDbMapper(dbAccess_, dbSetup_)), dbAccess_, dbSetup_
     ));
-
-//    final TagDbMapper tagDbMapper = dbAccess_.registerMapper(
-//        new V2TagDbMapper(dbAccess_, dbSetup_);
-//        );
-//    final BlobDbMapper blobDbMapper = dbAccess_.registerMapper(
-//        new V2BlobDbMapper(dbAccess_, dbSetup_);
-//            );
-
 
     prefs_ = new PrefsStorage(new File(getBaseDir(), "prefs.xml"));
     blobCtrl_ = new BlobController(photoDbMapper, dataDir, FOLDER_PATTERN);

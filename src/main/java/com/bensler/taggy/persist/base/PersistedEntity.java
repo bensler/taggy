@@ -1,4 +1,4 @@
-package com.bensler.taggy.persist.v2;
+package com.bensler.taggy.persist.base;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -12,8 +12,8 @@ import java.util.Set;
 
 import com.bensler.decaf.util.entity.Entity;
 import com.bensler.decaf.util.entity.EntityReference;
-import com.bensler.taggy.persist.DbMapper.Scope;
-import com.bensler.taggy.persist.v2.PersistencyBaseLayer.PropertyTableEntry;
+import com.bensler.taggy.persist.base.DbMapper.Scope;
+import com.bensler.taggy.persist.base.PersistencyBaseLayer.PropertyTableEntry;
 
 public class PersistedEntity {
 

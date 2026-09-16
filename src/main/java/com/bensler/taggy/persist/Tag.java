@@ -10,6 +10,7 @@ import com.bensler.decaf.util.entity.AbstractEntity;
 import com.bensler.decaf.util.entity.Entity;
 import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.decaf.util.tree.Hierarchical;
+import com.bensler.taggy.persist.base.DbAccess;
 
 /**
  * Sample of an entity or business class having hierarchical nature.

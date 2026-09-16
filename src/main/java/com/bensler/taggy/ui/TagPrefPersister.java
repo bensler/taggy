@@ -8,8 +8,8 @@ import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.decaf.util.prefs.DelegatingPrefPersister;
 import com.bensler.decaf.util.prefs.PrefKey;
 import com.bensler.decaf.util.prefs.PrefsStorage;
-import com.bensler.taggy.persist.DbAccess;
 import com.bensler.taggy.persist.Tag;
+import com.bensler.taggy.persist.base.DbAccess;
 
 public class TagPrefPersister {
 

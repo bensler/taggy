@@ -1,4 +1,4 @@
-package com.bensler.taggy.persist.v2;
+package com.bensler.taggy.persist.base;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -6,16 +6,14 @@ import java.util.Collection;
 
 import com.bensler.decaf.util.entity.Entity;
 import com.bensler.decaf.util.entity.EntityReference;
-import com.bensler.taggy.persist.DbAccess;
-import com.bensler.taggy.persist.DbMapper;
 
-public abstract class AbstractV2DbMapper<E extends Entity<E>> implements DbMapper<E> {
+public abstract class AbstractDbMapper<E extends Entity<E>> implements DbMapper<E> {
 
   protected final Class<E> entityClass_;
   protected final DbAccess db_;
   protected final DbSetup dbSetup_;
 
-  protected AbstractV2DbMapper(Class<E> entityClass, DbAccess db, DbSetup dbSetup) {
+  protected AbstractDbMapper(Class<E> entityClass, DbAccess db, DbSetup dbSetup) {
     entityClass_= entityClass;
     db_ = db;
     dbSetup_ = dbSetup;

@@ -1,4 +1,4 @@
-package com.bensler.taggy.persist.v2;
+package com.bensler.taggy.persist.base;
 
 import com.bensler.decaf.util.entity.Entity;
 

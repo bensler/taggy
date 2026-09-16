@@ -56,14 +56,14 @@ import org.apache.commons.imaging.formats.tiff.taginfos.TagInfoAscii;
 import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.taggy.App;
 import com.bensler.taggy.imprt.Thumbnailer;
-import com.bensler.taggy.persist.DbAccess;
-import com.bensler.taggy.persist.DbMapper.Scope;
 import com.bensler.taggy.persist.Image;
 import com.bensler.taggy.persist.Photo;
 import com.bensler.taggy.persist.Tag;
 import com.bensler.taggy.persist.Thumbnail;
-import com.bensler.taggy.persist.v2.ThumbnailDbMapper;
-import com.bensler.taggy.persist.v2.V2PhotoDbMapper;
+import com.bensler.taggy.persist.app.PhotoDbMapper;
+import com.bensler.taggy.persist.app.ThumbnailDbMapper;
+import com.bensler.taggy.persist.base.DbAccess;
+import com.bensler.taggy.persist.base.DbMapper.Scope;
 
 
 public class BlobController {
@@ -141,13 +141,13 @@ public class BlobController {
   public static final String BLOB_FOLDER_BASE_NAME = "blobs";
   public static final String DIGEST_TYPE_SHA_256 = "SHA-256";
 
-  private final V2PhotoDbMapper dbMapper_;
+  private final PhotoDbMapper dbMapper_;
   private final List<Fragment> pathFragments_;
   private final File blobBasePath_;
   private final MessageDigest digest_;
   private final byte[] buffer_;
 
-  public BlobController(V2PhotoDbMapper dbMapper, File blobBasePath, int[] folderPattern) throws NoSuchAlgorithmException {
+  public BlobController(PhotoDbMapper dbMapper, File blobBasePath, int[] folderPattern) throws NoSuchAlgorithmException {
     dbMapper_ = dbMapper;
     buffer_ = new byte[1_000_000];
     digest_ = MessageDigest.getInstance(DIGEST_TYPE_SHA_256);

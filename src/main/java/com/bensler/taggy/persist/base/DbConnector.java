@@ -1,4 +1,4 @@
-package com.bensler.taggy.persist;
+package com.bensler.taggy.persist.base;
 
 import static java.lang.Boolean.TRUE;
 

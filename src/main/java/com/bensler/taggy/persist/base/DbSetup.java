@@ -1,4 +1,4 @@
-package com.bensler.taggy.persist.v2;
+package com.bensler.taggy.persist.base;
 
 import static java.util.function.Function.identity;
 
@@ -21,7 +21,6 @@ import java.util.stream.IntStream;
 
 import com.bensler.decaf.util.entity.Entity;
 import com.bensler.decaf.util.entity.EntityReference;
-import com.bensler.taggy.persist.DbAccess;
 
 public class DbSetup {
 
@@ -122,7 +121,7 @@ public class DbSetup {
   }
 
   /** TODO class equal to PersistedEntity? */
-  static class LoadEntityCollector {
+  public static class LoadEntityCollector {
 
     private final Integer entityId_;
     private final Map<BoundEntityProperty, List<Object>> properties_;
