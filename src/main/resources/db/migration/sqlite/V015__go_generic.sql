@@ -1,15 +1,3 @@
-DROP TABLE IF EXISTS entity_relationship;
-DROP TABLE IF EXISTS entity_relationship_type;
-DROP TABLE IF EXISTS property_blob;
-DROP TABLE IF EXISTS property_entity;
-DROP TABLE IF EXISTS property_integer;
-DROP TABLE IF EXISTS property_string;
-DROP TABLE IF EXISTS property_optional;
-DROP TABLE IF EXISTS entity;
-DROP TABLE IF EXISTS entity_property;
-DROP TABLE IF EXISTS entity_type;
-DROP TABLE IF EXISTS entity_property_type;
-
 CREATE TABLE "entity_property_type" (
   "name" VARCHAR(128) PRIMARY KEY
 );
