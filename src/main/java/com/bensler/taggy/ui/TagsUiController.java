@@ -16,8 +16,10 @@ import static com.bensler.taggy.ui.ThumbnailOverviewPanel.ScrollingPolicy.SCROLL
 
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
+import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -89,19 +91,17 @@ public class TagsUiController {
     );
   }
 
-  public Set<Tag> getAllTagsFiltered(String filterStr) {
-    final String matchStr = filterStr.toLowerCase().trim();
-    final Set<Tag> allNodes = allTags_.getMembers();
+  public Set<Tag> getSubHierarchyContaining(Collection<Tag> matches) {
+    return matches.stream()
+    .flatMap(tag -> allTags_.getSubHierarchyMembers(tag).stream())
+    .flatMap(tag -> Hierarchical.toPath(tag).stream())
+    .distinct().collect(Collectors.toSet());
+  }
 
-    if (matchStr.isEmpty()) {
-      return allNodes;
-    } else {
-      return allNodes.stream()
-      .filter(tag -> matchTag(tag, matchStr))
-      .flatMap(tag -> allTags_.getSubHierarchyMembers(tag).stream())
-      .flatMap(tag -> Hierarchical.toPath(tag).stream())
-      .distinct().collect(Collectors.toSet());
-    }
+  public List<Tag> getTagsMatchingStr(String filterStr) {
+    return allTags_.getMembers().stream()
+    .filter(tag -> matchTag(tag, filterStr))
+    .toList();
   }
 
   private boolean matchTag(Tag tag, String pattern) {

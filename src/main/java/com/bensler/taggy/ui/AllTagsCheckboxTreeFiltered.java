@@ -4,6 +4,8 @@ import static com.bensler.decaf.swing.text.TextfieldListener.addTextfieldListene
 import static com.jgoodies.forms.layout.CellConstraints.DEFAULT;
 import static com.jgoodies.forms.layout.CellConstraints.FILL;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import javax.swing.JLabel;
@@ -23,10 +25,12 @@ public class AllTagsCheckboxTreeFiltered {
   private final TagsUiController tagCtrl_;
   private final CheckboxTree<Tag> tagTree_;
   private final JPanel component_;
+  private final List<Tag> matchingTags_;
 
   public AllTagsCheckboxTreeFiltered(CheckedListener<Tag> listener) {
     final App app = App.getApp();
 
+    matchingTags_ = new ArrayList<>();
     tagCtrl_ = app.getTagCtrl();
     tagTree_ = new CheckboxTree<>(TagUi.NAME_VIEW, Tag.class);
     tagTree_.setVisibleRowCount(20, 1);
@@ -48,10 +52,20 @@ public class AllTagsCheckboxTreeFiltered {
     final String matchStr = filterStr.toLowerCase().trim();
     final boolean filtering = !matchStr.isEmpty();
 
-    tagTree_.setData(filtering ? tagCtrl_.getAllTagsFiltered(filterStr) : tagCtrl_.getAllTags());
-    tagTree_.expandCollapseAll(filtering);
-    if (!filtering) {
-      tagTree_.getCheckedNodes().forEach(tag -> tagTree_.expandCollapse(tag, true));
+    matchingTags_.clear();
+    if (filtering) {
+      matchingTags_.addAll(tagCtrl_.getTagsMatchingStr(filterStr));
+      if (!matchingTags_.isEmpty()) {
+        tagTree_.setData(tagCtrl_.getSubHierarchyContaining(matchingTags_));
+        tagTree_.select(matchingTags_.getFirst()); // diff to AllTagsTreeFiltered.filterChanged(String)
+        tagTree_.expandCollapseAll(true);
+      } else {
+        tagTree_.setData(Set.of());
+      }
+    } else {
+      tagTree_.setData(tagCtrl_.getAllTags());
+      tagTree_.expandCollapseAll(false);  // diff to AllTagsTreeFiltered.filterChanged(String)
+      tagTree_.getCheckedNodes().forEach(tag -> tagTree_.expandCollapse(tag, true));  // diff to AllTagsTreeFiltered.filterChanged(String)
     }
   }
 
