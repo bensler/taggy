@@ -67,6 +67,7 @@ public class SelectedBlobsDetailPanel {
       new TablePropertyView<>("value", "Value", new PropertyViewImpl<>(createGetterComparator(NameValuePair::getRight, COLLATOR_COMPARATOR)))
     ), NameValuePair.class);
     propertiesTable_.sortByColumn(propertyKeyColumn);
+    propertiesTable_.getComponent().setFocusable(false);
     splitpane_ = new JSplitPane(VERTICAL_SPLIT, true,
       tagTree_.getScrollPane(), propertiesTable_.getScrollPane()
     );
