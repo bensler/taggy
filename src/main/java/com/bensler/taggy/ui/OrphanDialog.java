@@ -1,6 +1,7 @@
 package com.bensler.taggy.ui;
 
 import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
+import static com.bensler.taggy.ui.Icons.IMAGE_13;
 import static com.bensler.taggy.ui.Icons.IMAGE_48;
 import static com.bensler.taggy.ui.Icons.TAGS_MISSING_36;
 import static com.bensler.taggy.ui.ThumbnailEntityListenerAdapter.Operation.ADD_OR_UPDATE;
@@ -28,7 +29,8 @@ import com.jgoodies.forms.layout.FormLayout;
 
 public class OrphanDialog extends JDialog {
 
-  public static final OverlayIcon ICON = new OverlayIcon(IMAGE_48, new Overlay(TAGS_MISSING_36, SE));
+  public static final OverlayIcon ICON_SMALL = new OverlayIcon(IMAGE_13);//, new Overlay(Icons.TAGS_MISSING_36, SE));
+  public static final OverlayIcon ICON_LARGE = new OverlayIcon(IMAGE_48, new Overlay(TAGS_MISSING_36, SE));
 
   private final ThumbnailOverview thumbViewer_;
   private final PrefPersisterImpl prefs_;
@@ -41,7 +43,7 @@ public class OrphanDialog extends JDialog {
       "f:p, 3dlu, f:p:g, 3dlu"
     ));
 
-    var appearance = new DialogAppearance(ICON, "Untagged Images", "Images, having no Tags assigned. Assign them here!");
+    var appearance = new DialogAppearance(ICON_LARGE, "Untagged Images", "Images, having no Tags assigned. Assign them here!");
     setTitle(appearance.getWindowTitle());
     mainPanel.add(new HeaderPanel(appearance).getComponent(), new CellConstraints(1, 1, 3, 1));
     blobCtrl_ = app.getBlobCtrl();

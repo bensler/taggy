@@ -12,6 +12,7 @@ import static javax.swing.WindowConstants.DISPOSE_ON_CLOSE;
 import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -23,6 +24,7 @@ import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
 
+import com.bensler.decaf.swing.EntityComponent;
 import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.ActionGroup;
 import com.bensler.decaf.swing.action.FilteredAction;
@@ -81,20 +83,14 @@ public class MainFrame {
     rightSplitpane.setResizeWeight(1);
     mainPanel.add(rightSplitpane, new CellConstraints(2, 4));
 
-    mainPanel.add((app.putZombie(this,  new FocusedComponentActionController(new ActionGroup(
-      new ActionGroup(tagCtrl_.getNewTagAction(), tagCtrl_.getEditTagAction()),
-      new ActionGroup(
-        app.getImportCtrl().getImportAction(),
-        new UiAction(
-          new ActionAppearance(OrphanDialog.ICON, null, null, "Show Images without any Tags assigned"),
-          FilteredAction.many(Void.class, FilteredAction.allwaysOnFilter(), entities -> new OrphanDialog(app).showDialog())
-        ),
-        imagesUiCtrl.getExportImageAction()
-      ),
-      imagesUiCtrl.getEditImageActions(),
-      imagesUiCtrl.getTagsActions(),
-      new ActionGroup(imagesUiCtrl.getSlideshowAction())
-    ), List.of(tagTree_, thumbnails_.getEntityComponent(), selectionTagPanel.getTagTree())))).createToolbar(), new CellConstraints(2, 2));
+    final UiAction orphanAction = new UiAction(
+      new ActionAppearance(OrphanDialog.ICON_SMALL, OrphanDialog.ICON_LARGE, "Untagged Images", "Show Images without any Tags assigned"),
+      FilteredAction.allwaysOn(() -> new OrphanDialog(app).showDialog())
+    );
+    final List<EntityComponent<?>> entityVompoenents = List.of(tagTree_, thumbnails_.getEntityComponent(), selectionTagPanel.getTagTree());
+
+    frame_.setJMenuBar(createActionController(app, createMenuActionGroup(app, imagesUiCtrl, orphanAction), entityVompoenents).createMenuBar());
+    mainPanel.add(createActionController(app, createToolbarActionGroup(app, imagesUiCtrl, orphanAction), entityVompoenents).createToolbar(), new CellConstraints(2, 2));
 
     mainPanel.setPreferredSize(new Dimension(750, 750));
     frame_.setContentPane(mainPanel);
@@ -115,6 +111,40 @@ public class MainFrame {
         SwingUtilities.invokeLater(super::apply);
       }
     };
+  }
+
+  private ActionGroup createMenuActionGroup(App app, ImagesUiController imagesUiCtrl, UiAction orphanAction) {
+    return new ActionGroup(
+      new ActionGroup(new ActionAppearance(Icons.TAG_SIMPLE_13, null, "Tag", null), tagCtrl_.getNewTagAction(), tagCtrl_.getEditTagAction()),
+      new ActionGroup(new ActionAppearance(Icons.IMAGE_13, null, "Image", null),
+        imagesUiCtrl.getSlideshowAction(),
+        imagesUiCtrl.getTagsActions(),
+        imagesUiCtrl.getEditImageActions(),
+        imagesUiCtrl.getExportImageAction(),
+        new ActionGroup(
+          app.getImportCtrl().getImportAction(),
+          orphanAction
+        )
+      )
+    );
+  }
+
+  private ActionGroup createToolbarActionGroup(App app, ImagesUiController imagesUiCtrl, UiAction orphanAction) {
+    return new ActionGroup(
+      new ActionGroup(tagCtrl_.getNewTagAction(), tagCtrl_.getEditTagAction()),
+      new ActionGroup(
+        app.getImportCtrl().getImportAction(),
+        orphanAction,
+        imagesUiCtrl.getExportImageAction()
+      ),
+      imagesUiCtrl.getEditImageActions(),
+      imagesUiCtrl.getTagsActions(),
+      new ActionGroup(imagesUiCtrl.getSlideshowAction())
+    );
+  }
+
+  FocusedComponentActionController createActionController(App app, ActionGroup actions, Collection<EntityComponent<?>> entityComponents) {
+    return app.putZombie(this,  new FocusedComponentActionController(actions, entityComponents));
   }
 
   private Image createImage() {

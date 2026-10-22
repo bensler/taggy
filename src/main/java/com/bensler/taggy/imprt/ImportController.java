@@ -4,6 +4,8 @@ import static com.bensler.decaf.swing.awt.OverlayIcon.Alignment2D.SE;
 import static com.bensler.decaf.util.function.ForEachMapperAdapter.forEachMapper;
 import static com.bensler.taggy.App.getApp;
 import static com.bensler.taggy.ui.Icons.IMAGES_48;
+import static com.bensler.taggy.ui.Icons.IMAGE_13;
+import static com.bensler.taggy.ui.Icons.PLUS_10;
 import static com.bensler.taggy.ui.Icons.PLUS_30;
 
 import java.io.File;
@@ -48,9 +50,10 @@ public class ImportController {
   private static final String IMPORT_DIR = "import";
 
   public static final OverlayIcon ICON_LARGE = new OverlayIcon(IMAGES_48, new Overlay(PLUS_30, SE));
+  public static final OverlayIcon ICON_SMALL = new OverlayIcon(IMAGE_13, new Overlay(PLUS_10, SE));
 
   public static final ActionAppearance IMPORT_ACTION_APPEARANCE =  new ActionAppearance(
-    null, ICON_LARGE, null, "Scan for new Images to import."
+    ICON_SMALL, ICON_LARGE, "Imort", "Scan for new Images to import."
   );
 
   static List<FileToImport> markDuplicates(List<FileToImport> allFiles, String sha) {
@@ -68,9 +71,7 @@ public class ImportController {
   public ImportController(File dataDir) {
     importDir_ = new File(dataDir, IMPORT_DIR);
     importDir_.mkdirs();
-    actionImport_ = new UiAction(
-      IMPORT_ACTION_APPEARANCE, FilteredAction.many(Void.class, FilteredAction.allwaysOnFilter(), entities -> showImportDialog())
-    );
+    actionImport_ = new UiAction(IMPORT_ACTION_APPEARANCE, FilteredAction.allwaysOn(() -> showImportDialog()));
     fileShaMap_ = new HashMap<>();
   }
 
