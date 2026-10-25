@@ -1,5 +1,7 @@
 package com.bensler.taggy.ui;
 
+import static com.bensler.decaf.swing.action.ActionUiContext.ActionUiContext;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +24,8 @@ public class EntityChangeListenerTreeAdapter<H extends Hierarchical<H>> implemen
     final H parent = entity.getParent();
 
     if ((parent == null) || tree_.contains(parent).isPresent()) {
-      tree_.addData(entity, true);
+      // select if same Window --vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+      tree_.addData(entity, ActionUiContext.sameContext(tree_.getComponent()));
     }
   }
 

@@ -14,6 +14,8 @@ import static com.bensler.taggy.ui.Icons.X_10;
 import static com.bensler.taggy.ui.Icons.X_30;
 import static com.bensler.taggy.ui.ThumbnailOverviewPanel.ScrollingPolicy.SCROLL_HORIZONTALLY;
 
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.Collection;
@@ -25,6 +27,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import javax.swing.KeyStroke;
 
 import com.bensler.decaf.swing.action.ActionAppearance;
 import com.bensler.decaf.swing.action.ActionGroup;
@@ -74,12 +78,16 @@ public class TagsUiController {
       .filter(pair -> pair.getLeft().isPresent())
       .collect(toMap(pair -> pair.getLeft().get(), Pair::getRight, HashMap::new));
     editTagAction_ = new UiAction(
-      new ActionAppearance(new OverlayIcon(TAG_SIMPLE_13, new Overlay(EDIT_13, SE)), TagDialog.Edit.ICON, "Edit Tag", "Edit currently selected Tag"),
-      FilteredAction.one(Tag.class, TagUi.TAG_FILTER, this::editTagUi)
+      new ActionAppearance(
+        new OverlayIcon(TAG_SIMPLE_13, new Overlay(EDIT_13, SE)), TagDialog.Edit.ICON, "Edit Tag", "Edit currently selected Tag",
+        KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0)
+      ), FilteredAction.one(Tag.class, TagUi.TAG_FILTER, this::editTagUi)
     );
     newTagAction_ = new UiAction(
-      new ActionAppearance(new OverlayIcon(TAG_SIMPLE_13, new Overlay(PLUS_10, SE)), TagDialog.Create.ICON, "Create Tag", "Creates a new Tag under the currently selected Tag"),
-      FilteredAction.oneOrNone(Tag.class, TagUi.TAG_FILTER, this::createTagUi)
+      new ActionAppearance(
+        new OverlayIcon(TAG_SIMPLE_13, new Overlay(PLUS_10, SE)), TagDialog.Create.ICON, "Create Tag", "Creates a new Tag under the currently selected Tag",
+        KeyStroke.getKeyStroke(KeyEvent.VK_F2, InputEvent.CTRL_DOWN_MASK)
+      ), FilteredAction.oneOrNone(Tag.class, TagUi.TAG_FILTER, this::createTagUi)
     );
     newTimelineTagAction_ = new UiAction(
       new ActionAppearance(new OverlayIcon(TIMELINE_13, new Overlay(PLUS_10, SE)), null, "Create Timeline Tag", "Creates a new Tag representing a calendar date"),
