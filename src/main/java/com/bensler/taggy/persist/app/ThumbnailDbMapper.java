@@ -4,14 +4,14 @@ import java.sql.SQLException;
 import java.util.List;
 
 import com.bensler.taggy.persist.Thumbnail;
-import com.bensler.taggy.persist.base.AbstractDbMapper;
 import com.bensler.taggy.persist.base.DbAccess;
+import com.bensler.taggy.persist.base.DbMapper;
 import com.bensler.taggy.persist.base.DbSetup;
-import com.bensler.taggy.persist.base.EntityType;
 import com.bensler.taggy.persist.base.EntityToLoad;
 import com.bensler.taggy.persist.base.EntityToStore;
+import com.bensler.taggy.persist.base.EntityType;
 
-public class ThumbnailDbMapper extends AbstractDbMapper<Thumbnail> {
+public class ThumbnailDbMapper extends DbMapper<Thumbnail> {
 
   public static final EntityType<Thumbnail> E_THUMBNAIL = new EntityType<>(
     Thumbnail.class, PhotoDbMapper.E_IMAGE
@@ -39,16 +39,7 @@ public class ThumbnailDbMapper extends AbstractDbMapper<Thumbnail> {
   }
 
   @Override
-  public void update(Thumbnail blob, Scope scope) {
-    persistThumbnail(blob);
-  }
-
-  @Override
-  public Integer insert(Thumbnail blob) {
-    return persistThumbnail(blob);
-  }
-
-  private Integer persistThumbnail(Thumbnail blob) {
+  protected Integer persist(Thumbnail blob, Scope scope) {
     final EntityToStore persistedEntity = dbSetup_.createPersistedEntity(E_THUMBNAIL, blob.getId());
 
     addProperty(persistedEntity, PhotoDbMapper.P_BLOB__FILE, blob.getSha256sum());

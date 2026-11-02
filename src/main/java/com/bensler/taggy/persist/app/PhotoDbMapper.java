@@ -22,17 +22,17 @@ import com.bensler.taggy.persist.Image;
 import com.bensler.taggy.persist.Photo;
 import com.bensler.taggy.persist.Tag;
 import com.bensler.taggy.persist.Thumbnail;
-import com.bensler.taggy.persist.base.AbstractDbMapper;
 import com.bensler.taggy.persist.base.DbAccess;
+import com.bensler.taggy.persist.base.DbMapper;
 import com.bensler.taggy.persist.base.DbSetup;
 import com.bensler.taggy.persist.base.DbSetup.Direction;
 import com.bensler.taggy.persist.base.EntityProperty;
 import com.bensler.taggy.persist.base.EntityRelationshipType;
-import com.bensler.taggy.persist.base.EntityType;
 import com.bensler.taggy.persist.base.EntityToLoad;
 import com.bensler.taggy.persist.base.EntityToStore;
+import com.bensler.taggy.persist.base.EntityType;
 
-public class PhotoDbMapper extends AbstractDbMapper<Photo> {
+public class PhotoDbMapper extends DbMapper<Photo> {
 
   public static final EntityProperty<String> P_BLOB__FILE = new EntityProperty<>("file", BLOB);
   public static final EntityProperty<String> P_BLOB__TYPE = new EntityProperty<>("type", STRING);
@@ -95,16 +95,7 @@ public class PhotoDbMapper extends AbstractDbMapper<Photo> {
   }
 
   @Override
-  public void update(Photo photo, Scope scope) throws SQLException {
-    persistBlob(photo, scope);
-  }
-
-  @Override
-  public Integer insert(Photo photo) throws SQLException {
-    return persistBlob(photo, Scope.FULL);
-  }
-
-  private Integer persistBlob(Photo photo, Scope scope) {
+  protected Integer persist(Photo photo, Scope scope) {
     final EntityToStore persistedEntity = dbSetup_.createPersistedEntity(E_PHOTO, photo.getId());
 
     addProperty(persistedEntity, P_BLOB__FILE, photo.getSha256sum());

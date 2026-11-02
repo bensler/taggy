@@ -14,16 +14,16 @@ import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.taggy.persist.Photo;
 import com.bensler.taggy.persist.Tag;
 import com.bensler.taggy.persist.TagProperty;
-import com.bensler.taggy.persist.base.AbstractDbMapper;
 import com.bensler.taggy.persist.base.DbAccess;
+import com.bensler.taggy.persist.base.DbMapper;
 import com.bensler.taggy.persist.base.DbSetup;
 import com.bensler.taggy.persist.base.DbSetup.Direction;
 import com.bensler.taggy.persist.base.EntityProperty;
-import com.bensler.taggy.persist.base.EntityType;
 import com.bensler.taggy.persist.base.EntityToLoad;
 import com.bensler.taggy.persist.base.EntityToStore;
+import com.bensler.taggy.persist.base.EntityType;
 
-public class TagDbMapper extends AbstractDbMapper<Tag> {
+public class TagDbMapper extends DbMapper<Tag> {
 
   public static final EntityProperty<String> P_TAG__NAME = new EntityProperty<>("name", STRING);
   public static final EntityProperty<Integer> P_TAG__PARENT = new EntityProperty<>("parent", ENTITY);
@@ -59,16 +59,7 @@ public class TagDbMapper extends AbstractDbMapper<Tag> {
   }
 
   @Override
-  public void update(Tag tag, Scope scope) {
-    persistTag(tag, scope);
-  }
-
-  @Override
-  public Integer insert(Tag tag) {
-    return persistTag(tag, Scope.FULL);
-  }
-
-  private Integer persistTag(Tag tag, Scope scope) {
+  protected Integer persist(Tag tag, Scope scope) {
     final EntityToStore persistedEntity = dbSetup_.createPersistedEntity(E_TAG, tag.getId());
 
                                               addProperty(persistedEntity, P_TAG__NAME, tag.getName());
