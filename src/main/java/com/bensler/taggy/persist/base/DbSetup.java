@@ -172,8 +172,9 @@ public class DbSetup {
   public Collection<EntityToLoad> loadAllEntities(DbAccess db, EntityType<?> entityType, List<Integer> ids) throws SQLException {
     final Map<Integer, BoundEntityProperty> propertiesById = entityType.getProperties().stream().collect(Collectors.toMap(propertyIds_::get, identity()));
     final Map<Integer, EntityToLoad> collectors = new HashMap<>();
+    final boolean loadAll = ids.isEmpty();
 
-    try (PreparedStatement stmt = ids.isEmpty()
+    try (PreparedStatement stmt = loadAll
       ? prepareStatement(db, LOAD_ENTITY_PROPERTY_SQL, PROPERTY_SUBSELECTS, entityType)
       : prepareStatement(db, LOAD_ENTITY_PROPERTY_SQL, PROPERTY_SUBSELECTS, ids)
     ) {
@@ -191,7 +192,7 @@ public class DbSetup {
         optValueName.ifPresent(valueName -> optStrValue.ifPresent(strValue -> collector.addOptionalValue(valueName, strValue)));
       }
     }
-    try (PreparedStatement stmt = ids.isEmpty()
+    try (PreparedStatement stmt = loadAll
       ? prepareStatement(db, LOAD_RELATION_PROPERTY_SQL, RELATION_SUBSELECTS, entityType)
       : prepareStatement(db, LOAD_RELATION_PROPERTY_SQL, RELATION_SUBSELECTS, ids)
     ) {
