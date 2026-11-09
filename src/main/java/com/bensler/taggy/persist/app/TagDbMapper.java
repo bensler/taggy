@@ -1,7 +1,6 @@
 package com.bensler.taggy.persist.app;
 
 import static com.bensler.taggy.persist.app.PhotoDbMapper.R_TAG_IMAGE;
-import static com.bensler.taggy.persist.base.EntityPropertyType.ENTITY;
 import static com.bensler.taggy.persist.base.EntityPropertyType.STRING;
 
 import java.sql.SQLException;
@@ -19,6 +18,7 @@ import com.bensler.taggy.persist.base.DbMapper;
 import com.bensler.taggy.persist.base.DbSetup;
 import com.bensler.taggy.persist.base.DbSetup.Direction;
 import com.bensler.taggy.persist.base.EntityProperty;
+import com.bensler.taggy.persist.base.EntityPropertyType;
 import com.bensler.taggy.persist.base.EntityToLoad;
 import com.bensler.taggy.persist.base.EntityToStore;
 import com.bensler.taggy.persist.base.EntityType;
@@ -26,7 +26,7 @@ import com.bensler.taggy.persist.base.EntityType;
 public class TagDbMapper extends DbMapper<Tag> {
 
   public static final EntityProperty<String> P_TAG__NAME = new EntityProperty<>("name", STRING);
-  public static final EntityProperty<Integer> P_TAG__PARENT = new EntityProperty<>("parent", ENTITY);
+  public static final EntityProperty<EntityReference<Tag>> P_TAG__PARENT = new EntityProperty<>("parent", EntityPropertyType.createEntityType(Tag.class, false));
   public static final EntityType<Tag> E_TAG = new EntityType<>(
     Tag.class,
     P_TAG__NAME,
@@ -34,8 +34,7 @@ public class TagDbMapper extends DbMapper<Tag> {
   );
 
   public TagDbMapper(DbAccess db, DbSetup dbSetup) {
-    super(Tag.class, db, dbSetup);
-    db.runInTxn(con -> dbSetup_.registerEntityTypes(con, List.of(E_TAG)));
+    super(Tag.class, db, dbSetup, E_TAG);
   }
 
   @Override
@@ -48,10 +47,10 @@ public class TagDbMapper extends DbMapper<Tag> {
   }
 
   private Tag loadTag(EntityToLoad properties) {
-    final Optional<Integer> parentId = properties.getValue(P_TAG__PARENT);
+    final Optional<EntityReference<Tag>> parentId = properties.getValue(P_TAG__PARENT);
 
     return new Tag(
-      properties.getEntityId(), parentId.map(lParentId -> new EntityReference<Tag>(Tag.class, lParentId)),
+      properties.getEntityId(), parentId,
       properties.getValue(P_TAG__NAME).get(),
       properties.getOptionalProperties().entrySet().stream().collect(Collectors.toMap(entry -> TagProperty.valueOf(entry.getKey()), Entry::getValue)),
       properties.getRelationships(Direction.TO, R_TAG_IMAGE, Photo.class)
@@ -63,7 +62,7 @@ public class TagDbMapper extends DbMapper<Tag> {
     final EntityToStore persistedEntity = dbSetup_.createPersistedEntity(E_TAG, tag.getId());
 
                                               addProperty(persistedEntity, P_TAG__NAME, tag.getName());
-    tag.getParentRef().ifPresent(parentRef -> addProperty(persistedEntity, P_TAG__PARENT, parentRef.getId()));
+    tag.getParentRef().ifPresent(parentRef -> addProperty(persistedEntity, P_TAG__PARENT, parentRef));
     persistedEntity.putOptionalProperties(tag.getProperties().entrySet().stream().collect(Collectors.toMap(
       entry -> entry.getKey().name(), Entry::getValue
     )));

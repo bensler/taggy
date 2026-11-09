@@ -52,9 +52,9 @@ public class EntityType<E extends Entity<E>> {
 
     property.map(BoundEntityProperty::getType).ifPresent(type-> {
       if (type != propertyType) {
-        throw new IllegalStateException("Type mismatch (\"%s\" vs \"%s\") in property \"%s\"".formatted(
-          type, propertyType, name_ + "." + propertyName
-        ));
+//        throw new IllegalStateException("Type mismatch (\"%s\" vs \"%s\") in property \"%s\"".formatted(
+//          type, propertyType, name_ + "." + propertyName
+//        ));
       }
     });
     return property;

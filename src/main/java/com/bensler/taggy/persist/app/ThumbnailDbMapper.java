@@ -18,8 +18,7 @@ public class ThumbnailDbMapper extends DbMapper<Thumbnail> {
   );
 
   public ThumbnailDbMapper(DbAccess db, DbSetup dbSetup) {
-    super(Thumbnail.class, db, dbSetup);
-    db.runInTxn(con -> dbSetup_.registerEntityTypes(con, List.of(E_THUMBNAIL)));
+    super(Thumbnail.class, db, dbSetup, E_THUMBNAIL);
   }
 
   @Override

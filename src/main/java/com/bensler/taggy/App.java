@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.WeakHashMap;
@@ -86,11 +87,12 @@ public class App {
     db_ = new SqliteDbConnector(dataDir, "taggy.sqlite.db");
     db_.performFlywayMigration();
     dbAccess_ = new DbAccess(db_.getConnection());
-    dbSetup_ = dbAccess_.runInTxn2(pCon -> new DbSetup(pCon));
+    dbSetup_ = new DbSetup(dbAccess_);
     final DbMapper<Tag> tagDbMapper = dbAccess_.registerMapper(new TagDbMapper(dbAccess_, dbSetup_));
     final PhotoDbMapper photoDbMapper = dbAccess_.registerMapper(new PhotoDbMapper(
       dbAccess_.registerMapper(new ThumbnailDbMapper(dbAccess_, dbSetup_)), dbAccess_, dbSetup_
     ));
+    dbSetup_.registerRelationshipTypes(dbAccess_, List.of(PhotoDbMapper.R_TAG_IMAGE));
 
     prefs_ = new PrefsStorage(new File(getBaseDir(), "prefs.xml"));
     blobCtrl_ = new BlobController(photoDbMapper, dataDir, FOLDER_PATTERN);

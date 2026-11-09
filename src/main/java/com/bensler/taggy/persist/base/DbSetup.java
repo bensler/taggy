@@ -7,7 +7,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -123,8 +122,8 @@ public class DbSetup {
   private final Map<EntityType<?>, Integer> entityTypeToId_;
   private final Map<Integer, EntityRelationshipType<?, ?>> relationshipTypeIds_;
 
-  public DbSetup(Connection con) throws SQLException {
-    propertyTypes_ = setupEntityPropertyTypes(con);
+  public DbSetup(DbAccess db) {
+    propertyTypes_ = db.runInTxn2(con -> setupEntityPropertyTypes(con));
     propertyIds_ = new HashMap<>();
     idToEntityType_ = new HashMap<>();
     entityTypeToId_ = new HashMap<>();
@@ -211,9 +210,13 @@ public class DbSetup {
     return collectors.values();
   }
 
-  public void registerEntityTypes(Connection con, List<EntityType<?>> entityTypes) throws SQLException {
+  public void registerEntityType(DbAccess db, EntityType<?> entityType) {
+    db.runInTxn(con -> registerEntityType(con, entityType));
+  }
+
+  private void registerEntityType(Connection con, EntityType<?> entityType) throws SQLException {
     final Map<String, Integer> nameIdMap = new HashMap<>();
-    final List<EntityType<?>> toInsert = new ArrayList<>();
+    final String entityClassName = entityType.getClassName();
 
     try (
       PreparedStatement stmt = con.prepareStatement("SELECT id, name FROM entity_type");
@@ -224,43 +227,37 @@ public class DbSetup {
       }
     }
 
-    for (EntityType<?> entityType : entityTypes) {
-      final String name = entityType.getClassName();
 
-      if (entityTypeToId_.containsKey(entityType)) {
-        throw new IllegalArgumentException();
-      }
-      if (nameIdMap.containsKey(name)) {
-        final Integer id = nameIdMap.get(name);
+    if (entityTypeToId_.containsKey(entityType)) {
+      throw new IllegalArgumentException();
+    }
+    if (nameIdMap.containsKey(entityClassName)) {
+      final Integer id = nameIdMap.get(entityClassName);
 
+      entityTypeToId_.put(entityType, id);
+      idToEntityType_.put(id, entityType);
+    } else {
+      try (PreparedStatement stmt = con.prepareStatement("INSERT INTO entity_type (name) VALUES (?) RETURNING id")) {
+        final ResultSet generatedKeys;
+        final Integer id;
+
+        stmt.setString(1, entityType.getClassName());
+        // executeBatch() returning a collection of generated IDs does not work with Sqlite
+        generatedKeys = stmt.executeQuery();
+        generatedKeys.next();
+        id = generatedKeys.getInt(1);
         entityTypeToId_.put(entityType, id);
         idToEntityType_.put(id, entityType);
-      } else {
-        toInsert.add(entityType);
       }
     }
-    if (!toInsert.isEmpty()) {
-      try (PreparedStatement stmt = con.prepareStatement("INSERT INTO entity_type (name) VALUES (?) RETURNING id")) {
-        for (EntityType<?> entityType : toInsert) {
-          final ResultSet generatedKeys;
-          final Integer id;
-
-          stmt.setString(1, entityType.getClassName());
-          // executeBatch() returning a collection of generated IDs does not work with Sqlite
-          generatedKeys = stmt.executeQuery();
-          generatedKeys.next();
-          id = generatedKeys.getInt(1);
-          entityTypeToId_.put(entityType, id);
-          idToEntityType_.put(id, entityType);
-        }
-      }
-    }
-    for(EntityType<?> entityType : entityTypes) {
-      setupPropertyIds(con, entityType);
-    }
+    setupPropertyIds(con, entityType);
   }
 
-  public void registerRelationshipTypes(Connection con, List<EntityRelationshipType<?, ?>> relationshipTypes) throws SQLException {
+  public void registerRelationshipTypes(DbAccess db, List<EntityRelationshipType<?, ?>> relationshipTypes) {
+    db.runInTxn(con -> registerRelationshipTypes(con, relationshipTypes));;
+  }
+
+  private void registerRelationshipTypes(Connection con, List<EntityRelationshipType<?, ?>> relationshipTypes) throws SQLException {
     final Map<Integer, EntityRelationshipType<?, ?>> relIdCollector = new HashMap<>();
     final Map<String, EntityRelationshipType<?, ?>> relTypesByName = new HashMap<>(relationshipTypes.stream().collect(Collectors.toMap(EntityRelationshipType::getName, identity())));
 

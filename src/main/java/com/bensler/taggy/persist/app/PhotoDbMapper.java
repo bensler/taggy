@@ -1,7 +1,6 @@
 package com.bensler.taggy.persist.app;
 
 import static com.bensler.taggy.persist.base.EntityPropertyType.BLOB;
-import static com.bensler.taggy.persist.base.EntityPropertyType.ENTITY;
 import static com.bensler.taggy.persist.base.EntityPropertyType.STRING;
 import static java.util.function.Function.identity;
 
@@ -27,6 +26,7 @@ import com.bensler.taggy.persist.base.DbMapper;
 import com.bensler.taggy.persist.base.DbSetup;
 import com.bensler.taggy.persist.base.DbSetup.Direction;
 import com.bensler.taggy.persist.base.EntityProperty;
+import com.bensler.taggy.persist.base.EntityPropertyType;
 import com.bensler.taggy.persist.base.EntityRelationshipType;
 import com.bensler.taggy.persist.base.EntityToLoad;
 import com.bensler.taggy.persist.base.EntityToStore;
@@ -46,7 +46,7 @@ public class PhotoDbMapper extends DbMapper<Photo> {
     Image.class, E_BLOB
   );
 
-  public static final EntityProperty<Integer> P_PHOTO__THUMBNAIL = new EntityProperty<>("thumbnail", ENTITY);
+  public static final EntityProperty<EntityReference<Thumbnail>> P_PHOTO__THUMBNAIL = new EntityProperty<>("thumbnail", EntityPropertyType.createEntityType(Thumbnail.class, false));
   public static final EntityType<Photo> E_PHOTO = new EntityType<>(
     Photo.class, E_IMAGE,
     P_PHOTO__THUMBNAIL
@@ -57,12 +57,8 @@ public class PhotoDbMapper extends DbMapper<Photo> {
   private final ThumbnailDbMapper thumbnailDbMapper_;
 
   public PhotoDbMapper(ThumbnailDbMapper thumbnailDbMapper, DbAccess db, DbSetup dbSetup) {
-    super(Photo.class, db, dbSetup);
+    super(Photo.class, db, dbSetup, E_PHOTO);
     thumbnailDbMapper_ = thumbnailDbMapper;
-    db.runInTxn(con -> {
-      dbSetup_.registerEntityTypes(con, List.of(E_IMAGE, E_PHOTO));
-      dbSetup_.registerRelationshipTypes(con, List.of(R_TAG_IMAGE));
-    });
   }
 
   public ThumbnailDbMapper getThumbnailDbMapper() {
@@ -73,17 +69,17 @@ public class PhotoDbMapper extends DbMapper<Photo> {
   public List<Photo> loadAllEntities(List<Integer> ids) {
     try {
       final Collection<EntityToLoad> loadedEntities = dbSetup_.loadAllEntities(db_, E_PHOTO, ids);
-      final Map<Integer, Thumbnail> thumbsById  = thumbnailDbMapper_.loadAllEntities(loadedEntities.stream()
-        .map(properties -> properties.getValue(P_PHOTO__THUMBNAIL).get()).toList()
-      ).stream().collect(Collectors.toMap(Thumbnail::getId, identity()));
+      final Map<EntityReference<Thumbnail>, Thumbnail> thumbsByRef = db_.loadAll(
+        loadedEntities.stream().map(properties -> properties.getValue(P_PHOTO__THUMBNAIL).get()).toList(), new ArrayList<>()
+      ).stream().collect(Collectors.toMap(EntityReference::new, identity()));
 
-      return loadedEntities.stream().map(properties -> loadPhoto(properties, thumbsById)).toList();
+      return loadedEntities.stream().map(properties -> loadPhoto(properties, thumbsByRef)).toList();
     } catch (SQLException sqle) {
       throw new RuntimeException(sqle);
     }
   }
 
-  private Photo loadPhoto(EntityToLoad properties, Map<Integer, Thumbnail> thumbsById) {
+  private Photo loadPhoto(EntityToLoad properties, Map<EntityReference<Thumbnail>, Thumbnail> thumbsById) {
     return new Photo(
       properties.getEntityId(),
       properties.getValue(P_BLOB__FILE).get(),
@@ -99,7 +95,7 @@ public class PhotoDbMapper extends DbMapper<Photo> {
     final EntityToStore persistedEntity = dbSetup_.createPersistedEntity(E_PHOTO, photo.getId());
 
     addProperty(persistedEntity, P_BLOB__FILE, photo.getSha256sum());
-    addProperty(persistedEntity, P_PHOTO__THUMBNAIL, photo.getThumbnail().getId());
+    addProperty(persistedEntity, P_PHOTO__THUMBNAIL, new EntityReference<>(photo.getThumbnail()));
     addProperty(persistedEntity, P_BLOB__TYPE, photo.getType());
     persistedEntity.putOptionalProperties(photo.getMetaData());
 

@@ -1,60 +1,69 @@
 package com.bensler.taggy.persist.base;
 import static java.util.function.Function.identity;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import com.bensler.decaf.util.entity.Entity;
+import com.bensler.decaf.util.entity.EntityReference;
 import com.bensler.taggy.persist.base.PersistencyBaseLayer.PropertyTable;
 
 public class EntityPropertyType<JAVA_TYPE, DB_PROPERTY_TYPE> {
 
-  public static Object convertToSingleValue(Collection<Object> dbValues) {
+  public static <JT> JT convertToSingleValue(List<Object> dbValues, Class<JT> clazz) {
     final int dbValuesCount = dbValues.size();
 
     if (dbValuesCount != 1) {
       throw new IllegalArgumentException("Exactly one value expected in param 'dbValues', %s found.".formatted(dbValuesCount));
     } else {
-      return dbValues.stream().findFirst().get();
+      return clazz.cast(dbValues.getFirst());
     }
   }
 
-  public static <T> List<T> castCollection(Collection<Object> dbValues, Class<T> type) {
+  public static <T> List<T> castCollection(List<Object> dbValues, Class<T> type) {
     return dbValues.stream().map(type::cast).toList();
   }
 
-  public static EntityPropertyType<String, String> STRING = create(
-    "STRING", PersistencyBaseLayer.PROPERTY_TABLE_STRING, identity(), dbValues -> String.class.cast(convertToSingleValue(dbValues))
+  public static final EntityPropertyType<String, String> STRING = createSingle(
+    "STRING", PersistencyBaseLayer.PROPERTY_TABLE_STRING, identity(), dbValues -> convertToSingleValue(dbValues, String.class)
   );
-  public static EntityPropertyType<List<String>, String> STRINGS = create(
+  public static final EntityPropertyType<List<String>, String> STRINGS = createMulti(
     "STRINGS", PersistencyBaseLayer.PROPERTY_TABLE_STRING, List::stream, identity(), dbValues -> castCollection(dbValues, String.class)
   );
-  public static EntityPropertyType<Integer, Integer> INTEGER = create(
-    "INTEGER", PersistencyBaseLayer.PROPERTY_TABLE_INTEGER, identity(), dbValues -> Integer.class.cast(convertToSingleValue(dbValues))
+  public static final EntityPropertyType<Integer, Integer> INTEGER = createSingle(
+    "INTEGER", PersistencyBaseLayer.PROPERTY_TABLE_INTEGER, identity(), dbValues -> convertToSingleValue(dbValues,Integer.class)
   );
-  public static EntityPropertyType<List<Integer>, Integer> INTEGERS = create(
+  public static final EntityPropertyType<List<Integer>, Integer> INTEGERS = createMulti(
     "INTEGERS", PersistencyBaseLayer.PROPERTY_TABLE_INTEGER, List::stream, identity(), dbValues -> castCollection(dbValues, Integer.class)
   );
-  public static EntityPropertyType<String, String> BLOB = create(
-    "BLOB", PersistencyBaseLayer.PROPERTY_TABLE_BLOB, identity(), dbValues -> String.class.cast(convertToSingleValue(dbValues))
+  public static final EntityPropertyType<String, String> BLOB = createSingle(
+    "BLOB", PersistencyBaseLayer.PROPERTY_TABLE_BLOB, identity(), dbValues -> convertToSingleValue(dbValues, String.class)
   );
-  public static EntityPropertyType<Integer, Integer> ENTITY = create(
-    "ENTITY", PersistencyBaseLayer.PROPERTY_TABLE_ENTITY, identity(), dbValues -> Integer.class.cast(convertToSingleValue(dbValues))
+          static final EntityPropertyType<Integer, Integer> ENTITY = createSingle(
+    "ENTITY", PersistencyBaseLayer.PROPERTY_TABLE_ENTITY, identity(), dbValues -> convertToSingleValue(dbValues, Integer.class)
   );
-  public static EntityPropertyType<List<Integer>, Integer> ENTITIES = create(
+  public  static final EntityPropertyType<List<Integer>, Integer> ENTITIES = createMulti(
     "ENTITIES", PersistencyBaseLayer.PROPERTY_TABLE_ENTITY, List::stream, identity(), dbValues -> castCollection(dbValues, Integer.class)
   );
 
-  private static <JT, DT> EntityPropertyType<JT, DT> create(String name, PropertyTable<DT> table, Function<JT, DT> writeMapper, Function<Collection<Object>, JT> loadConverter) {
-    return create(name, table, javaValue -> Stream.of(javaValue), writeMapper, loadConverter);
+  public static <JT extends Entity<JT>> EntityPropertyType<EntityReference<JT>, Integer> createEntityType(Class<JT> entityClass, boolean lazy) {
+    EntityPropertyType<EntityReference<JT>, Integer> type = createSingle(
+      "ENTITY", PersistencyBaseLayer.PROPERTY_TABLE_ENTITY, EntityReference::getId,
+      dbValues -> new EntityReference<>(entityClass, convertToSingleValue(dbValues, Integer.class))
+    );
+    return type;
   }
 
-  private static <JT, IT, DT> EntityPropertyType<JT, DT> create(
+  private static <JT, DT> EntityPropertyType<JT, DT> createSingle(String name, PropertyTable<DT> table, Function<JT, DT> writeMapper, Function<List<Object>, JT> loadConverter) {
+    return createMulti(name, table, javaValue -> Stream.of(javaValue), writeMapper, loadConverter);
+  }
+
+  private static <JT, IT, DT> EntityPropertyType<JT, DT> createMulti(
     String name, PropertyTable<DT> table,
     Function<JT, Stream<IT>> decomposer, Function<IT, DT> writeMapper,
-    Function<Collection<Object>, JT> loadConverter
+    Function<List<Object>, JT> loadConverter
   ) {
     return new EntityPropertyType<>(
       name,
@@ -67,13 +76,13 @@ public class EntityPropertyType<JAVA_TYPE, DB_PROPERTY_TYPE> {
 
   private final String name_;
   private final BiConsumer<BiConsumer<PropertyTable<DB_PROPERTY_TYPE>, DB_PROPERTY_TYPE>, JAVA_TYPE> saveConverter_;
-  private final Function<Collection<Object>, JAVA_TYPE> loadConverter_;
+  private final Function<List<Object>, JAVA_TYPE> loadConverter_;
 
   private EntityPropertyType(
     String name, BiConsumer<BiConsumer<PropertyTable<DB_PROPERTY_TYPE>, DB_PROPERTY_TYPE>, JAVA_TYPE> saveConverter,
-    Function<Collection<Object>, JAVA_TYPE> loadConverter
+    Function<List<Object>, JAVA_TYPE> loadConverter
   ) {
-    name_= name;
+    name_ = name;
     saveConverter_ = saveConverter;
     loadConverter_ = loadConverter;
   }
@@ -82,7 +91,7 @@ public class EntityPropertyType<JAVA_TYPE, DB_PROPERTY_TYPE> {
     saveConverter_.accept(tableEntryCollector, value);
   }
 
-  public JAVA_TYPE load(Collection<Object> dbValues) {
+  public JAVA_TYPE load(List<Object> dbValues) {
     return loadConverter_.apply(dbValues);
   }
 

@@ -154,15 +154,16 @@ public class DbAccess {
     });
   }
 
-  public interface PersistentWrite2<RESULT> {
+  public interface PersistentRead<RESULT> {
 
     RESULT runInTxn(Connection con) throws SQLException;
 
   }
 
-  public <RESULT> RESULT runInTxn2(PersistentWrite2<RESULT> write) {
+  public <RESULT> RESULT runInTxn2(PersistentRead<RESULT> write) {
     try {
-      RESULT result = write.runInTxn(connection_);
+      final RESULT result = write.runInTxn(connection_);
+
       connection_.commit();
       return result;
     } catch (SQLException sqle) {

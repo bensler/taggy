@@ -14,14 +14,15 @@ import java.util.stream.Stream;
 
 public class PersistencyBaseLayer {
 
+  @FunctionalInterface
   interface SetPrepStmtValueWrapper<BASE_TYPE> {
 
     void setValue(PreparedStatement stmt, int index, BASE_TYPE value) throws SQLException;
 
   }
 
-  public static final SetPrepStmtValueWrapper<Integer> INTEGER_PROPERTY_PERSISTER = (stmt, index, value) -> stmt.setInt(index, value);
-  public static final SetPrepStmtValueWrapper<String>  STRING_PROPERTY_PERSISTER  = (stmt, index, value) -> stmt.setString(index, value);
+  public static final SetPrepStmtValueWrapper<Integer> INTEGER_PROPERTY_PERSISTER = PreparedStatement::setInt;
+  public static final SetPrepStmtValueWrapper<String>  STRING_PROPERTY_PERSISTER  = PreparedStatement::setString;
 
   public static class PropertyTable<BASE_TYPE> {
 
@@ -29,7 +30,7 @@ public class PersistencyBaseLayer {
     private final String insertStmt_;
     private final SetPrepStmtValueWrapper<BASE_TYPE> valuePersister_;
 
-    PropertyTable(String tableName, SetPrepStmtValueWrapper<BASE_TYPE> valuePersister) {
+    private PropertyTable(String tableName, SetPrepStmtValueWrapper<BASE_TYPE> valuePersister) {
       tableName_ = tableName;
       insertStmt_ = "INSERT INTO %s (entity_id,entity_property_id,value) VALUES (?,?,?)".formatted(tableName_);
       valuePersister_ = valuePersister;

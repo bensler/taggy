@@ -31,15 +31,15 @@ public class EntityToLoad {
     return entityId_;
   }
 
-  public void addValue(BoundEntityProperty property, Object value) {
+  void addValue(BoundEntityProperty property, Object value) {
     properties_.computeIfAbsent(property, lProperty -> new ArrayList<Object>()).add(value);
   }
 
-  public void addOptionalValue(String valueName, String strValue) {
+  void addOptionalValue(String valueName, String strValue) {
     optionalProperties_.put(valueName, strValue);
   }
 
-  public void addRelationship(Direction direction, EntityRelationshipType<?, ?> relationType, Integer otherEntityId) {
+  void addRelationship(Direction direction, EntityRelationshipType<?, ?> relationType, Integer otherEntityId) {
     relationsships.computeIfAbsent(direction, _ -> new HashMap<>())
       .computeIfAbsent(relationType, _ -> new ArrayList<>())
       .add(otherEntityId);

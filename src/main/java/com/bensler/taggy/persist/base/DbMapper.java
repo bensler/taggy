@@ -28,10 +28,13 @@ public abstract class DbMapper<E extends Entity<E>> {
   protected final DbAccess db_;
   protected final DbSetup dbSetup_;
 
-  protected DbMapper(Class<E> entityClass, DbAccess db, DbSetup dbSetup) {
+  protected DbMapper(
+    Class<E> entityClass, DbAccess db, DbSetup dbSetup, EntityType<?> entityType
+  ) {
     entityClass_= entityClass;
     db_ = db;
     dbSetup_ = dbSetup;
+    dbSetup_.registerEntityType(db, entityType);
   }
 
   public abstract List<E> loadAllEntities(List<Integer> ids);
